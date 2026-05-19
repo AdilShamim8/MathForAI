@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Information Theory for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060a12;--bg2:#0b1120;--bg3:#111a2c;--bg4:#182338;
+  --border:#1e3050;--text:#cfe0ff;--muted:#527aaa;
+  --cyan:#00f0ff;--lime:#b3ff5e;--violet:#c77dff;
+  --peach:#ffad7e;--gold:#ffe566;--rose:#ff5e8a;
+  --green:#5effa0;--sky:#7ec8ff;
+  --radius:12px;
+}
+body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.83em;color:var(--cyan)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:272px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:40px 44px;max-width:980px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:22px 18px 16px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,rgba(0,240,255,.06),rgba(179,255,94,.03))}
+.s-sym{font-size:2.4em;margin-bottom:5px;line-height:1}
+.s-title{font-size:.97em;font-weight:700;color:var(--cyan)}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.79em;margin-top:2px}
+.s-sub{font-size:.69em;color:var(--muted);margin-top:5px;line-height:1.4}
+.pg-row{display:flex;justify-content:space-between;font-size:.68em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.pg-bar{height:3px;background:var(--bg3);border-radius:2px}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));border-radius:2px;transition:width .5s ease}
+.nav-wrap{padding:10px 0;flex:1}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:11px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Lexend',sans-serif;font-size:.79em;line-height:1.35;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--cyan);border-left-color:var(--cyan)}
+.nb-n{font-family:'Fira Code',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.7em;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-n{background:var(--cyan);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:28px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:28px;position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,240,255,.06),rgba(179,255,94,.03));pointer-events:none}
+.ch-num{font-family:'Fira Code',monospace;font-size:.68em;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:1.95em;font-weight:800;line-height:1.15;color:var(--text)}
+.ch-title em{color:var(--cyan);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.93em;margin-top:6px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 12px;border-radius:20px;font-size:.7em;font-weight:600;border:1px solid}
+.tc{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,255,.08)}
+.tl{border-color:var(--lime);color:var(--lime);background:rgba(179,255,94,.08)}
+.tv{border-color:var(--violet);color:var(--violet);background:rgba(199,125,255,.08)}
+.tp{border-color:var(--peach);color:var(--peach);background:rgba(255,173,126,.08)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--cyan);background:rgba(0,240,255,.04)}
+.law2{border-left:4px solid var(--rose);background:rgba(255,94,138,.04)}
+.law3{border-left:4px solid var(--gold);background:rgba(255,229,102,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.69em;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'Fira Code',monospace;font-size:.84em;color:var(--sky);line-height:2.1;overflow-x:auto;margin:10px 0;white-space:pre}
+.fc{color:var(--cyan)}.fl2{color:var(--lime)}.fv{color:var(--violet)}.fp{color:var(--peach)}.fg{color:var(--green)}.fy{color:var(--gold)}.fr{color:var(--rose)}.fw{color:var(--text)}
+
+/* ── HIGHLIGHTS ── */
+.hc{color:var(--cyan);font-weight:600}.hl{color:var(--lime);font-weight:600}.hv{color:var(--violet);font-weight:600}.hp{color:var(--peach);font-weight:600}.hg{color:var(--green);font-weight:600}.hy{color:var(--gold);font-weight:600}.hr{color:var(--rose);font-weight:600}.hsk{color:var(--sky);font-weight:600}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(0,240,255,.05);border-left:4px solid var(--cyan);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(255,229,102,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,229,102,.9);font-size:.88em;line-height:1.9}
+.call-r{background:rgba(255,94,138,.05);border-left:4px solid var(--rose);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-v{background:rgba(199,125,255,.05);border-left:4px solid var(--violet);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-l{background:rgba(179,255,94,.04);border-left:4px solid var(--lime);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── BIG FORMULA BOX ── */
+.big-eq{text-align:center;padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin:14px 0}
+.big-eq .eq{font-family:'Fira Code',monospace;font-size:1.15em;color:var(--cyan);display:block;margin-bottom:6px}
+.big-eq .eq-sub{font-size:.8em;color:var(--muted)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.75em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 15px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:500;cursor:pointer;font-family:'Lexend',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--cyan);border-bottom-color:transparent}
+.qa-a{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-a{transform:rotate(90deg);color:var(--cyan)}
+.ap{display:none;padding:14px 15px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.85}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,229,102,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(255,229,102,.04);border:1px solid rgba(255,229,102,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--gold);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--cyan);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.71em;color:var(--muted);text-align:center;margin-top:6px;font-family:'Fira Code',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--cyan);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.78em;font-family:'Lexend',sans-serif}
+.cval{font-family:'Fira Code',monospace;font-size:.79em;color:var(--cyan);min-width:48px}
+.cout{font-family:'Fira Code',monospace;font-size:.82em;color:var(--cyan);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--rose);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(179,255,94,.04);border:1px solid rgba(179,255,94,.15);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--lime);font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── ANALOGY ── */
+.analogy{background:linear-gradient(135deg,rgba(0,240,255,.05),rgba(179,255,94,.04));border:1px solid rgba(0,240,255,.18);border-radius:10px;padding:18px;margin:13px 0}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--sky);text-decoration:none;font-size:.79em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--sky);background:var(--bg4)}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'Lexend',sans-serif;font-size:.87em}
+@media(max-width:760px){.mob{display:block}.sb{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* ── SPECIAL: INFO FLOW ── */
+.flow-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0}
+.flow-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.84em;text-align:center;min-width:100px}
+.flow-arr{color:var(--muted);font-size:1.2em}
+
+/* ── BITS DISPLAY ── */
+.bits-row{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.bit{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:.75em;font-weight:700}
+.bit-0{background:rgba(0,240,255,.12);color:var(--cyan);border:1px solid rgba(0,240,255,.3)}
+.bit-1{background:rgba(179,255,94,.12);color:var(--lime);border:1px solid rgba(179,255,94,.3)}
+
+/* ── COMPARISON TABLE ── */
+.cmp{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin:14px 0}
+.cmp-cell{padding:14px;font-size:.85em;border-bottom:1px solid var(--border)}
+.cmp-cell:last-child,.cmp-cell:nth-last-child(2),.cmp-cell:nth-last-child(3){border-bottom:none}
+.cmp-hd{background:var(--bg3);font-weight:700;font-size:.78em;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Entropy</option>
+    <option value="1">02 — Cross-Entropy</option>
+    <option value="2">03 — KL Divergence</option>
+    <option value="3">04 — Information Gain</option>
+    <option value="4">05 — Why Cross-Entropy for Classification</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sb">
+  <div class="s-brand">
+    <div class="s-sym">𝐻</div>
+    <div class="s-title">Information Theory</div>
+    <div class="s-bn">তথ্য তত্ত্ব</div>
+    <div class="s-sub">Modern ML Intuition · AI Engineer's Deep Dive</div>
+    <div class="pg-row"><span>Progress</span><span id="pp">20%</span></div>
+    <div class="pg-bar"><div class="pg-fill" id="pf" style="width:20%"></div></div>
+  </div>
+  <div class="nav-wrap" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Entropy","Cross-Entropy","KL Divergence","Information Gain","Why Cross-Entropy for Classification"];
+
+const TOPICS=[
+
+/* ══════════════════════════════════════════════════════
+   01  ENTROPY
+══════════════════════════════════════════════════════ */
+{title:"<em>Entropy</em>",bn:"তথ্য-অনিশ্চয়তা (এন্ট্রপি)",
+tags:[{t:"Shannon H(X)",c:"tc"},{t:"Uncertainty",c:"tl"},{t:"Bits",c:"tv"},{t:"Self-Information",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Two fair coins: Coin A is fair (P(H)=0.5). Coin B is biased (P(H)=0.99). <strong>Before reading</strong>: which coin has higher entropy? Which flip gives you more "information"?</p>
+  <p style="margin-top:9px;color:var(--cyan)">✅ <strong>Coin A (fair coin)</strong> has higher entropy. When P(H)=0.5, the outcome is completely uncertain — maximum surprise! Coin B almost always shows heads — low uncertainty, so each flip gives almost no new information. This is the core of Shannon's insight: <strong>entropy = average surprise = average information content.</strong></p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing entropy with disorder in thermodynamics.</strong> Shannon entropy and thermodynamic entropy are related (Boltzmann) but not identical. In ML we use Shannon entropy exclusively — it measures information uncertainty, not physical disorder.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Thinking high entropy = bad.</strong> High entropy in data = rich, diverse, informative dataset (good for training!). Low entropy = repetitive, little variation (bad for learning). High entropy in a model's output distribution = uncertainty in predictions (could be good or bad, depending on context).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Forgetting that entropy is always ≥ 0.</strong> Entropy can never be negative. H(X)=0 only when one outcome has probability 1 (certainty). The log of a probability (≤1) is ≤ 0, but the negative sign in the formula flips it: H = −Σ p·log(p) ≥ 0.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 SELF-INFORMATION — The Building Block</div>
+  <p>Before defining entropy, we need <span class="hc">self-information</span>: the amount of surprise in learning that event x occurred.</p>
+  <div class="big-eq">
+    <span class="eq">I(x) = −log₂ P(x) = log₂(1/P(x)) bits</span>
+    <span class="eq-sub">Rare event (P small) → large surprise (high information). Certain event (P=1) → zero surprise (zero information).</span>
+  </div>
+  <table>
+    <tr><th>Event</th><th>Probability P(x)</th><th>Self-Information I(x)</th><th>Interpretation</th></tr>
+    <tr><td>Sun rises tomorrow</td><td>≈ 1.0</td><td>≈ 0 bits</td><td>No surprise — you already knew</td></tr>
+    <tr><td>Fair coin = Heads</td><td>0.5</td><td>1 bit</td><td>Exactly 1 binary question answered</td></tr>
+    <tr><td>Fair die = 6</td><td>1/6</td><td>2.58 bits</td><td>Need ~2.58 binary questions</td></tr>
+    <tr><td>Lottery jackpot</td><td>1/14M</td><td>≈ 23.7 bits</td><td>Massive surprise!</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 SHANNON ENTROPY — Average Surprise</div>
+  <p><span class="hc">Entropy H(X)</span> is the <strong>expected value of self-information</strong> — the average surprise across all outcomes.</p>
+  <div class="big-eq">
+    <span class="eq">H(X) = −Σₓ P(x) · log₂ P(x) = E[−log P(X)]</span>
+    <span class="eq-sub">For K events with probabilities p₁, p₂, ..., pK. Convention: 0·log(0) = 0</span>
+  </div>
+  <p style="margin-top:14px"><strong>Key Properties:</strong></p>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(0,240,255,.3)">
+      <div class="gbox-t hc">H ≥ 0 always</div>
+      <p style="font-size:.85em">Entropy is non-negative. H=0 only when one outcome has probability 1 (complete certainty, zero surprise).</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(179,255,94,.3)">
+      <div class="gbox-t hl">H maximized by Uniform</div>
+      <p style="font-size:.85em">Maximum entropy = log₂(K) bits when all K outcomes are equally likely. Maximum uncertainty = maximum entropy.</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(199,125,255,.3)">
+      <div class="gbox-t hv">Units depend on log base</div>
+      <p style="font-size:.85em">log₂ → bits (binary). log_e → nats (natural). log₁₀ → hartleys. ML usually uses natural log (nats) or log₂ (bits).</p>
+    </div>
+  </div>
+  <p style="margin-top:16px"><strong>Binary entropy — the most important special case:</strong></p>
+  <div class="fx">H(p) = −p·log₂(p) − (1−p)·log₂(1−p)   for binary variable X ~ Bernoulli(p)
+H(0)   = 0   (certain to be 0 — no surprise)
+H(0.5) = 1   (maximum uncertainty — 1 bit)
+H(1)   = 0   (certain to be 1 — no surprise)
+Peak at p=0.5: you need exactly 1 binary question to determine the outcome</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Entropy (এন্ট্রপি)</strong> হলো একটা random variable কতটা অনিশ্চিত বা কতটা তথ্যসমৃদ্ধ তার গড় পরিমাপ।</p>
+  <div class="call-bn">💡 সহজ উদাহরণ: আবহাওয়ার পূর্বাভাস।
+• সবসময় রোদ থাকে এমন মরুভূমিতে: P(রোদ)≈1 → H≈0 bits → কোনো অনিশ্চয়তা নেই। weather forecast জানা = কোনো নতুন তথ্য নেই।
+• বাংলাদেশের বর্ষাকাল: P(বৃষ্টি)≈0.5 → H≈1 bit → সর্বোচ্চ অনিশ্চয়তা। Weather forecast শোনা = মূল্যবান তথ্য!</div>
+  <p class="bn" style="margin-top:12px"><strong>Bits মানে কি?</strong></p>
+  <p class="bn">H(X) = k bits মানে: X-এর মান জানতে গড়ে k টা হ্যাঁ/না প্রশ্ন লাগবে।</p>
+  <p class="bn">• ১ টা fair coin flip → H = 1 bit → ১টা প্রশ্ন ("Head এসেছে?")</p>
+  <p class="bn">• ১টা fair dice roll → H = log₂(6) ≈ 2.58 bits → ≈ 2.58 টা প্রশ্ন</p>
+  <p class="bn" style="margin-top:10px"><strong>ML-এ Entropy:</strong></p>
+  <p class="bn">• Cross-entropy loss = true label-এর entropy + model-এর কারণে extra surprise</p>
+  <p class="bn">• Decision tree: এমন feature বেছে নেয় যা data-কে সবচেয়ে বেশি "তথ্যবহুলভাবে" ভাগ করে</p>
+  <p class="bn">• VAE: latent space entropy maximize করলে diverse generation হয়</p>
+</div>
+
+<!-- INTERACTIVE ENTROPY VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Binary Entropy Curve</div>
+  <p style="font-size:.85em;color:var(--muted);margin-bottom:12px">Explore how entropy changes as the probability of an event changes</p>
+  <div class="ctrl">
+    <label>Probability p of outcome 1</label>
+    <input type="range" id="ent-p" min="1" max="99" value="50">
+    <span class="cval" id="ent-pv">0.50</span>
+  </div>
+  <div class="cw">
+    <canvas id="ent-canvas" width="580" height="240" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="ent-lbl">Binary entropy H(p) — the amount of uncertainty in a Bernoulli(p) variable</div>
+  </div>
+  <div><span class="cout" id="ent-out">H(0.50) = 1.000 bits — maximum uncertainty</span></div>
+  <div style="margin-top:12px;font-size:.84em;color:var(--muted)">
+    ⚡ Notice: H is maximized at p=0.5 (completely fair coin — maximum uncertainty). H→0 as p→0 or p→1 (almost certain outcomes — minimum uncertainty).
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 WORKED EXAMPLES</div>
+  <div class="fl">Example 1: Entropy of a fair coin</div>
+  <div class="fx">P(H)=0.5, P(T)=0.5
+H = −0.5·log₂(0.5) − 0.5·log₂(0.5)
+  = −0.5·(−1) − 0.5·(−1) = 0.5 + 0.5 = <span class="fc">1.0 bit</span>
+Interpretation: need exactly 1 yes/no question to determine outcome</div>
+  <div class="fl">Example 2: Entropy of a fair 4-sided die</div>
+  <div class="fx">P(1)=P(2)=P(3)=P(4)=0.25
+H = −4 × 0.25·log₂(0.25) = −4 × 0.25×(−2) = <span class="fc">2 bits</span>
+Interpretation: need 2 yes/no questions (binary search among 4 outcomes)</div>
+  <div class="fl">Example 3: Entropy of an unfair coin P(H)=0.9</div>
+  <div class="fx">H = −0.9·log₂(0.9) − 0.1·log₂(0.1)
+  = −0.9×(−0.152) − 0.1×(−3.322)
+  = 0.137 + 0.332 = <span class="fc">0.469 bits</span>
+Less than 1 bit! Almost certain → most flips give little information</div>
+  <div class="fl">Example 4: Softmax output entropy (model uncertainty)</div>
+  <div class="fx">Model A (confident):   [0.98, 0.01, 0.01] → H ≈ 0.14 bits  (very certain)
+Model B (uncertain):   [0.34, 0.33, 0.33] → H ≈ 1.58 bits  (near-maximum for 3 classes)
+Model C (very certain):[0.999, 0.0005, 0.0005] → H ≈ 0.01 bits</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Entropy Role</th></tr>
+  <tr><td>Decision tree splitting</td><td>Minimize entropy after split (maximize information gain)</td></tr>
+  <tr><td>Model confidence</td><td>Low output entropy = confident prediction; high = uncertain</td></tr>
+  <tr><td>Variational Autoencoders</td><td>Maximize entropy of latent distribution for diversity</td></tr>
+  <tr><td>Reinforcement Learning</td><td>Entropy regularization: H(π) bonus encourages exploration</td></tr>
+  <tr><td>Data compression</td><td>Shannon's source coding theorem: entropy = minimum bits needed</td></tr>
+  <tr><td>Label smoothing</td><td>Adds entropy to one-hot labels; prevents overconfidence</td></tr>
+  <tr><td>Calibration</td><td>Well-calibrated model: output entropy matches true uncertainty</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: In reinforcement learning, why add an entropy bonus H(π) to the reward? What does it encourage? <span class="qa-a">▶</span></button>
+<div class="ap">Maximum entropy RL objective: max E[Σ r(s,a)] + α·H(π(·|s)). The entropy bonus encourages the policy to <strong>explore</strong> — to not collapse onto a single action too early. Benefits: (1) Prevents premature convergence to suboptimal deterministic policies. (2) Encourages trying all actions, especially in early training. (3) Makes the policy more robust — hedge against environment uncertainty. (4) Provides implicit regularization — avoids overfitting to local optima. Used in: SAC (Soft Actor-Critic), RLHF (KL penalty is equivalent). The α controls exploration-exploitation tradeoff: large α = more exploration, small α = more exploitation. At convergence, α→0 for greedy policy.<div class="a-bn">বাংলায়: Entropy bonus policy-কে explore করতে উৎসাহ দেয় — একটা action-এ আটকে না থেকে সব action try করে। SAC, RLHF-এ ব্যবহার হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is label smoothing and how does it relate to entropy? <span class="qa-a">▶</span></button>
+<div class="ap">Label smoothing replaces one-hot target [0,0,1,0] with soft target [ε/K, ε/K, 1−ε+ε/K, ε/K] for small ε (e.g., 0.1). Effect: the target is no longer a Dirac delta (zero entropy) but has some entropy. This prevents the model from being overconfident — a model trained on one-hot targets can push cross-entropy loss to −∞ by making the correct class logit → ∞. Label smoothing caps this. Information theory view: we're adding ε·H(Uniform) to the target entropy — mixing in maximum-entropy noise. Empirically: improves calibration, slight accuracy improvement (BERT, Inception-v3 use it). Downside: slightly slower convergence, harder to distill (soft targets conflict).<div class="a-bn">বাংলায়: Label smoothing one-hot label-এর পরিবর্তে soft label দেয়। এটা model-কে overconfident হতে রোধ করে — target-এ কিছুটা entropy inject করা হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: How is entropy connected to data compression? Why does it matter for understanding tokenization in LLMs? <span class="qa-a">▶</span></button>
+<div class="ap">Shannon's Source Coding Theorem: the minimum average bits needed to encode a message from distribution P is exactly H(P). You cannot compress below the entropy — it's the fundamental lower bound. If you use an encoding scheme Q (e.g., your tokenizer), average code length ≥ H(P). The wasted bits = cross-entropy H(P,Q) − H(P) = KL(P||Q) ≥ 0. LLM tokenization: BPE/WordPiece tokenizers try to minimize expected token count — this IS entropy minimization over the natural language distribution. A better tokenizer for English text has fewer tokens per character = lower entropy encoding. LLM perplexity = 2^H where H is cross-entropy of model Q vs true distribution P. Lower perplexity = the model assigns high probability to real text = compression closer to the entropy bound.<div class="a-bn">বাংলায়: Entropy = minimum bits for encoding। LLM perplexity = 2^H(cross-entropy)। Better model = better compression = perplexity closer to 2^H(true distribution)।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute</div>
+<p>Compute H in bits: (a) P(X=1)=0.25, P(X=2)=0.25, P(X=3)=0.5 (b) P(A)=0.8, P(B)=0.2</p>
+<div class="ex-ans">(a) H=−0.25log₂(0.25)−0.25log₂(0.25)−0.5log₂(0.5)=−0.25(−2)−0.25(−2)−0.5(−1)=0.5+0.5+0.5=1.5 bits (b) H=−0.8log₂(0.8)−0.2log₂(0.2)=0.8×0.322+0.2×2.322=0.258+0.464=0.722 bits</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Interpretation</div>
+<p>An email spam classifier outputs P(spam)=0.95 for an email. A second model outputs P(spam)=0.55. Which model is more "surprised" by its own prediction? Which is more useful for deployment?</p>
+<div class="ex-ans">H(model1)=−0.95log₂(0.95)−0.05log₂(0.05)≈0.286 bits (low entropy, confident). H(model2)=−0.55log₂(0.55)−0.45log₂(0.45)≈0.993 bits (near-max entropy, uncertain). Model 1 more confident → better for deployment. Model 2 is uncertain → needs threshold tuning or abstaining. High entropy output = model is unsure = flag for human review.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=ErfnhcEV1O8" target="_blank">🎬 3B1B: Entropy in Information Theory</a>
+<a class="rl" href="https://colah.github.io/posts/2015-09-Visual-Information/" target="_blank">🎯 Colah: Visual Information Theory</a>
+<a class="rl" href="https://www.youtube.com/watch?v=0GCGaw0QOhA" target="_blank">🎬 StatQuest: Entropy</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   02  CROSS-ENTROPY
+══════════════════════════════════════════════════════ */
+{title:"<em>Cross-Entropy</em>",bn:"ক্রস-এন্ট্রপি",
+tags:[{t:"H(P,Q)",c:"tc"},{t:"Loss Function",c:"tl"},{t:"NLL",c:"tv"},{t:"Bits to Encode",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>True label: y=[0,0,1,0] (class 3). Model A predicts: q=[0.1, 0.1, 0.7, 0.1]. Model B predicts: q=[0.25, 0.25, 0.25, 0.25]. Before computing: which has lower cross-entropy loss?</p>
+  <p style="margin-top:9px;color:var(--cyan)">✅ <strong>Model A</strong>. Cross-entropy = −Σ yᵢ log qᵢ = −log(q_correct_class). Model A: −log(0.7)≈0.357. Model B: −log(0.25)=1.386. Model A is much more confident about the correct class → lower cross-entropy. Key insight: when y is one-hot, cross-entropy = −log(predicted probability of the TRUE class). Only the correct class's probability matters!</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Cross-entropy ≥ Entropy always.</strong> H(P,Q) = H(P) + KL(P||Q) ≥ H(P). The cross-entropy is the entropy of the true distribution PLUS a penalty for how different Q is from P. It can only equal H(P) when Q=P exactly. In practice, your model Q ≠ P → cross-entropy > entropy.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Cross-entropy is not symmetric.</strong> H(P,Q) ≠ H(Q,P). P is the TRUE distribution (fixed), Q is what your MODEL predicts (what you optimize). They play different roles. Swapping them gives a completely different loss with different optimization properties.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Numerical instability: log(0).</strong> If model predicts q=0 for the true class, loss = −log(0) = ∞. Always add ε=1e-7 or use PyTorch's <code>nn.CrossEntropyLoss</code> which internally uses log-softmax for numerical stability.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 DEFINITION — Using the Wrong Code</div>
+  <p>Cross-entropy H(P, Q) answers: <span class="hc">"How many bits do you need on average to encode events from the TRUE distribution P, if you use an encoding designed for the ESTIMATED distribution Q?"</span></p>
+  <div class="big-eq">
+    <span class="eq">H(P, Q) = −Σₓ P(x) · log Q(x) = Eₚ[−log Q(X)]</span>
+    <span class="eq-sub">P = true distribution (data) · Q = model's predicted distribution</span>
+  </div>
+  <div class="call"><strong>The decomposition — most important equation to memorize:</strong><br>
+    <code>H(P, Q) = H(P) + KL(P || Q)</code><br>
+    <span style="font-size:.88em;color:var(--muted)">Cross-entropy = True entropy + Extra bits wasted due to wrong model</span>
+  </div>
+  <p style="margin-top:14px"><strong>For one-hot labels (most classification tasks):</strong></p>
+  <div class="fx">True label: P = [0, 0, 1, 0, 0]  (one-hot, class 3 is correct)
+Model prediction: Q = [q₁, q₂, q₃, q₄, q₅]  (softmax output)
+H(P,Q) = −Σᵢ P(i)·log Q(i) = −1·log(q₃) − 0 − 0 − 0 − 0
+        = <span class="fc">−log(q_correct_class)</span>  ← ONLY the correct class probability matters!
+H(P) = −1·log(1) = 0 bits  (one-hot has zero entropy — no uncertainty in labels)
+→ H(P,Q) = 0 + KL(P||Q) = KL(P||Q) in the one-hot case!</div>
+  <p style="margin-top:14px"><strong>Intuition — the encoding story:</strong></p>
+  <div class="analogy">
+    <p>Imagine you're encoding English words with a code designed for French. Some words are common in both (P≈Q for those words) — they encode efficiently. But English-specific words (P large, Q small) are encoded with long codes (Q assigns low probability → many bits). <strong>Cross-entropy = average code length when the code doesn't match the data.</strong></p>
+    <p class="bn call-bn" style="margin-top:10px;padding:10px">বাংলায়: তুমি বাংলা শব্দ encode করছ কিন্তু code তৈরি হয়েছে ইংরেজির জন্য। কিছু শব্দ efficient-এ encode হবে, কিছু অনেক লম্বা code পাবে। Cross-entropy = এই mismatch-এর গড় খরচ।</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Cross-Entropy H(P, Q)</strong> হলো: সত্যিকারের distribution P থেকে আসা ঘটনাগুলো encode করতে কতটা bits লাগবে, যদি encoding model Q-এর ভিত্তিতে তৈরি হয়।</p>
+  <div class="call-bn">💡 গল্পের মাধ্যমে বোঝা:
+মনে করো তুমি একটা secret code তৈরি করছ বার্তা পাঠাতে। সেরা code = যে ঘটনা বেশি হয় তাকে ছোট code দাও।
+• সত্যিকারের ভাষা P: 'a' = 70% frequent, 'b' = 30%
+• তোমার model Q ভাবে: 'a' = 50%, 'b' = 50%
+• তোমার code: 'a' → 1 bit, 'b' → 1 bit (equal কারণ Q বলছে সমান)
+• আসলে কত লাগা উচিত: 'a' → 0.515 bits, 'b' → 1.737 bits
+• Cross-entropy = তোমার ভুল অনুমানের জন্য বাড়তি খরচ!</div>
+  <p class="bn" style="margin-top:12px"><strong>Classification Loss-এ:</strong></p>
+  <p class="bn">• True label (P) = one-hot vector (zero entropy — আমরা জানি সঠিক class)</p>
+  <p class="bn">• Model prediction (Q) = softmax output</p>
+  <p class="bn">• Loss = −log(সঠিক class-এর predicted probability)</p>
+  <p class="bn">• Loss minimize করা = সঠিক class-এর probability maximize করা!</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 CROSS-ENTROPY VARIANTS</div>
+  <div class="fl">Binary cross-entropy (2 classes)</div>
+  <div class="fx"><span class="fc">H(y, ŷ)</span> = −y·log(ŷ) − (1−y)·log(1−ŷ)
+where y ∈ {0,1} is true label, ŷ ∈ (0,1) is sigmoid output
+
+y=1: loss = −log(ŷ)      → want ŷ close to 1
+y=0: loss = −log(1−ŷ)   → want ŷ close to 0
+Gradient w.r.t. logit z (before sigmoid): ∂L/∂z = ŷ − y  ← beautifully clean!</div>
+  <div class="fl">Categorical cross-entropy (K classes)</div>
+  <div class="fx"><span class="fc">H(y, ŷ)</span> = −Σₖ yₖ·log(ŷₖ)
+For one-hot y: = −log(ŷ_{true_class})   ← only correct class contributes!
+
+Gradient w.r.t. logit zₖ (before softmax):
+∂L/∂zₖ = ŷₖ − yₖ  (ŷ_predicted − y_true)  ← same clean form!</div>
+  <div class="fl">PyTorch implementation (numerically stable)</div>
+  <div class="fx">import torch.nn as nn
+# nn.CrossEntropyLoss = log_softmax + NLLLoss (numerically stable!)
+criterion = nn.CrossEntropyLoss()
+loss = criterion(logits, targets)  # logits: raw, targets: class indices
+# NEVER apply softmax before nn.CrossEntropyLoss — it's done internally!</div>
+</div>
+
+<!-- INTERACTIVE CROSS-ENTROPY VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Cross-Entropy vs Entropy</div>
+  <p style="font-size:.85em;color:var(--muted);margin-bottom:12px">3-class problem: true class = class 1. Adjust model confidence and see how cross-entropy compares to true entropy</p>
+  <div class="ctrl">
+    <label>P(class 1 correct) — model confidence</label>
+    <input type="range" id="ce-p" min="1" max="99" value="70">
+    <span class="cval" id="ce-pv">0.70</span>
+  </div>
+  <div class="cw">
+    <canvas id="ce-canvas" width="580" height="220" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="ce-lbl">Cross-entropy = H(P) + KL(P||Q). Since P is one-hot, H(P)=0, so CE = KL(P||Q)</div>
+  </div>
+  <div><span class="cout" id="ce-out">Cross-entropy = ...</span></div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>Task</th><th>Cross-Entropy Form</th><th>What It Minimizes</th></tr>
+  <tr><td>Binary classification</td><td>−y log(σ(z)) − (1−y)log(1−σ(z))</td><td>Probability of wrong class</td></tr>
+  <tr><td>Multi-class classification</td><td>−log(softmax(z)_y)</td><td>NLL of true class</td></tr>
+  <tr><td>Language model (LLM)</td><td>−(1/T)Σₜ log P(wₜ|w<t)</td><td>Perplexity of next token</td></tr>
+  <tr><td>Knowledge distillation</td><td>H(p_teacher, p_student)</td><td>Student learns teacher's soft distribution</td></tr>
+  <tr><td>VAE (ELBO)</td><td>E[−log P(x|z)] + KL(q||p)</td><td>Reconstruction + regularization</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: How is cross-entropy loss related to Maximum Likelihood Estimation (MLE)? <span class="qa-a">▶</span></button>
+<div class="ap">MLE: θ* = argmax P(data|θ) = argmax Π P(yᵢ|xᵢ;θ). Taking log: argmax Σ log P(yᵢ|xᵢ;θ). For categorical: P(y|x;θ) = softmax(f(x;θ))_y. So: argmax Σ log softmax(f(xᵢ;θ))_{yᵢ} = argmin Σ −log softmax(f(xᵢ;θ))_{yᵢ} = argmin cross-entropy loss. <strong>Cross-entropy loss IS negative log-likelihood IS MLE under Categorical distribution.</strong> They are mathematically identical. This justifies using cross-entropy — it's not arbitrary, it's the theoretically correct loss for categorical data under MLE principle.<div class="a-bn">বাংলায়: Cross-entropy minimize = Categorical distribution-এর likelihood maximize। এরা mathematically identical — cross-entropy = MLE for classification।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What happens when you use cross-entropy for language model training? What is perplexity? <span class="qa-a">▶</span></button>
+<div class="ap">Language model trained to predict next token: minimize H = (1/T)Σₜ −log P(wₜ|w₁,...,wₜ₋₁; θ). This is the average cross-entropy per token. Perplexity = 2^H (if using log₂) or e^H (if using natural log). Interpretation: perplexity ≈ "effective vocabulary size the model is choosing from at each step." Perplexity=10 → model is as uncertain as if choosing from 10 equally likely options. Lower perplexity = better model. Human-level English perplexity ≈ 15-30 bits. GPT-4 achieves remarkably low perplexity. Perplexity is the standard LLM metric because it directly measures how well the model compresses/predicts text — via Shannon's connection between entropy and compression.<div class="a-bn">বাংলায়: Perplexity = 2^(cross-entropy per token)। কম perplexity = ভালো language model। GPT-4 = low perplexity = text ভালো predict করে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute Cross-Entropy</div>
+<p>True: y=[1,0,0,0]. Predictions: A=[0.7,0.1,0.1,0.1], B=[0.4,0.3,0.2,0.1], C=[0.1,0.3,0.3,0.3]. Rank by cross-entropy loss (lowest to highest).</p>
+<div class="ex-ans">A: −log(0.7)=0.357. B: −log(0.4)=0.916. C: −log(0.1)=2.303. Ranked: A < B < C. A is best (most confident about correct class). C is worst (only 10% confidence in correct class). Note: only the correct class probability matters for one-hot labels!</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Gradient Intuition</div>
+<p>Softmax output for 3 classes: [0.7, 0.2, 0.1]. True class = 0. Compute the gradient ∂L/∂zᵢ for each logit zᵢ.</p>
+<div class="ex-ans">Gradient ∂L/∂zₖ = ŷₖ − yₖ. Class 0 (correct): 0.7−1=−0.3. Class 1: 0.2−0=+0.2. Class 2: 0.1−0=+0.1. Gradient update will push logit 0 UP (negative gradient) and logits 1,2 DOWN (positive gradients) → increases P(class 0). This elegant gradient is why softmax+CE works so well.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://colah.github.io/posts/2015-09-Visual-Information/" target="_blank">🎯 Colah: Visual Information Theory</a>
+<a class="rl" href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html" target="_blank">🔥 PyTorch CrossEntropyLoss Docs</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   03  KL DIVERGENCE
+══════════════════════════════════════════════════════ */
+{title:"KL <em>Divergence</em>",bn:"কেএল ডাইভার্জেন্স",
+tags:[{t:"KL(P||Q)",c:"tc"},{t:"Non-symmetric",c:"tl"},{t:"VAE / RLHF",c:"tv"},{t:"Relative Entropy",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>In RLHF (training ChatGPT/Claude), the objective includes a KL penalty: maximize reward − β·KL(π_RL || π_SFT). Why does swapping to KL(π_SFT || π_RL) give a fundamentally different training behavior?</p>
+  <p style="margin-top:9px;color:var(--cyan)">✅ KL is <strong>asymmetric</strong>! KL(π_RL || π_SFT) = "forward KL" → RL policy stays close to SFT in places where RL assigns probability (mode-seeking). KL(π_SFT || π_RL) = "reverse KL" → RL policy must cover everywhere SFT assigns probability (mean-seeking). RLHF uses forward KL (current formulation) because you want the RL policy to not go far from its starting point — a safety constraint. Reverse KL would require the model to cover all SFT behaviors, which is much harder to satisfy.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Calling KL a "distance" or "metric."</strong> KL is NOT a true distance metric — it violates symmetry (KL(P||Q) ≠ KL(Q||P)) and triangle inequality. It's a "divergence" — measures how much one distribution differs from another in one specific direction. Use Jensen-Shannon divergence (symmetric) if you need a true metric.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>KL(P||Q) = ∞ when Q(x)=0 but P(x)>0.</strong> If your model assigns zero probability to an event that actually happens, KL divergence is infinite! In practice: numerical issues arise. Solution: Laplace smoothing, add ε to Q, or use architectures where Q > 0 everywhere (softmax always > 0).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing forward and reverse KL.</strong> Minimizing KL(P||Q) (forward) = mode-seeking (Q tries to capture where P is concentrated, ignoring P's tails). Minimizing KL(Q||P) (reverse) = mean-seeking (Q must cover all of P's support). Different behavior, different use cases.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 DEFINITION — The "Extra Cost" of Being Wrong</div>
+  <p><span class="hc">KL Divergence</span> measures how many <strong>extra bits</strong> you need on average when using distribution Q to encode data actually generated by distribution P.</p>
+  <div class="big-eq">
+    <span class="eq">KL(P || Q) = Σₓ P(x) · log(P(x)/Q(x)) = Eₚ[log(P/Q)]</span>
+    <span class="eq-sub">Always ≥ 0. Equal to 0 if and only if P = Q everywhere.</span>
+  </div>
+  <div class="call"><strong>The fundamental relationship — commit this to memory:</strong><br>
+    <code>H(P, Q) = H(P) + KL(P || Q)</code><br>
+    <span style="color:var(--muted);font-size:.88em">Cross-Entropy = True Entropy + KL divergence. The KL term is the "extra cost" of using the wrong distribution.</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Forward vs Reverse KL — crucially different behavior:</strong></p>
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(0,240,255,.35)">
+      <div class="gbox-t hc">Forward KL(P||Q) — "mode-seeking"</div>
+      <p style="font-size:.85em">Q must assign probability wherever P does. <br>Q is "zero-forcing" toward high-P regions.<br>When P is multimodal: Q picks ONE mode.<br>Minimizing this = making Q match where P concentrates.<br><br><strong>Used in:</strong> MLE training, VAE (from Q's side), RLHF penalty</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(199,125,255,.35)">
+      <div class="gbox-t hv">Reverse KL(Q||P) — "mean-seeking"</div>
+      <p style="font-size:.85em">Q must cover everywhere P has probability.<br>Q is "zero-avoiding" in low-P regions.<br>When P is multimodal: Q spreads to cover ALL modes.<br>Minimizing this = making Q broad enough to cover P.<br><br><strong>Used in:</strong> Variational inference (ELBO), mean-field VI</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>KL Divergence</strong> বলে: P distribution থেকে data encode করতে Q-ভিত্তিক code ব্যবহার করলে কত <em>বাড়তি</em> bits লাগবে।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি বাংলা বই compress করছ।
+• Optimal code (P জেনে বানানো): গড়ে ৪.২ bits per character
+• English-optimized code (Q, বাংলা না জেনে বানানো): গড়ে ৫.৮ bits per character
+• KL(P||Q) = 5.8 − 4.2 = 1.6 bits extra per character = "ভুল model-এর দাম"
+KL = 0 হলে: Q = P সঠিকভাবে শিখেছে। KL > 0 হলে: আরো শেখার সুযোগ আছে।</div>
+  <p class="bn" style="margin-top:12px"><strong>Non-symmetry কেন গুরুত্বপূর্ণ?</strong></p>
+  <p class="bn">KL(P||Q) ≠ KL(Q||P) — ক্রম গুরুত্বপূর্ণ!</p>
+  <p class="bn">• KL(P||Q): P-এর চোখ দিয়ে দেখা। "P-এর data Q দিয়ে কতটা ভালো explain হয়?"</p>
+  <p class="bn">• KL(Q||P): Q-এর চোখ দিয়ে দেখা। "Q-এর data P দিয়ে কতটা ভালো explain হয়?"</p>
+  <p class="bn">• VAE-তে ELBO: reverse KL minimize করা হয় (Q covers P)</p>
+  <p class="bn">• RLHF-তে: forward KL — RL policy P থেকে দূরে না যায়</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS — KEY RESULTS</div>
+  <div class="fl">KL divergence — properties and computation</div>
+  <div class="fx"><span class="fc">KL(P||Q)</span> = Σₓ P(x)·log(P(x)/Q(x))   [discrete]
+              = ∫ p(x)·log(p(x)/q(x)) dx   [continuous]
+Key properties:
+  KL(P||Q) ≥ 0        ← Gibbs' inequality (zero iff P=Q)
+  KL(P||Q) ≠ KL(Q||P) ← NOT symmetric
+  KL(P||Q) = H(P,Q) − H(P)  ← cross-entropy decomposition</div>
+  <div class="fl">KL for two Gaussians (closed form — critical for VAE)</div>
+  <div class="fx">KL(N(μ₁,σ₁²) || N(μ₂,σ₂²)) =
+  log(σ₂/σ₁) + (σ₁²+(μ₁−μ₂)²)/(2σ₂²) − 1/2
+
+Special case — VAE: KL(N(μ,σ²) || N(0,1)) =
+  <span class="fc">−½ Σⱼ (1 + log σⱼ² − μⱼ² − σⱼ²)</span>
+This is computed analytically — no sampling needed for this term!</div>
+  <div class="fl">Jensen-Shannon Divergence — symmetric version</div>
+  <div class="fx"><span class="fc">JSD(P||Q)</span> = ½·KL(P||M) + ½·KL(Q||M)   where M = ½(P+Q)
+Properties: 0 ≤ JSD ≤ 1,  JSD(P||Q) = JSD(Q||P)  ← symmetric!
+√JSD is a true metric (Jensen-Shannon distance)
+Used in: GANs (original formulation maximizes JSD)</div>
+</div>
+
+<!-- INTERACTIVE KL DIVERGENCE VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — KL Divergence Visualizer</div>
+  <p style="font-size:.85em;color:var(--muted);margin-bottom:12px">Compare two Gaussian distributions and see how KL divergence changes</p>
+  <div class="ctrl">
+    <label>P mean μ₁</label>
+    <input type="range" id="kl-mu1" min="-30" max="30" value="0">
+    <span class="cval" id="kl-mu1v">0.0</span>
+    <label>Q mean μ₂</label>
+    <input type="range" id="kl-mu2" min="-30" max="30" value="15">
+    <span class="cval" id="kl-mu2v">1.5</span>
+  </div>
+  <div class="ctrl">
+    <label>P std σ₁</label>
+    <input type="range" id="kl-s1" min="5" max="30" value="10">
+    <span class="cval" id="kl-s1v">1.0</span>
+    <label>Q std σ₂</label>
+    <input type="range" id="kl-s2" min="5" max="30" value="15">
+    <span class="cval" id="kl-s2v">1.5</span>
+  </div>
+  <div class="cw">
+    <canvas id="kl-canvas" width="580" height="220" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="kl-lbl">Blue = P (true), Orange = Q (model). KL(P||Q) = extra bits for encoding P using Q's code</div>
+  </div>
+  <div><span class="cout" id="kl-out">KL(P||Q) = ... nats</span></div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — KL Everywhere in Modern ML</div>
+<table>
+  <tr><th>Model / Algorithm</th><th>KL Divergence Role</th></tr>
+  <tr><td>VAE (Variational Autoencoder)</td><td>ELBO = E[log P(x|z)] − KL(q(z|x) || p(z)). The KL term regularizes the encoder toward the prior N(0,I)</td></tr>
+  <tr><td>RLHF / PPO-based LLM training</td><td>Reward − β·KL(π_RL || π_SFT). Prevents reward hacking by keeping policy close to reference</td></tr>
+  <tr><td>Knowledge Distillation</td><td>L = α·KL(p_teacher || p_student) + (1−α)·CE(y, p_student)</td></tr>
+  <tr><td>Bayesian neural networks</td><td>ELBO ≈ E[log P(data|θ)] − KL(q(θ) || p(θ)). Variational inference</td></tr>
+  <tr><td>Normalizing flows</td><td>Minimize KL(P_data || P_model) = −E[log P_model(x)]</td></tr>
+  <tr><td>GAN training (original)</td><td>Generator minimizes JSD(P_data || P_gen)</td></tr>
+  <tr><td>Information bottleneck</td><td>Maximize I(Z;Y) − β·KL or I(Z;Y) − β·I(X;Z)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: In a VAE, why is the KL term needed? What goes wrong without it? <span class="qa-a">▶</span></button>
+<div class="ap">Without KL regularization: VAE becomes a standard autoencoder. The encoder can learn arbitrarily complex, disconnected latent codes — z=1000 for cat, z=−500 for dog — with no structure. Then you can't sample z~N(0,1) and decode to anything meaningful — there's no content at z=500. The KL(q(z|x)||N(0,1)) term forces the encoder to produce latent codes near N(0,1). This creates a smooth, dense latent space where: (1) Interpolating between two z points gives sensible outputs. (2) Random z~N(0,1) decodes to realistic samples. (3) The space is organized — similar inputs map to nearby z. Analytically: KL for Gaussian encoder is −½Σ(1+log σ²−μ²−σ²). When μ→0, σ→1: this KL→0. The encoder must "compress" information into near-standard-normal codes.<div class="a-bn">বাংলায়: KL term ছাড়া VAE-এর latent space অসংগঠিত হয়। KL N(0,1)-এর কাছে রাখে → smooth space → meaningful sampling ও interpolation।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Forward KL vs Reverse KL — which does variational inference minimize? Why? <span class="qa-a">▶</span></button>
+<div class="ap">Variational inference minimizes <strong>KL(q||p)</strong> (reverse KL, also called "inclusive" or "mean-seeking"). Why? Because computing KL(p||q) requires knowing p (the true posterior) — which is exactly what we're trying to approximate! We can't evaluate log p(z|x) directly. In contrast, KL(q||q) = Eₓ~q[log q(z)/p(z,x)] + const can be evaluated since we choose q. ELBO = Evidence Lower BOund = −KL(q||p) + log p(x). Maximizing ELBO ≡ Minimizing KL(q||p). Consequence: q tends to be mode-seeking (zero-forcing) — it ignores modes of p that it doesn't cover, leading to underestimation of posterior uncertainty. This is the fundamental limitation of mean-field variational inference.<div class="a-bn">বাংলায়: Variational inference KL(q||p) minimize করে কারণ KL(p||q) compute করতে true posterior p দরকার — যা জানা নেই। ELBO maximize = KL(q||p) minimize।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute KL</div>
+<p>P=[0.4, 0.6], Q=[0.5, 0.5]. Compute KL(P||Q) and KL(Q||P) in bits. Confirm they are NOT equal.</p>
+<div class="ex-ans">KL(P||Q)=0.4·log₂(0.4/0.5)+0.6·log₂(0.6/0.5)=0.4·(−0.322)+0.6·(0.263)=−0.129+0.158=0.029 bits. KL(Q||P)=0.5·log₂(0.5/0.4)+0.5·log₂(0.5/0.6)=0.5·(0.322)+0.5·(−0.263)=0.161−0.131=0.030 bits. Close but NOT equal (0.029 ≠ 0.030). For very different distributions the gap is much larger.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — VAE KL Term</div>
+<p>Encoder outputs μ=0.5, σ=0.8 for a 1D latent variable. Compute the VAE KL term = −½(1 + log σ² − μ² − σ²).</p>
+<div class="ex-ans">log(σ²)=log(0.64)=−0.446. KL = −½(1+(−0.446)−0.25−0.64) = −½(1−0.446−0.25−0.64) = −½(−0.336) = 0.168 nats. This is the penalty for the encoder being away from N(0,1). If μ=0, σ=1: KL = −½(1+0−0−1) = 0 (perfect prior match).</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=SxGYPqCgJWM" target="_blank">🎬 Mutual Information: KL Divergence</a>
+<a class="rl" href="https://arxiv.org/abs/1312.6114" target="_blank">📄 VAE Paper (Kingma & Welling)</a>
+<a class="rl" href="https://huyenchip.com/2024/01/16/sampling.html" target="_blank">📘 Chip Huyen: RLHF & KL</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   04  INFORMATION GAIN
+══════════════════════════════════════════════════════ */
+{title:"Information <em>Gain</em>",bn:"তথ্য লাভ",
+tags:[{t:"IG = H - H|X",c:"tc"},{t:"Decision Trees",c:"tl"},{t:"Mutual Information",c:"tv"},{t:"Feature Selection",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A decision tree is splitting data to classify animals. Feature A: "Has wings?" Feature B: "Name starts with vowel?" Which feature has higher information gain and should be chosen first?</p>
+  <p style="margin-top:9px;color:var(--cyan)">✅ Feature A: "Has wings?" has much higher information gain. It creates groups that are far less uncertain about the animal type (birds vs non-birds). Feature B: "Name starts with vowel?" is almost random — completely uninformative for classifying animals. Information gain = how much does this feature REDUCE uncertainty about the label? A good split makes the resulting groups as "pure" (low entropy) as possible.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Information gain is biased toward high-cardinality features.</strong> A feature like "customer ID" (unique per person) has extremely high IG — splitting on it perfectly separates data! But it's completely useless (memorizes training set). Fix: use Gain Ratio (IG / Split Info) or Gini impurity instead of raw IG for high-cardinality features.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Mutual Information ≠ correlation.</strong> MI captures all dependencies (linear and non-linear). Two variables can have zero Pearson correlation but high MI (e.g., Y=X², correlated=0, MI>0). MI is strictly more powerful for detecting relationships.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing Information Gain with Mutual Information.</strong> They're the same concept in different contexts: IG(Y;X) = MI(X;Y) = reduction in uncertainty about Y when X is known. Information Gain is the term used in decision tree literature; Mutual Information is the term in information theory. Mathematically identical.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 INFORMATION GAIN — Reducing Uncertainty</div>
+  <p><span class="hc">Information Gain</span> (also called Mutual Information in info theory) measures: <strong>"How much does knowing X reduce our uncertainty about Y?"</strong></p>
+  <div class="big-eq">
+    <span class="eq">IG(Y; X) = H(Y) − H(Y|X)</span>
+    <span class="eq-sub">= Entropy before seeing X − Entropy after seeing X = Reduction in uncertainty</span>
+  </div>
+  <div class="call"><strong>In Decision Trees:</strong> At each node, choose the feature X that maximizes IG(Y;X). This maximally reduces label uncertainty with each split.</div>
+
+  <p style="margin-top:14px"><strong>Conditional Entropy H(Y|X) — average entropy after observing X:</strong></p>
+  <div class="fx"><span class="fc">H(Y|X)</span> = Σₓ P(X=x)·H(Y|X=x)
+            = Σₓ P(x) · [−Σᵧ P(y|x)·log P(y|x)]
+Weighted average of entropy in each subgroup after splitting on X
+Lower H(Y|X) = purer groups = better feature</div>
+
+  <p style="margin-top:14px"><strong>Connection to Mutual Information:</strong></p>
+  <div class="fx"><span class="fc">MI(X;Y)</span> = IG(Y;X) = H(Y) − H(Y|X)
+            = H(X) − H(X|Y)            ← symmetric!
+            = KL(P(X,Y) || P(X)P(Y))   ← KL from joint to product of marginals
+            = H(X) + H(Y) − H(X,Y)    ← from joint entropy
+
+MI ≥ 0; MI = 0 iff X and Y are independent
+MI is symmetric: MI(X;Y) = MI(Y;X)  ← unlike KL!</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Information Gain</strong> বলে: একটা feature জানলে target label সম্পর্কে কতটা কম uncertain থাকবো।</p>
+  <div class="call-bn">💡 Decision Tree উদাহরণ: তুমি ক্রেডিট কার্ড fraud detect করছ।
+• Feature "Transaction amount > $10,000?": Fraud group → 80% fraud। Non-fraud group → 5% fraud। খুব pure groups → High IG!
+• Feature "Transaction on Monday?": Fraud group → 52% fraud। Non-Monday → 48% fraud। প্রায় সমান → Low IG!
+Decision tree প্রথমে "Transaction amount > $10,000?" choose করবে কারণ এটা সবচেয়ে বেশি uncertainty reduce করে।</div>
+  <p class="bn" style="margin-top:12px"><strong>Mutual Information (পারস্পরিক তথ্য):</strong></p>
+  <p class="bn">MI(X;Y) = IG(Y;X) = X জানলে Y সম্পর্কে কতটা তথ্য পাই।</p>
+  <p class="bn">• MI = 0 → X এবং Y সম্পূর্ণ independent — X জানা কোনো সাহায্য করে না।</p>
+  <p class="bn">• MI > 0 → X এবং Y-এ কোনো সম্পর্ক আছে (linear বা non-linear যাই হোক)।</p>
+  <p class="bn">• MI symmetric: MI(X;Y) = MI(Y;X) — KL-এর মতো asymmetric নয়!</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 DECISION TREE — WORKED EXAMPLE</div>
+  <div class="fl">Dataset: 10 emails — 6 spam, 4 not spam. Feature: contains "free"?</div>
+  <div class="fx">Before split: H(Y) = −(6/10)log(6/10) − (4/10)log(4/10)
+              = −0.6·(−0.737) − 0.4·(−1.322) = 0.442 + 0.529 = <span class="fc">0.971 bits</span>
+
+After split on "free?":
+  Contains "free": 5 emails → 5 spam, 0 not spam → H = 0 (pure!)
+  No "free":       5 emails → 1 spam, 4 not spam → H = −0.2log(0.2)−0.8log(0.8)
+                                                      = 0.722 bits
+
+H(Y|"free"?) = P(free)×H(free) + P(no_free)×H(no_free)
+             = 0.5×0 + 0.5×0.722 = <span class="fc">0.361 bits</span>
+
+IG = H(Y) − H(Y|"free"?) = 0.971 − 0.361 = <span class="fc">0.610 bits</span>  ← large! Good split.</div>
+  <div class="fl">Gini Impurity — alternative to entropy for splits</div>
+  <div class="fx">Gini(t) = 1 − Σₖ P(k|t)²   (faster to compute than entropy, similar results)
+For pure node: P(k)=1 → Gini=0   (same as entropy=0)
+For 50/50 split: Gini=1−(0.5²+0.5²)=0.5  (vs entropy=1 bit)
+Both work; entropy is more theoretically principled, Gini is faster</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Information Gain / MI Role</th></tr>
+  <tr><td>Decision Trees / Random Forests</td><td>Split criterion: argmax_feature IG(Y; feature)</td></tr>
+  <tr><td>Feature selection</td><td>Select top-k features by MI(feature, target)</td></tr>
+  <tr><td>Representation learning</td><td>Maximize MI between input and latent (InfoNCE loss)</td></tr>
+  <tr><td>Contrastive learning (SimCLR)</td><td>InfoNCE ≈ lower bound on MI(view1, view2)</td></tr>
+  <tr><td>Information Bottleneck</td><td>min I(X;Z) − β·I(Z;Y) — compress X, preserve Y info</td></tr>
+  <tr><td>Attention (interpretability)</td><td>Attention weights ≈ MI(token, other tokens)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why does Random Forest use random feature subsets at each split instead of the best feature? <span class="qa-a">▶</span></button>
+<div class="ap">If all trees in a forest split on the same best feature, all trees are highly correlated — averaging correlated predictors doesn't reduce variance much. By randomly sampling m features (m=√d for classification, m=d/3 for regression) at each split, different trees explore different feature combinations. This decorrelates the trees. The key insight: Var(average) = Var(X)/n if independent, but (1+ρ(n-1))·Var(X)/n if correlated. Lower correlation ρ → lower ensemble variance → better generalization. The trade-off: each individual tree is slightly worse (doesn't always pick best feature), but the ensemble is significantly better due to lower correlation. This is Breiman's key insight for Random Forests.<div class="a-bn">বাংলায়: Random feature subset → uncorrelated trees → ensemble variance কম। Correlated trees average করলে variance কমে না।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the Information Bottleneck principle and why is it relevant to deep learning? <span class="qa-a">▶</span></button>
+<div class="ap">Information Bottleneck (Tishby 2000): find representation Z of X that maximizes I(Z;Y) while minimizing I(Z;X). Objective: max I(Z;Y) − β·I(Z;X). Interpretation: Z should predict Y well (high MI with label) while being a compressed version of X (low MI with input — discard irrelevant information). Deep learning connection (Tishby & Schwartz-Ziv, 2017, controversial): neural network training has two phases — (1) ERM phase: layers increase I(Z;Y) (learn to predict). (2) Compression phase: layers decrease I(Z;X) (compress, generalize). Whether this exactly describes DL is debated, but the principle — learn to predict while compressing — explains why deeper representations are more abstract and transferable. Practical: dropout, weight decay, early stopping all reduce I(Z;X) — they implement IB implicitly.<div class="a-bn">বাংলায়: Information Bottleneck = label সম্পর্কে maximum তথ্য রাখো, input-এর irrelevant অংশ compress করো। Deep network এটা implicitly করে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise — Compute Information Gain</div>
+<p>Dataset: 14 days, 9 play tennis (Y=yes), 5 don't (Y=no). Feature "Outlook": Sunny(5 days: 2 yes, 3 no), Overcast(4 days: 4 yes, 0 no), Rain(5 days: 3 yes, 2 no). Compute IG(Y; Outlook).</p>
+<div class="ex-ans">H(Y)=−(9/14)log₂(9/14)−(5/14)log₂(5/14)=0.940 bits. H(Y|Sunny)=−(2/5)log₂(2/5)−(3/5)log₂(3/5)=0.971. H(Y|Overcast)=0 (pure!). H(Y|Rain)=−(3/5)log₂(3/5)−(2/5)log₂(2/5)=0.971. H(Y|Outlook)=(5/14)×0.971+(4/14)×0+(5/14)×0.971=0.693. IG=0.940−0.693=0.247 bits. This is the classic ID3 algorithm example.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank">🎬 StatQuest: Decision Trees Part 1</a>
+<a class="rl" href="https://scikit-learn.org/stable/modules/feature_selection.html#mutual-info" target="_blank">📘 sklearn: Mutual Information Feature Selection</a>
+<a class="rl" href="https://arxiv.org/abs/1703.00810" target="_blank">📄 Opening the Black Box of DNNs (IB)</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   05  WHY CROSS-ENTROPY FOR CLASSIFICATION
+══════════════════════════════════════════════════════ */
+{title:"Why Cross-Entropy for <em>Classification</em>",bn:"Classification-এ Cross-Entropy কেন?",
+tags:[{t:"5 Reasons",c:"tc"},{t:"MLE ≡ CE",c:"tl"},{t:"Gradient Analysis",c:"tv"},{t:"MSE Failure",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A student tries using MSE loss for a binary classification problem. They notice training is much slower and sometimes fails to converge. Can you predict the exact mathematical reason BEFORE reading?</p>
+  <p style="margin-top:9px;color:var(--cyan)">✅ <strong>Vanishing gradients from sigmoid.</strong> MSE + sigmoid gradient: ∂L/∂z = (ŷ−y)·ŷ(1−ŷ). When the model is confidently WRONG (ŷ≈0, y=1): ŷ(1−ŷ)≈0·1=0 → near-zero gradient → model stuck! Cross-entropy + sigmoid gradient: ∂L/∂z = ŷ−y. When confidently wrong: 0−1=−1 → large gradient → model updates aggressively. Cross-entropy fixes the vanishing gradient problem that MSE has with sigmoid/softmax.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using MSE for classification.</strong> MSE treats class labels as continuous (class 1 and class 3 are "2 apart"). It creates non-convex loss surfaces for classification. Slow convergence, vanishing gradients, suboptimal solutions. Always use cross-entropy for classification.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Applying softmax before nn.CrossEntropyLoss in PyTorch.</strong> PyTorch's CrossEntropyLoss internally applies log_softmax. Applying softmax first → log(softmax(x)) → numerical instability (very small numbers, log of near-zero). Always pass raw logits to PyTorch's CE loss.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using binary CE for multi-class.</strong> BCELoss expects independent binary predictions. For mutually exclusive classes (exactly one true), use CrossEntropyLoss (categorical). For multi-label (multiple can be true simultaneously), use BCEWithLogitsLoss per label.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 5 REASONS — Complete Deep Dive</div>
+
+  <div style="margin-bottom:20px">
+    <p><span class="hc">Reason 1: MLE Justification</span> — Cross-entropy IS the theoretically correct loss</p>
+    <div class="fx">For classification: P(y|x; θ) ~ Categorical(softmax(f(x;θ)))
+MLE: θ* = argmax Π P(yᵢ|xᵢ;θ) = argmax Σ log P(yᵢ|xᵢ;θ)
+         = argmax Σ log softmax(f(xᵢ;θ))_{yᵢ}
+         = argmin Σ −log softmax(f(xᵢ;θ))_{yᵢ}
+         = <span class="fc">argmin Cross-Entropy Loss</span>
+→ CE is not heuristic — it IS MLE under Categorical distribution assumption</div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <p><span class="hl">Reason 2: Gradient Behavior</span> — CE gives clean, non-vanishing gradients</p>
+    <div class="fx">MSE + Sigmoid gradient:
+  ∂(MSE)/∂z = (ŷ−y) · ŷ(1−ŷ)    ← sigmoid derivative vanishes!
+  When y=1, ŷ=0.01: (0.01−1)·0.01·0.99 ≈ −0.0098  ← tiny gradient!
+
+CE + Sigmoid gradient:
+  ∂(BCE)/∂z = ŷ − y
+  When y=1, ŷ=0.01: 0.01 − 1 = <span class="fc">−0.99</span>  ← large, clean gradient!
+
+→ When model is confidently wrong, CE gives strong corrective gradients
+→ When model is confidently right, CE gives small gradients (fine-tuning)
+→ Gradient = prediction error. Simple. Elegant. Perfect.</div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <p><span class="hv">Reason 3: Convexity</span> — CE gives convex loss for linear classifiers</p>
+    <div class="fx">For logistic regression: L(w) = Σ −log σ(yᵢ·wᵀxᵢ)
+This loss is <span class="fv">convex</span> in w → global minimum guaranteed → stable training
+
+MSE + Sigmoid: not convex → multiple local minima → training instability
+→ CE (with linear model) = convex optimization → guaranteed convergence</div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <p><span class="fp">Reason 4: Probability Calibration</span> — CE encourages well-calibrated probabilities</p>
+    <div class="fx">CE minimization: θ* = argmin −E[log Q(Y|X)]
+By KL decomposition: CE = H(P) + KL(P||Q)
+Minimizing CE = minimizing KL(P||Q) → Q approaches P
+→ Model learns to output TRUE probabilities, not just rankings
+→ Softmax probabilities become meaningful (0.7 really means 70% likely)
+
+MSE: θ* = argmin E[(y−ŷ)²] → minimizes squared error, not probability calibration
+MSE outputs can be negative or >1 → NOT valid probabilities!</div>
+  </div>
+
+  <div>
+    <p><span class="hg">Reason 5: Information Theory</span> — CE directly minimizes wasted information</p>
+    <div class="fx">CE(y, ŷ) = H(P_true, P_model) = H(P_true) + KL(P_true || P_model)
+Since H(P_true) is fixed (we can't change the true label entropy):
+Minimizing CE = Minimizing KL(P_true || P_model)
+             = Making model distribution approach true label distribution
+→ Training = teaching the model to compress labels efficiently = information theory!
+→ Every bit of CE improvement = real improvement in how well model understands data</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা — ৫টি কারণ</div>
+  <p class="bn"><strong>Cross-Entropy কেন classification-এ সেরা?</strong></p>
+  <div class="call-bn">① MLE কারণ: Categorical distribution-এর likelihood maximize করা = CE minimize করা। গাণিতিকভাবে identical — কোনো guess নয়, theory-based সিদ্ধান্ত।</div>
+  <div class="call-bn">② Gradient কারণ: CE gradient = prediction error (ŷ − y)। Simple ও strong। MSE + sigmoid-এ gradient vanish করে যখন model confidently ভুল — CE-তে এই সমস্যা নেই।</div>
+  <div class="call-bn">③ Convexity কারণ: Linear model + CE loss = convex problem। Global minimum আছে। MSE + sigmoid = non-convex = multiple local minima।</div>
+  <div class="call-bn">④ Calibration কারণ: CE optimize করলে model সত্যিকারের probability শেখে। "৭০% confident" মানে সত্যিই ৭০%। MSE-তে output কোনো probabilistic meaning রাখে না।</div>
+  <div class="call-bn">⑤ Information Theory কারণ: CE minimize = KL(P_true||P_model) minimize = model distribution-কে true distribution-এর কাছে নিয়ে যাওয়া। Information theory-র সাথে সরাসরি সংযোগ।</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 THE COMPLETE PICTURE — MSE vs CE</div>
+  <div class="cmp">
+    <div class="cmp-cell cmp-hd">Property</div>
+    <div class="cmp-cell cmp-hd" style="color:var(--rose)">MSE for Classification</div>
+    <div class="cmp-cell cmp-hd" style="color:var(--cyan)">Cross-Entropy</div>
+    <div class="cmp-cell">Gradient when wrong</div>
+    <div class="cmp-cell" style="color:var(--rose)">Small (vanishes via σ')</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Large (ŷ−y)</div>
+    <div class="cmp-cell">Gradient when right</div>
+    <div class="cmp-cell" style="color:var(--rose)">Small (good)</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Small (good)</div>
+    <div class="cmp-cell">Loss surface</div>
+    <div class="cmp-cell" style="color:var(--rose)">Non-convex (sigmoid)</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Convex (linear model)</div>
+    <div class="cmp-cell">Output interpretation</div>
+    <div class="cmp-cell" style="color:var(--rose)">Not probabilities</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Valid probabilities</div>
+    <div class="cmp-cell">Theoretical basis</div>
+    <div class="cmp-cell" style="color:var(--rose)">Gaussian noise assumption (wrong!)</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Categorical distribution (correct)</div>
+    <div class="cmp-cell">Convergence speed</div>
+    <div class="cmp-cell" style="color:var(--rose)">Slow (gradient saturation)</div>
+    <div class="cmp-cell" style="color:var(--cyan)">Fast (clean gradients)</div>
+  </div>
+</div>
+
+<!-- INTERACTIVE MSE vs CE GRADIENT COMPARISON -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — MSE vs CE Gradient Comparison</div>
+  <p style="font-size:.85em;color:var(--muted);margin-bottom:12px">Binary classification: true y=1. Adjust model prediction ŷ and see gradient magnitudes</p>
+  <div class="ctrl">
+    <label>Model prediction ŷ = σ(z) (y=1 is true class)</label>
+    <input type="range" id="mse-p" min="1" max="99" value="30">
+    <span class="cval" id="mse-pv">0.30</span>
+  </div>
+  <div class="cw">
+    <canvas id="mse-canvas" width="580" height="220" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="mse-lbl">Gradient magnitude comparison: MSE vs Cross-Entropy (y=1 is true label)</div>
+  </div>
+  <div><span class="cout" id="mse-out">Gradients at ŷ=0.30...</span></div>
+  <div style="margin-top:10px;font-size:.83em;color:var(--muted)">⚡ Key insight: when model is confidently WRONG (ŷ near 0, y=1), MSE gradient vanishes but CE gradient stays strong — this is why CE converges much faster for classification.</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 COMPLETE PICTURE — Loss Function Selection Guide</div>
+<table>
+  <tr><th>Task</th><th>Correct Loss</th><th>Why (Info Theory)</th></tr>
+  <tr><td>Binary classification</td><td>Binary CE / BCEWithLogitsLoss</td><td>MLE under Bernoulli distribution</td></tr>
+  <tr><td>Multi-class (one label)</td><td>Categorical CE / CrossEntropyLoss</td><td>MLE under Categorical distribution</td></tr>
+  <tr><td>Multi-label classification</td><td>BCE per label</td><td>Independent Bernoulli per label</td></tr>
+  <tr><td>Regression (Gaussian noise)</td><td>MSE</td><td>MLE under Gaussian distribution</td></tr>
+  <tr><td>Regression (outliers present)</td><td>Huber / MAE</td><td>MLE under Laplace / robust distribution</td></tr>
+  <tr><td>Language model (next token)</td><td>CE over vocabulary</td><td>MLE under Categorical (vocab size K)</td></tr>
+  <tr><td>Distribution matching (VAE)</td><td>MSE + KL divergence</td><td>ELBO = likelihood + KL(posterior||prior)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Walk me through why gradient descent on CE loss is faster than MSE for binary classification. Show the math. <span class="qa-a">▶</span></button>
+<div class="ap">Binary case: y=1, ŷ=σ(z), z=model logit. MSE gradient: ∂L/∂z = ∂(ŷ−y)²/∂z = 2(ŷ−y)·σ'(z) = 2(ŷ−1)·ŷ(1−ŷ). At ŷ=0.01 (confidently wrong): 2(0.01−1)·0.01·0.99 = 2×(−0.99)×0.0099 ≈ −0.020. CE gradient: ∂L/∂z = ∂[−log σ(z)]/∂z = σ(z)−1 = ŷ−1. At ŷ=0.01: 0.01−1=−0.99. Ratio: |CE gradient|/|MSE gradient| ≈ 0.99/0.020 ≈ 50×! CE provides 50× stronger gradient signal when model is confidently wrong. This is because the σ'(z) term in MSE squashes gradients in regions where learning is most needed.<div class="a-bn">বাংলায়: MSE gradient-এ σ'(z) = sigmoid derivative থাকে যা 0 এর কাছে। CE gradient = ŷ−y সরাসরি — sigmoid নেই। Confidently wrong prediction-এ CE 50× বড় gradient দেয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Is there ever a case where you might prefer MSE over CE for classification? <span class="qa-a">▶</span></button>
+<div class="ap">Yes, in a few specific cases: (1) <strong>Knowledge distillation with soft targets</strong>: when targets are soft (teacher distribution, not one-hot), MSE between teacher and student logits sometimes works better than CE — "Hinton's logit matching." (2) <strong>Label noise robustness</strong>: MSE can be more robust to noisy labels at high noise rates (>30%) because it doesn't get stuck trying to perfectly fit every label. (3) <strong>Ordinal classification</strong>: if class ordering matters (mild/moderate/severe), MSE respects ordinal distance; CE treats all errors equally. (4) <strong>Some regression-like tasks</strong>: when output is in a bounded interval [0,1] and continuous (rating prediction), MSE can work. In practice though: use CE for classification 99% of the time unless you have a specific theoretical reason to deviate.<div class="a-bn">বাংলায়: Knowledge distillation, noisy labels (>30%), ordinal classes — এই ক্ষেত্রে MSE কখনো better। কিন্তু সাধারণ classification-এ সবসময় CE।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: How does focal loss improve upon standard cross-entropy for imbalanced classification? <span class="qa-a">▶</span></button>
+<div class="ap">Standard CE: L = −log(pₜ) where pₜ is the predicted probability for the true class. Problem: on imbalanced datasets, the majority class has many easy-to-classify examples. Even if each gives a small CE loss, their sheer number dominates training — rare class examples barely matter. Focal Loss: L_FL = −(1−pₜ)^γ · log(pₜ). The (1−pₜ)^γ term is the "focusing factor." For easy examples (pₜ→1): factor→0 → loss nearly zero → these examples barely contribute to gradients. For hard examples (pₜ→0): factor→1 → same as standard CE → hard examples dominate. Effect: training focuses on hard, often minority-class examples. γ=2 is standard (RetinaNet). Information theory view: focal loss reweights the entropy of each example inversely by its confidence — low-confidence = high focal weight = high effective entropy contribution.<div class="a-bn">বাংলায়: Focal loss সহজ example-কে ignore করে কঠিন example-এ focus করে। Imbalanced dataset-এ minority class hard examples dominant হয় — এটাই লক্ষ্য।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Gradient Comparison</div>
+<p>y=1 (true class). Compute |∂MSE/∂z| and |∂CE/∂z| for three cases: (a) ŷ=0.95 (correctly confident) (b) ŷ=0.5 (uncertain) (c) ŷ=0.05 (confidently wrong). What pattern do you see?</p>
+<div class="ex-ans">MSE grad = |(ŷ−1)·ŷ(1−ŷ)| : (a)|−0.05×0.0475|=0.002 (b)|−0.5×0.25|=0.125 (c)|−0.95×0.0475|=0.045. CE grad = |ŷ−1|: (a)0.05 (b)0.50 (c)0.95. Pattern: MSE grad is TINY at (a) AND (c) — vanishes when certain (right OR wrong)! CE grad is large precisely when confidently wrong (c), small when confidently right (a) — exactly what we want for learning.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Which Loss?</div>
+<p>Choose the correct loss for: (a) Predict if a patient has disease (yes/no) (b) Predict sentiment score from 1-5 stars (ordered) (c) Predict which of 1000 products a user will buy (d) Predict if each of 5 tags applies to an image (can have multiple)</p>
+<div class="ex-ans">(a) Binary Cross-Entropy (BCEWithLogitsLoss) — binary classification (b) MSE or Ordinal loss — regression with ordinal output (c) Categorical Cross-Entropy (CrossEntropyLoss, K=1000) — multi-class (d) Binary CE per tag (BCEWithLogitsLoss) — multi-label, independent binary per tag</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://pytorch.org/docs/stable/nn.html#loss-functions" target="_blank">🔥 PyTorch Loss Functions</a>
+<a class="rl" href="https://arxiv.org/abs/1708.02002" target="_blank">📄 Focal Loss Paper (RetinaNet)</a>
+<a class="rl" href="https://www.youtube.com/watch?v=6ArSys5qHAU" target="_blank">🎬 StatQuest: Cross-Entropy</a>
+<a class="rl" href="https://colah.github.io/posts/2015-09-Visual-Information/" target="_blank">🎯 Colah: Visual Information Theory</a>
+</div>`}
+
+];
+
+/* ══════════════════════════════════════
+   BUILD
+══════════════════════════════════════ */
+function buildAll(){
+  const nl=document.getElementById('nl'),mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-n">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · INFORMATION THEORY FOR ML</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===0) initEntropy();
+    if(i===1) initCE();
+    if(i===2) initKL();
+    if(i===4) initMSEvsCE();
+  },150);
+}
+
+function tQ(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+/* ══ CANVAS HELPERS ══ */
+function setupCanvas(id){
+  const c=document.getElementById(id);if(!c)return null;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.fillStyle='#060a12';ctx.fillRect(0,0,W,H);
+  return{ctx,W,H,c};
+}
+function drawGrid(ctx,W,H,pad){
+  ctx.strokeStyle='#1e3050';ctx.lineWidth=0.5;
+  for(let i=0;i<=5;i++){
+    const x=pad+(W-2*pad)*i/5;ctx.beginPath();ctx.moveTo(x,pad);ctx.lineTo(x,H-pad);ctx.stroke();
+    const y=pad+(H-2*pad)*i/5;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+  }
+}
+
+/* ══ ENTROPY CANVAS ══ */
+function initEntropy(){
+  const r=setupCanvas('ent-canvas');if(!r)return;
+  const{ctx,W,H}=r;
+  const ps=document.getElementById('ent-p'),pv=document.getElementById('ent-pv'),out=document.getElementById('ent-out');
+  const pad=36;
+  function H2(p){if(p<=0||p>=1)return 0;return-p*Math.log2(p)-(1-p)*Math.log2(1-p);}
+  function draw(){
+    const p=parseInt(ps.value)/100;
+    pv.textContent=p.toFixed(2);
+    ctx.fillStyle='#060a12';ctx.fillRect(0,0,W,H);
+    drawGrid(ctx,W,H,pad);
+    // Axes
+    ctx.strokeStyle='#2a4060';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+    // Labels
+    ctx.fillStyle='var(--muted,#527aaa)';ctx.font='10px Fira Code';
+    ctx.fillText('0',pad-8,H-pad+3);ctx.fillText('1',W-pad-4,H-pad+3);
+    ctx.fillText('1 bit',pad+2,pad+3);ctx.fillText('p →',W-80,H-pad+12);
+    // Curve
+    ctx.beginPath();ctx.strokeStyle='#00f0ff';ctx.lineWidth=2.5;
+    for(let x=0;x<=100;x++){
+      const pp=x/100,h=H2(pp);
+      const cx=pad+pp*(W-2*pad),cy=H-pad-h*(H-2*pad);
+      x===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+    }
+    ctx.stroke();
+    // Shaded area under curve up to p
+    ctx.beginPath();ctx.fillStyle='rgba(0,240,255,.08)';
+    ctx.moveTo(pad,H-pad);
+    for(let x=0;x<=p*100;x++){
+      const pp=x/100,h=H2(pp);
+      ctx.lineTo(pad+pp*(W-2*pad),H-pad-h*(H-2*pad));
+    }
+    ctx.lineTo(pad+p*(W-2*pad),H-pad);ctx.closePath();ctx.fill();
+    // Current point
+    const hp=H2(p),cx=pad+p*(W-2*pad),cy2=H-pad-hp*(H-2*pad);
+    ctx.beginPath();ctx.fillStyle='#00f0ff';ctx.arc(cx,cy2,6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.strokeStyle='rgba(0,240,255,.4)';ctx.setLineDash([4,4]);
+    ctx.moveTo(cx,H-pad);ctx.lineTo(cx,cy2);ctx.stroke();ctx.setLineDash([]);
+    // Output
+    const msg=hp>0.99?'— maximum uncertainty!':(hp<0.1?'— almost certain, little information':hp>0.7?'— high uncertainty':'— moderate uncertainty');
+    out.textContent=`H(${p.toFixed(2)}) = ${hp.toFixed(4)} bits ${msg}`;
+    document.getElementById('ent-lbl').textContent=`Binary entropy: H(${p.toFixed(2)}) = ${hp.toFixed(3)} bits`;
+  }
+  ps.addEventListener('input',draw);draw();
+}
+
+/* ══ CROSS-ENTROPY CANVAS ══ */
+function initCE(){
+  const r=setupCanvas('ce-canvas');if(!r)return;
+  const{ctx,W,H}=r;
+  const ps=document.getElementById('ce-p'),pv=document.getElementById('ce-pv'),out=document.getElementById('ce-out'),lbl=document.getElementById('ce-lbl');
+  const pad=36;
+  function draw(){
+    const q=parseInt(ps.value)/100;
+    const q2=(1-q)/2,q3=(1-q)/2;
+    pv.textContent=q.toFixed(2);
+    ctx.fillStyle='#060a12';ctx.fillRect(0,0,W,H);
+    drawGrid(ctx,W,H,pad);
+    // Draw bars for 3 classes
+    const labels=['Class 1 (true)','Class 2','Class 3'];
+    const probs=[q,q2,q3];
+    const maxP=1;
+    const bw=80,gap=50,startX=pad+40;
+    probs.forEach((p,i)=>{
+      const x=startX+i*(bw+gap);
+      const barH=(p/maxP)*(H-2*pad-40);
+      const y=H-pad-barH;
+      ctx.fillStyle=i===0?'rgba(0,240,255,.7)':'rgba(82,122,170,.4)';
+      ctx.fillRect(x,y,bw,barH);
+      ctx.fillStyle=i===0?'#00f0ff':'#527aaa';
+      ctx.fillRect(x,y,bw,3);
+      ctx.font='11px Fira Code';
+      ctx.fillStyle=i===0?'#00f0ff':'#527aaa';
+      ctx.textAlign='center';
+      ctx.fillText(p.toFixed(2),x+bw/2,y-8);
+      ctx.fillStyle='#527aaa';ctx.font='10px Fira Code';
+      ctx.fillText(labels[i],x+bw/2,H-pad+14);
+    });
+    ctx.textAlign='left';
+    const ce=-Math.log(q);
+    const kl=ce;// since H(P)=0 for one-hot
+    out.textContent=`CE = −log(${q.toFixed(2)}) = ${ce.toFixed(4)} nats | = KL(P||Q) since H(one-hot)=0 | Gradient: ŷ−y = ${(q-1).toFixed(2)}`;
+    lbl.textContent=`CE = ${ce.toFixed(3)} nats — only P(correct class=${q.toFixed(2)}) matters for one-hot labels`;
+  }
+  ps.addEventListener('input',draw);draw();
+}
+
+/* ══ KL DIVERGENCE CANVAS ══ */
+function initKL(){
+  const r=setupCanvas('kl-canvas');if(!r)return;
+  const{ctx,W,H}=r;
+  const mu1s=document.getElementById('kl-mu1'),mu2s=document.getElementById('kl-mu2');
+  const s1s=document.getElementById('kl-s1'),s2s=document.getElementById('kl-s2');
+  const pad=30;
+  function norm(x,mu,sig){return Math.exp(-0.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));}
+  function drawKL(){
+    const mu1=parseInt(mu1s.value)/10,mu2=parseInt(mu2s.value)/10;
+    const s1=parseInt(s1s.value)/10,s2=parseInt(s2s.value)/10;
+    document.getElementById('kl-mu1v').textContent=mu1.toFixed(1);
+    document.getElementById('kl-mu2v').textContent=mu2.toFixed(1);
+    document.getElementById('kl-s1v').textContent=s1.toFixed(1);
+    document.getElementById('kl-s2v').textContent=s2.toFixed(1);
+    ctx.fillStyle='#060a12';ctx.fillRect(0,0,W,H);
+    drawGrid(ctx,W,H,pad);
+    const xMin=Math.min(mu1,mu2)-4*Math.max(s1,s2);
+    const xMax=Math.max(mu1,mu2)+4*Math.max(s1,s2);
+    const maxY=Math.max(norm(mu1,mu1,s1),norm(mu2,mu2,s2))*1.2;
+    const cx=x=>pad+(x-xMin)/(xMax-xMin)*(W-2*pad);
+    const cy=y=>H-pad-y/maxY*(H-2*pad);
+    const step=(xMax-xMin)/200;
+    // P (blue/cyan)
+    ctx.beginPath();ctx.strokeStyle='#00f0ff';ctx.lineWidth=2.5;
+    for(let x=xMin;x<=xMax;x+=step){const y=norm(x,mu1,s1);x===xMin?ctx.moveTo(cx(x),cy(y)):ctx.lineTo(cx(x),cy(y));}
+    ctx.stroke();
+    ctx.beginPath();ctx.fillStyle='rgba(0,240,255,.08)';
+    ctx.moveTo(cx(xMin),cy(0));
+    for(let x=xMin;x<=xMax;x+=step)ctx.lineTo(cx(x),cy(norm(x,mu1,s1)));
+    ctx.lineTo(cx(xMax),cy(0));ctx.closePath();ctx.fill();
+    // Q (peach/orange)
+    ctx.beginPath();ctx.strokeStyle='#ffad7e';ctx.lineWidth=2.5;
+    for(let x=xMin;x<=xMax;x+=step){const y=norm(x,mu2,s2);x===xMin?ctx.moveTo(cx(x),cy(y)):ctx.lineTo(cx(x),cy(y));}
+    ctx.stroke();
+    ctx.beginPath();ctx.fillStyle='rgba(255,173,126,.06)';
+    ctx.moveTo(cx(xMin),cy(0));
+    for(let x=xMin;x<=xMax;x+=step)ctx.lineTo(cx(x),cy(norm(x,mu2,s2)));
+    ctx.lineTo(cx(xMax),cy(0));ctx.closePath();ctx.fill();
+    // Labels
+    ctx.font='11px Fira Code';
+    ctx.fillStyle='#00f0ff';ctx.fillText(`P: N(${mu1.toFixed(1)}, ${s1.toFixed(1)}²)`,pad+6,pad+16);
+    ctx.fillStyle='#ffad7e';ctx.fillText(`Q: N(${mu2.toFixed(1)}, ${s2.toFixed(1)}²)`,pad+6,pad+30);
+    // KL(P||Q) closed form for Gaussians
+    const kl_pq=Math.log(s2/s1)+(s1**2+(mu1-mu2)**2)/(2*s2**2)-0.5;
+    const kl_qp=Math.log(s1/s2)+(s2**2+(mu2-mu1)**2)/(2*s1**2)-0.5;
+    document.getElementById('kl-out').textContent=`KL(P||Q) = ${kl_pq.toFixed(4)} nats | KL(Q||P) = ${kl_qp.toFixed(4)} nats | Asymmetry: ${Math.abs(kl_pq-kl_qp).toFixed(4)} nats`;
+    document.getElementById('kl-lbl').textContent=`KL(P||Q)=${kl_pq.toFixed(3)} nats ≠ KL(Q||P)=${kl_qp.toFixed(3)} nats — asymmetry is fundamental!`;
+  }
+  [mu1s,mu2s,s1s,s2s].forEach(s=>s.addEventListener('input',drawKL));
+  drawKL();
+}
+
+/* ══ MSE vs CE CANVAS ══ */
+function initMSEvsCE(){
+  const r=setupCanvas('mse-canvas');if(!r)return;
+  const{ctx,W,H}=r;
+  const ps=document.getElementById('mse-p'),pv=document.getElementById('mse-pv'),out=document.getElementById('mse-out');
+  const pad=36;
+  function draw(){
+    const yhat=parseInt(ps.value)/100;
+    pv.textContent=yhat.toFixed(2);
+    ctx.fillStyle='#060a12';ctx.fillRect(0,0,W,H);
+    drawGrid(ctx,W,H,pad);
+    // Axes
+    ctx.strokeStyle='#2a4060';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+    ctx.fillStyle='#527aaa';ctx.font='10px Fira Code';
+    ctx.fillText('ŷ (prediction) →',W/2-40,H-6);
+    ctx.fillText('|∂L/∂z|',2,pad+4);
+    ctx.fillText('y=1',W-50,pad+4);
+    // Draw CE gradient curve (|ŷ - y| = |ŷ - 1| = 1-ŷ)
+    ctx.beginPath();ctx.strokeStyle='#00f0ff';ctx.lineWidth=2.5;
+    for(let x=0;x<=100;x++){
+      const p=x/100,g=Math.abs(p-1);
+      const cx=pad+p*(W-2*pad),cy=H-pad-g*(H-2*pad)*0.92;
+      x===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+    }
+    ctx.stroke();
+    // Draw MSE gradient curve (|(ŷ-1)·ŷ(1-ŷ)|)
+    const maxMSE=0.25*0.5; // max at ŷ≈0.21 and 0.79
+    ctx.beginPath();ctx.strokeStyle='#ff5e8a';ctx.lineWidth=2.5;
+    for(let x=1;x<=99;x++){
+      const p=x/100,g=Math.abs((p-1)*p*(1-p));
+      const cx=pad+p*(W-2*pad),cy=H-pad-g/0.13*(H-2*pad)*0.92;
+      x===1?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+    }
+    ctx.stroke();
+    // Current ŷ markers
+    const cx=pad+yhat*(W-2*pad);
+    const ceG=Math.abs(yhat-1);
+    const mseG=Math.abs((yhat-1)*yhat*(1-yhat));
+    const ceCy=H-pad-ceG*(H-2*pad)*0.92;
+    const mseCy=H-pad-mseG/0.13*(H-2*pad)*0.92;
+    ctx.setLineDash([4,3]);ctx.strokeStyle='rgba(255,255,255,.2)';
+    ctx.beginPath();ctx.moveTo(cx,H-pad);ctx.lineTo(cx,pad);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.fillStyle='#00f0ff';ctx.arc(cx,ceCy,5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.fillStyle='#ff5e8a';ctx.arc(cx,mseCy,5,0,Math.PI*2);ctx.fill();
+    // Legend
+    ctx.font='11px Fira Code';
+    ctx.fillStyle='#00f0ff';ctx.fillText('CE: |ŷ−1|',W-130,20);
+    ctx.fillStyle='#ff5e8a';ctx.fillText('MSE: |(ŷ−1)ŷ(1−ŷ)|',W-200,34);
+    const ratio=ceG>0?ceG/Math.max(mseG,0.001):1;
+    out.textContent=`ŷ=${yhat.toFixed(2)} | CE grad=${ceG.toFixed(4)} | MSE grad=${mseG.toFixed(4)} | CE is ${ratio.toFixed(1)}× stronger`;
+  }
+  ps.addEventListener('input',draw);draw();
+}
+
+buildAll();
+setTimeout(initEntropy,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Algebra for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
+  --border:#30363d;--text:#e6edf3;--muted:#8b949e;
+  --blue:#58a6ff;--purple:#bc8cff;--green:#3fb950;
+  --gold:#d29922;--red:#f78166;--teal:#39c5cf;
+  --bn:#ffd700;--radius:10px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.7}
+.bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--bn)}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--teal)}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);padding:16px;overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0}
+.main{flex:1;padding:32px;max-width:920px;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar-header{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:1.1em;font-weight:700;color:var(--blue);line-height:1.3}
+.sidebar-header p{font-size:0.78em;color:var(--muted);margin-top:4px}
+.sidebar-header .bn-title{font-family:'Noto Sans Bengali',sans-serif;color:var(--bn);font-size:0.85em}
+.topic-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85em;margin-bottom:3px;transition:all 0.2s}
+.topic-btn:hover{background:var(--bg3);color:var(--text)}
+.topic-btn.active{background:var(--bg3);color:var(--blue);border-left:3px solid var(--blue)}
+.topic-num{background:var(--bg4);color:var(--muted);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:600;flex-shrink:0}
+.topic-btn.active .topic-num{background:var(--blue);color:#fff}
+
+/* CONTENT SECTIONS */
+.topic-section{display:none}
+.topic-section.active{display:block}
+.topic-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.topic-title{font-size:2em;font-weight:800;color:var(--text);line-height:1.2}
+.topic-subtitle{font-family:'Noto Sans Bengali',sans-serif;color:var(--bn);font-size:1.1em;margin-top:6px}
+.topic-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{padding:3px 10px;border-radius:20px;font-size:0.75em;font-weight:600;border:1px solid}
+.tag-ml{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,0.1)}
+.tag-math{border-color:var(--purple);color:var(--purple);background:rgba(188,140,255,0.1)}
+.tag-law{border-color:var(--green);color:var(--green);background:rgba(63,185,80,0.1)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card-title{font-size:0.8em;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title .icon{font-size:1.1em}
+
+/* LAW BADGES */
+.law-card{border-left:4px solid var(--red);background:rgba(247,129,102,0.07)}
+.law-card.law2{border-left-color:var(--purple);background:rgba(188,140,255,0.07)}
+.law-card.law3{border-left-color:var(--gold);background:rgba(210,153,34,0.07)}
+
+/* FORMULA BOX */
+.formula-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'Fira Code',monospace;font-size:0.95em;margin:12px 0;overflow-x:auto;line-height:1.9;color:var(--teal);white-space:pre}
+.formula-label{font-size:0.75em;color:var(--muted);margin-bottom:4px;font-family:'Outfit',sans-serif}
+
+/* ANALOGY */
+.analogy-box{background:linear-gradient(135deg,rgba(63,185,80,0.08),rgba(57,197,207,0.08));border:1px solid rgba(63,185,80,0.2);border-radius:8px;padding:16px;margin:12px 0}
+
+/* INTERVIEW */
+.qa-item{margin-bottom:16px}
+.q{background:var(--bg3);border-radius:8px 8px 0 0;padding:12px 16px;font-weight:600;color:var(--text);cursor:pointer;font-size:0.92em;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border)}
+.q:hover{background:var(--bg4)}
+.a{background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:14px 16px;font-size:0.9em;color:var(--muted);display:none;line-height:1.75}
+.a.open{display:block}
+.q-arrow{transition:transform 0.2s;color:var(--muted)}
+.q.open .q-arrow{transform:rotate(90deg)}
+
+/* EXERCISE */
+.exercise-box{background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:8px;padding:16px;margin-bottom:12px}
+.exercise-box h4{color:var(--gold);font-size:0.85em;font-weight:700;margin-bottom:8px}
+
+/* ML APPLICATION */
+.ml-app-box{background:rgba(88,166,255,0.07);border:1px solid rgba(88,166,255,0.2);border-radius:8px;padding:16px;margin:12px 0}
+.ml-app-box h4{color:var(--blue);font-size:0.85em;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* RESOURCE */
+.resource-link{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--blue);text-decoration:none;font-size:0.85em;margin:4px;transition:all 0.2s}
+.resource-link:hover{background:var(--bg4);border-color:var(--blue)}
+
+/* VISUAL AREA */
+.visual-wrap{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;overflow-x:auto}
+canvas{display:block;margin:0 auto}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width 0.4s}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid-2{grid-template-columns:1fr}.sidebar{width:100%;height:auto;position:relative}.app{flex-direction:column}.main{padding:16px}}
+
+/* HIGHLIGHT */
+.hl-blue{color:var(--blue);font-weight:600}
+.hl-purple{color:var(--purple);font-weight:600}
+.hl-green{color:var(--green);font-weight:600}
+.hl-gold{color:var(--gold);font-weight:600}
+.hl-red{color:var(--red);font-weight:600}
+.hl-teal{color:var(--teal);font-weight:600}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:0.88em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 12px;text-align:left;font-weight:600;font-size:0.8em;text-transform:uppercase;letter-spacing:0.06em}
+td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:top}
+tr:hover td{background:var(--bg3)}
+
+/* MOBILE NAV */
+.mobile-nav{display:none;padding:12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mobile-nav select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:0.9em}
+@media(max-width:700px){.mobile-nav{display:block}.sidebar{display:none}}
+
+/* STEP LIST */
+.step-list{counter-reset:step;list-style:none;padding:0}
+.step-list li{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.step-list li::before{counter-increment:step;content:counter(step);background:var(--blue);color:var(--bg);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* SECTION DIVIDER */
+.section-divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+<div class="mobile-nav">
+  <select onchange="showTopic(this.value)">
+    <option value="0">01 — Scalars, Vectors, Matrices, Tensors</option>
+    <option value="1">02 — Vector & Matrix Operations</option>
+    <option value="2">03 — Dot Product & Geometric Interpretation</option>
+    <option value="3">04 — Matrix Multiplication</option>
+    <option value="4">05 — Identity, Transpose, Inverse</option>
+    <option value="5">06 — Rank of a Matrix</option>
+    <option value="6">07 — Systems of Linear Equations</option>
+    <option value="7">08 — Linear Transformations</option>
+    <option value="8">09 — Column Space & Null Space</option>
+    <option value="9">10 — Eigenvalues & Eigenvectors</option>
+    <option value="10">11 — Orthogonality</option>
+    <option value="11">12 — Norms & Distances (L1, L2)</option>
+  </select>
+</div>
+<div class="app">
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>🧮 Linear Algebra</h1>
+    <div class="bn-title">লিনিয়ার অ্যালজেব্রা</div>
+    <p>The Backbone of ML · AI Engineer's Guide</p>
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:8%"></div></div>
+  </div>
+  <div id="nav-buttons"></div>
+</nav>
+<main class="main" id="main-content"></main>
+</div>
+
+<script>
+const topics = [
+{
+  title:"Scalars, Vectors, Matrices, Tensors",
+  bn_title:"স্কেলার, ভেক্টর, ম্যাট্রিক্স, টেন্সর",
+  tags:["Core Concept","Data Structures","PyTorch/NumPy"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p><strong>Before anything else, predict:</strong> If I give you a 100×200 image in RGB, what shape is its tensor?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ Answer: Shape = <code>(3, 100, 200)</code> — channels × height × width. <em>Or</em> <code>(100, 200, 3)</code> depending on framework. This is tensor thinking!</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Confusing <strong>tensor rank</strong> (number of dimensions) with <strong>matrix rank</strong> (linear independence). They are DIFFERENT!</li>
+      <li>❌ Thinking a vector is always a column — in code, a 1D array is neither row nor column until you explicitly reshape</li>
+      <li>❌ Forgetting that scalars ARE tensors (0D tensor)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>Think of these as a <span class="hl-blue">hierarchy of containers</span>:</p>
+    <table>
+      <tr><th>Name</th><th>Dimensions</th><th>Example</th><th>Shape Notation</th></tr>
+      <tr><td><span class="hl-green">Scalar</span></td><td>0D — single number</td><td>Temperature = 37.5°C</td><td><code>()</code> or just a number</td></tr>
+      <tr><td><span class="hl-blue">Vector</span></td><td>1D — list of numbers</td><td>Price list = [100, 200, 350]</td><td><code>(3,)</code></td></tr>
+      <tr><td><span class="hl-purple">Matrix</span></td><td>2D — table of numbers</td><td>Spreadsheet: rows × cols</td><td><code>(3, 4)</code></td></tr>
+      <tr><td><span class="hl-red">Tensor</span></td><td>N-dimensional</td><td>RGB image, video batch</td><td><code>(batch, C, H, W)</code></td></tr>
+    </table>
+    <div class="formula-label">First-Principle Thinking: Scalar ⊂ Vector ⊂ Matrix ⊂ Tensor</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn">চিন্তা করুন এটা একটা <strong>ধারকের শ্রেণিবিন্যাস</strong> (hierarchy of containers):</p>
+    <br>
+    <p class="bn"><span style="color:var(--green)">স্কেলার (Scalar)</span> → একটাই সংখ্যা। যেমন: তোমার বয়স = ২৫। কোনো দিক নেই, শুধু মাত্রা আছে।</p>
+    <p class="bn"><span style="color:var(--blue)">ভেক্টর (Vector)</span> → সংখ্যার একটা তালিকা। যেমন: তোমার [উচ্চতা, ওজন, বয়স] = [175, 70, 25]। এটা একটা দিক ও মাত্রা আছে।</p>
+    <p class="bn"><span style="color:var(--purple)">ম্যাট্রিক্স (Matrix)</span> → সংখ্যার একটা টেবিল (rows × columns)। ক্লাসে ছাত্রদের নম্বরের স্প্রেডশিট চিন্তা করো।</p>
+    <p class="bn"><span style="color:var(--red)">টেন্সর (Tensor)</span> → যেকোনো মাত্রার সংখ্যার কন্টেইনার। একটা রঙিন ছবি হলো ৩টা ম্যাট্রিক্স (R, G, B) — এটাই একটা ৩D টেন্সর!</p>
+    <br>
+    <p class="bn">🎯 <strong>মনে রাখার উপায়:</strong> স্কেলার = বিন্দু, ভেক্টর = রেখা, ম্যাট্রিক্স = সমতল, টেন্সর = ঘনক (বা তার বেশি!)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS & NOTATION</div>
+    <div class="formula-label">Scalar</div>
+    <div class="formula-box">a = 5     (just a number, scalar ∈ ℝ)</div>
+    <div class="formula-label">Vector (column vector, bold lowercase)</div>
+    <div class="formula-box"><span style="color:var(--blue)">v</span> = [v₁, v₂, v₃]ᵀ = [1, 2, 3]ᵀ   (shape: 3×1)</div>
+    <div class="formula-label">Matrix (uppercase bold)</div>
+    <div class="formula-box"><span style="color:var(--purple)">A</span> = ⎡1  2  3⎤   (shape: 2×3, meaning 2 rows, 3 cols)
+    ⎣4  5  6⎦</div>
+    <div class="formula-label">Tensor (in code — PyTorch)</div>
+    <div class="formula-box">import torch
+x = torch.zeros(32, 3, 224, 224)  # batch × channels × H × W
+print(x.shape)  # torch.Size([32, 3, 224, 224])
+print(x.ndim)   # 4  (this is tensor RANK = number of dimensions)</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> SIMPLE ANALOGY — বাস্তব উদাহরণ</div>
+    <p>Think of a <strong>Library</strong>:</p>
+    <ul style="padding-left:16px;margin-top:8px">
+      <li>📘 <span class="hl-green">Scalar</span> = The page number on one page (just: 42)</li>
+      <li>📚 <span class="hl-blue">Vector</span> = A single bookshelf — a list of books in order</li>
+      <li>🗂️ <span class="hl-purple">Matrix</span> = The entire library floor — rows of shelves, columns of positions</li>
+      <li>🏢 <span class="hl-red">Tensor</span> = The entire multi-floor library — floor (depth) × row × column</li>
+    </ul>
+    <p class="bn" style="margin-top:8px">বাংলায়: স্কেলার=পৃষ্ঠা নম্বর, ভেক্টর=বইয়ের তাক, ম্যাট্রিক্স=লাইব্রেরির একটা তলা, টেন্সর=পুরো বহুতল লাইব্রেরি!</p>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML/AI Application — How This Is Used</h4>
+    <table>
+      <tr><th>ML Concept</th><th>Data Type</th><th>Shape Example</th></tr>
+      <tr><td>A single pixel value</td><td>Scalar</td><td><code>0.95</code></td></tr>
+      <tr><td>Word embedding</td><td>Vector</td><td><code>(768,)</code> — BERT word vector</td></tr>
+      <tr><td>Weight matrix in a layer</td><td>Matrix</td><td><code>(512, 256)</code></td></tr>
+      <tr><td>Batch of images</td><td>4D Tensor</td><td><code>(32, 3, 224, 224)</code></td></tr>
+      <tr><td>Video data</td><td>5D Tensor</td><td><code>(batch, frames, C, H, W)</code></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: What is the difference between a matrix rank and a tensor rank (in ML context)? <span class="q-arrow">▶</span></div>
+      <div class="a"><span class="hl-blue">Matrix rank</span> = number of linearly independent rows/columns (related to information content). <span class="hl-red">Tensor rank</span> in ML = number of dimensions (axes) in the tensor. Example: A 3D tensor has rank 3. These are completely different concepts — don't confuse them in interviews! <br><br><span class="bn">বাংলায়: ম্যাট্রিক্স র‍্যাঙ্ক = তথ্যের স্বাধীন সারির সংখ্যা। টেন্সর র‍্যাঙ্ক = মাত্রার সংখ্যা।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: Why do we use tensors in deep learning instead of just matrices? <span class="q-arrow">▶</span></div>
+      <div class="a">Real-world data is inherently multi-dimensional. Images have spatial (H,W) + color (C) dimensions. When training in batches, we add a batch dimension. For video, we add time. Tensors naturally represent all this. Also, GPU hardware is optimized for batched tensor operations — processing 32 images simultaneously is much faster than one at a time. <br><br><span class="bn">বাংলায়: বাস্তব ডেটা বহু-মাত্রিক। ছবিতে উচ্চতা, প্রস্থ, রঙ — এগুলো আলাদা মাত্রা। টেন্সর এটা সহজে ধরে রাখে।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q3: In NumPy, what is the difference between shape (3,) and shape (3,1)? <span class="q-arrow">▶</span></div>
+      <div class="a"><code>(3,)</code> is a 1D array (vector) — it has no concept of row/column orientation. <code>(3,1)</code> is a 2D column vector — a matrix with 3 rows and 1 column. This distinction matters for broadcasting! <code>np.dot(A, v)</code> behaves differently depending on v's shape. Always use <code>.reshape(-1,1)</code> when you need an explicit column vector. <br><br><span class="bn">বাংলায়: (3,) হলো সরল তালিকা। (3,1) হলো স্পষ্টভাবে কলাম ভেক্টর। এই পার্থক্য broadcasting-এ গুরুত্বপূর্ণ।</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🏋️</span> EXERCISES — অনুশীলন</div>
+    <div class="exercise-box">
+      <h4>Exercise 1 (Basic)</h4>
+      <p>Identify the shape of each: (a) The number 42.5 → (b) [1, 2, 3, 4, 5] → (c) A 28×28 grayscale image → (d) A batch of 64 RGB images of size 32×32 →</p>
+      <p style="color:var(--muted);margin-top:6px;font-size:0.88em">Answer: (a) scalar (b) (5,) (c) (28,28) matrix (d) (64,3,32,32) tensor</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Code)</h4>
+      <p>Write NumPy code to create: (a) A zero vector of size 5 (b) A 3×4 matrix of ones (c) A random tensor of shape (2, 3, 4)</p>
+      <div class="formula-box">import numpy as np
+a = np.zeros(5)          # (a) zero vector
+b = np.ones((3, 4))      # (b) ones matrix
+c = np.random.randn(2,3,4) # (c) random tensor
+print(a.shape, b.shape, c.shape)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span> RESOURCES — সম্পদ</div>
+    <a class="resource-link" href="https://numpy.org/doc/stable/user/quickstart.html" target="_blank">📘 NumPy Quickstart</a>
+    <a class="resource-link" href="https://pytorch.org/tutorials/beginner/blitz/tensor_tutorial.html" target="_blank">🔥 PyTorch Tensor Tutorial</a>
+    <a class="resource-link" href="https://www.3blue1brown.com/topics/linear-algebra" target="_blank">🎬 3Blue1Brown: Essence of LA</a>
+  </div>`
+},
+{
+  title:"Vector & Matrix Operations",
+  bn_title:"ভেক্টর ও ম্যাট্রিক্স অপারেশন",
+  tags:["Operations","Broadcasting","Element-wise"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>Can you add a vector of shape <code>(3,)</code> to a matrix of shape <code>(4, 3)</code>? Think before reading!</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ YES! This is called <strong>broadcasting</strong>. The vector gets "broadcast" across each of the 4 rows. Result shape: <code>(4, 3)</code>.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Adding matrices of incompatible shapes (e.g., 3×2 + 2×3) — shape mismatch error!</li>
+      <li>❌ Confusing element-wise multiply (<code>*</code>) with matrix multiply (<code>@</code> or <code>np.dot</code>)</li>
+      <li>❌ Forgetting that matrix addition requires <strong>exactly the same shape</strong></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p><strong>Vector Operations:</strong></p>
+    <ol class="step-list">
+      <li><strong>Addition/Subtraction:</strong> Add corresponding elements. Same shape required.</li>
+      <li><strong>Scalar Multiplication:</strong> Multiply every element by the scalar.</li>
+      <li><strong>Element-wise (Hadamard) Product:</strong> Multiply element by element (same shape).</li>
+    </ol>
+    <p style="margin-top:12px"><strong>Matrix Operations:</strong></p>
+    <ol class="step-list">
+      <li><strong>Matrix Addition:</strong> Same shape, add element by element.</li>
+      <li><strong>Scalar × Matrix:</strong> Scale every element.</li>
+      <li><strong>Broadcasting:</strong> NumPy/PyTorch auto-expand smaller arrays to match shape.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>ভেক্টর যোগ (Vector Addition):</strong> দুটো দলের খেলোয়াড়দের স্কোর যোগ করার মতো — প্রতিটা অবস্থানের সংখ্যা আলাদা আলাদাভাবে যোগ হয়।</p>
+    <br>
+    <p class="bn"><strong>স্কেলার গুণ:</strong> যদি প্রতিটা জিনিসের দাম ২ গুণ হয়, তাহলে পুরো মূল্য তালিকাকে ২ দিয়ে গুণ করো।</p>
+    <br>
+    <p class="bn"><strong>Hadamard Product (⊙):</strong> Element-wise গুণ। যেমন দুটো ছবির পিক্সেল পরস্পরের সাথে গুণ করা।</p>
+    <br>
+    <p class="bn"><strong>Broadcasting:</strong> একটা ছোট অ্যারেকে বড় অ্যারের সাথে মেলানোর জন্য স্বয়ংক্রিয়ভাবে প্রসারিত করা। যেমন: প্রতিটা সারিতে একই বায়াস যোগ করা।</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Vector Addition</div>
+    <div class="formula-box"><span style="color:var(--blue)">u</span> + <span style="color:var(--purple)">v</span> = [u₁+v₁, u₂+v₂, u₃+v₃]
+Example: [1,2,3] + [4,5,6] = [5,7,9]</div>
+    <div class="formula-label">Scalar Multiplication</div>
+    <div class="formula-box">c·<span style="color:var(--blue)">v</span> = [c·v₁, c·v₂, c·v₃]
+Example: 3·[1,2,3] = [3,6,9]</div>
+    <div class="formula-label">Element-wise (Hadamard) Product ⊙</div>
+    <div class="formula-box"><span style="color:var(--blue)">u</span> ⊙ <span style="color:var(--purple)">v</span> = [u₁·v₁, u₂·v₂, u₃·v₃]  (NOT matrix multiply!)
+Example: [1,2,3] ⊙ [4,5,6] = [4,10,18]</div>
+    <div class="formula-label">Broadcasting Example</div>
+    <div class="formula-box">A shape (4,3) + b shape (3,) → b is broadcast to (4,3)
+⎡1 2 3⎤   ⎡10 20 30⎤   ⎡11 22 33⎤
+⎢4 5 6⎥ + ⎢10 20 30⎥ = ⎢14 25 36⎥  (b replicated 4 times)
+⎢7 8 9⎥   ⎢10 20 30⎥   ⎢17 28 39⎥
+⎣2 3 4⎦   ⎣10 20 30⎦   ⎣12 23 34⎦</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> ANALOGY</div>
+    <p><strong>Think of a restaurant bill:</strong></p>
+    <ul style="padding-left:16px">
+      <li>🍽️ <span class="hl-blue">Vector addition</span> = Adding two tables' orders item by item</li>
+      <li>💰 <span class="hl-green">Scalar multiply</span> = Applying 20% service charge to every item</li>
+      <li>🎁 <span class="hl-purple">Hadamard product</span> = Applying a different discount % to each item separately</li>
+      <li>📢 <span class="hl-red">Broadcasting</span> = Adding the same cover charge to every table</li>
+    </ul>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Operation</th><th>Mathematical Operation</th></tr>
+      <tr><td>Add bias to all neurons</td><td>Broadcasting: <code>z = Wx + b</code> (b broadcasts over batch)</td></tr>
+      <tr><td>Batch normalization</td><td>Element-wise subtract mean, divide by std</td></tr>
+      <tr><td>Gradient updates</td><td>Vector subtraction: <code>θ ← θ - α·∇θ</code></td></tr>
+      <tr><td>Attention masking</td><td>Element-wise multiply by mask (0s and 1s)</td></tr>
+      <tr><td>Dropout</td><td>Hadamard product with random 0/1 mask</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Explain broadcasting with an example from neural networks. <span class="q-arrow">▶</span></div>
+      <div class="a">In a fully connected layer, we compute <code>Z = XW + b</code>. X has shape <code>(batch, features)</code>, W has shape <code>(features, neurons)</code>, so XW has shape <code>(batch, neurons)</code>. The bias <code>b</code> has shape <code>(neurons,)</code>. Broadcasting automatically adds b to every row (every sample in the batch) without needing to manually repeat it. <br><br><span class="bn">বাংলায়: প্রতিটা নমুনার (batch) সাথে একই bias যোগ করতে broadcasting ব্যবহার হয়।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What is the difference between * and @ (or np.dot) in Python/NumPy? <span class="q-arrow">▶</span></div>
+      <div class="a"><code>*</code> is element-wise (Hadamard) multiplication — shapes must be broadcastable. <code>@</code> or <code>np.dot</code> is matrix multiplication — inner dimensions must match. Example: for A(2,3) and B(3,4), <code>A@B</code> gives shape (2,4) but <code>A*B</code> would fail (shape mismatch). This is one of the most common bugs in ML code!<br><br><span class="bn">বাংলায়: * মানে প্রতিটা উপাদান আলাদাভাবে গুণ। @ মানে আসল ম্যাট্রিক্স গুণ।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q3: What are the broadcasting rules in NumPy? <span class="q-arrow">▶</span></div>
+      <div class="a">NumPy compares shapes from the right (trailing dimensions). For two arrays to be broadcastable: each pair of dimensions must either be equal, or one of them must be 1. Example: (4,3,1) and (3,5) → pad left: (4,3,1) and (1,3,5) → result (4,3,5). Rule: dimension of 1 gets stretched. <br><br><span class="bn">বাংলায়: ডান দিক থেকে মাত্রা তুলনা হয়। যেখানে ১ আছে, সেটা প্রসারিত হয়।</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>Given u = [2, 4, 6] and v = [1, 3, 5], compute: (a) u + v, (b) 3u - v, (c) u ⊙ v</p>
+      <p style="color:var(--muted);margin-top:6px;font-size:0.88em">Answer: (a) [3,7,11] (b) [5,9,13] (c) [2,12,30]</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Broadcasting)</h4>
+      <p>Will these broadcast? (a) (3,4) + (4,) → ? (b) (3,4) + (3,) → ? (c) (3,1,4) + (1,2,4) → ?</p>
+      <p style="color:var(--muted);margin-top:6px;font-size:0.88em">Answer: (a) Yes → (3,4) (b) No — error! (c) Yes → (3,2,4)</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://numpy.org/doc/stable/user/basics.broadcasting.html" target="_blank">📘 NumPy Broadcasting Guide</a>
+    <a class="resource-link" href="https://cs231n.github.io/python-numpy-tutorial/" target="_blank">🎓 CS231n NumPy Tutorial</a>
+  </div>`
+},
+{
+  title:"Dot Product & Geometric Interpretation",
+  bn_title:"ডট প্রোডাক্ট ও জ্যামিতিক ব্যাখ্যা",
+  tags:["Similarity","Projection","Cosine Similarity"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>What does it mean when two word embeddings have a dot product of 0? Think geometrically!</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ It means the words are <strong>completely unrelated</strong> — their vectors are perpendicular (orthogonal) in embedding space. Their cosine similarity = 0.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Confusing dot product (scalar result) with cross product (vector result)</li>
+      <li>❌ Using raw dot product for similarity without normalizing — MAGNITUDE matters!</li>
+      <li>❌ Forgetting that cosine similarity = dot product / (|a|·|b|) — raw dot product is NOT similarity</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>The dot product has <span class="hl-blue">two definitions</span> that are mathematically equivalent:</p>
+    <div class="grid-2">
+      <div style="background:var(--bg3);padding:16px;border-radius:8px">
+        <p><span class="hl-green">Algebraic Definition:</span></p>
+        <p>Multiply corresponding elements and sum them up.</p>
+        <code>a·b = Σ aᵢbᵢ</code>
+      </div>
+      <div style="background:var(--bg3);padding:16px;border-radius:8px">
+        <p><span class="hl-blue">Geometric Definition:</span></p>
+        <p>Product of magnitudes × cosine of angle between them.</p>
+        <code>a·b = |a||b|cos(θ)</code>
+      </div>
+    </div>
+    <p style="margin-top:16px"><strong>What the sign tells you:</strong></p>
+    <table>
+      <tr><th>Dot Product</th><th>Angle θ</th><th>Meaning</th></tr>
+      <tr><td style="color:var(--green)">a·b > 0</td><td>θ &lt; 90°</td><td>Vectors point in similar direction</td></tr>
+      <tr><td style="color:var(--muted)">a·b = 0</td><td>θ = 90°</td><td>Orthogonal — completely unrelated</td></tr>
+      <tr><td style="color:var(--red)">a·b &lt; 0</td><td>θ > 90°</td><td>Vectors point in opposite direction</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>ডট প্রোডাক্ট</strong> দুটো ভেক্টরের মধ্যে <strong>কতটা একই দিকে আছে</strong> সেটা মাপে।</p>
+    <br>
+    <p class="bn">💡 <strong>সহজ উদাহরণ:</strong> ধরো তুমি উত্তর দিকে ৫ কিমি হেঁটেছ (ভেক্টর a)। বাতাস উত্তর-পূর্ব দিকে বইছে (ভেক্টর b)। ডট প্রোডাক্ট বলবে বাতাস তোমার যাত্রাতে কতটা "সাহায্য" করছে।</p>
+    <br>
+    <p class="bn"><strong>কোসাইন সিমিলারিটি (Cosine Similarity):</strong> শুধু দিক দেখে, মাত্রা দেখে না। মেশিন লার্নিংয়ে দুটো শব্দ কতটা কাছের সেটা মাপতে ব্যবহার হয়।</p>
+    <br>
+    <p class="bn">cos(θ) = <strong>a·b / (|a|·|b|)</strong></p>
+    <p class="bn">→ মান ১ মানে একই দিক (identical), -১ মানে বিপরীত দিক, ০ মানে কোনো সম্পর্ক নেই।</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Dot Product (Algebraic)</div>
+    <div class="formula-box"><span style="color:var(--blue)">a</span>·<span style="color:var(--purple)">b</span> = a₁b₁ + a₂b₂ + ... + aₙbₙ = Σᵢ aᵢbᵢ
+Example: [1,2,3]·[4,5,6] = 1×4 + 2×5 + 3×6 = 4+10+18 = <span style="color:var(--green)">32</span></div>
+    <div class="formula-label">Dot Product (Geometric)</div>
+    <div class="formula-box"><span style="color:var(--blue)">a</span>·<span style="color:var(--purple)">b</span> = |<span style="color:var(--blue)">a</span>|·|<span style="color:var(--purple)">b</span>|·cos(θ)
+where |a| = √(a₁²+a₂²+...+aₙ²)  [L2 norm = magnitude]</div>
+    <div class="formula-label">Cosine Similarity (used in NLP, recommendation systems)</div>
+    <div class="formula-box">cos_sim(<span style="color:var(--blue)">a</span>,<span style="color:var(--purple)">b</span>) = (<span style="color:var(--blue)">a</span>·<span style="color:var(--purple)">b</span>) / (|<span style="color:var(--blue)">a</span>| × |<span style="color:var(--purple)">b</span>|)   ∈ [-1, 1]
+Python: from sklearn.metrics.pairwise import cosine_similarity</div>
+    <div class="formula-label">Projection of a onto b</div>
+    <div class="formula-box">proj_b(a) = (a·b / |b|²) × b    [vector projection]
+scalar projection = a·b / |b|  = |a|cos(θ)</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> ANALOGY</div>
+    <p><strong>Think of pushing a door:</strong></p>
+    <ul style="padding-left:16px">
+      <li>💪 Pushing <strong>perpendicular to the door</strong> (same direction as it swings) → maximum dot product → door opens easily</li>
+      <li>😅 Pushing at <strong>45°</strong> → partial dot product → some of your force wasted</li>
+      <li>🙅 Pushing <strong>along the door's surface</strong> (parallel to door, 90° to motion) → dot product = 0 → door doesn't move!</li>
+    </ul>
+    <p class="bn" style="margin-top:8px">বাংলায়: ডট প্রোডাক্ট = আপনার শক্তির কতটা সত্যিকারের "কাজে" লাগছে সেটার পরিমাপ।</p>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Use Case</th><th>How Dot Product Is Used</th></tr>
+      <tr><td>Neural network forward pass</td><td><code>z = w·x + b</code> — weighted sum of inputs</td></tr>
+      <tr><td>Attention mechanism (Transformer)</td><td><code>score = Q·Kᵀ / √d_k</code> — query-key similarity</td></tr>
+      <tr><td>Word2Vec similarity</td><td>Cosine sim between word vectors</td></tr>
+      <tr><td>Recommendation systems</td><td>User vector · Item vector = predicted preference</td></tr>
+      <tr><td>SVM (Support Vector Machine)</td><td>Decision boundary via dot products (kernel trick)</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: In the Transformer attention mechanism, why is the dot product scaled by √d_k? <span class="q-arrow">▶</span></div>
+      <div class="a">When d_k (key dimension) is large, dot products grow large in magnitude, pushing softmax into regions with very small gradients (vanishing gradient). Dividing by √d_k keeps dot products in a reasonable range. Example: if d_k=64, scale by 1/8. This stabilizes training.<br><br><span class="bn">বাংলায়: বড় মাত্রায় ডট প্রোডাক্ট খুব বড় হয়ে যায়, যা softmax-কে অকার্যকর করে দেয়। √d_k দিয়ে ভাগ করলে মান নিয়ন্ত্রণে থাকে।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: Why use cosine similarity instead of Euclidean distance for text similarity? <span class="q-arrow">▶</span></div>
+      <div class="a">Cosine similarity is <strong>magnitude-invariant</strong> — it only cares about direction. A document with the word "cat" appearing 100 times vs 10 times should still be similar to another document about cats. Euclidean distance would treat the 100-occurrence document as very "far away" just because of length. Cosine similarity normalizes for length, making it ideal for text comparison.<br><br><span class="bn">বাংলায়: কোসাইন সিমিলারিটি শুধু দিক দেখে, আকার দেখে না — তাই দীর্ঘ ও সংক্ষিপ্ত টেক্সট ন্যায্যভাবে তুলনা হয়।</span></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>Compute: (a) [1,0,0]·[0,1,0] = ? (b) [1,1]·[1,1] = ? What angle is between [1,0] and [0,1]?</p>
+      <p style="color:var(--muted);margin-top:6px;font-size:0.88em">Answers: (a) 0 (orthogonal!) (b) 2. Angle between [1,0] and [0,1] = 90°</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Conceptual)</h4>
+      <p>Two word vectors: "king" and "queen" have cosine similarity 0.85, "king" and "car" have cosine similarity 0.12. What does this tell us about the embedding space?</p>
+      <p style="color:var(--muted);margin-top:6px;font-size:0.88em">The model learned that king and queen are semantically close (royalty concept), while king and car are almost unrelated. The embedding space captures meaning!</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.3blue1brown.com/lessons/dot-products" target="_blank">🎬 3Blue1Brown: Dot Products</a>
+    <a class="resource-link" href="https://jalammar.github.io/illustrated-transformer/" target="_blank">🤖 Illustrated Transformer (attention)</a>
+  </div>`
+},
+{
+  title:"Matrix Multiplication",
+  bn_title:"ম্যাট্রিক্স গুণন",
+  tags:["Neural Networks","Transformations","Core Operation"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>A weight matrix W has shape (512, 256) and an input x has shape (256,). What is the output shape of Wx?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ Output shape = <strong>(512,)</strong>. The inner dimension (256) cancels out. You're mapping a 256-dim input to a 512-dim output — this is what a neural network layer does!</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Assuming AB = BA (matrix multiply is NOT commutative!)</li>
+      <li>❌ Getting the shape rule wrong: (m×<span style="color:var(--red)">n</span>) × (<span style="color:var(--red)">n</span>×p) = (m×p) — inner dims must match</li>
+      <li>❌ Using <code>*</code> instead of <code>@</code> in Python (element-wise vs matrix multiply)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p><strong>The Golden Rule:</strong> (m×<span class="hl-red">n</span>) × (<span class="hl-red">n</span>×p) = (m×p)</p>
+    <p style="margin-top:8px">The <strong>inner dimensions must match</strong>. The result has the <strong>outer dimensions</strong>.</p>
+    <p style="margin-top:12px"><strong>How to compute element (i,j) of result C = AB:</strong></p>
+    <div style="background:var(--bg3);padding:14px;border-radius:8px;margin-top:8px">
+      <p>C[i,j] = <strong>dot product of row i of A with column j of B</strong></p>
+      <p style="color:var(--muted);font-size:0.9em;margin-top:4px">C[i,j] = Σₖ A[i,k] × B[k,j]</p>
+    </div>
+    <p style="margin-top:12px"><strong>Properties to remember:</strong></p>
+    <ul style="padding-left:16px">
+      <li>NOT commutative: AB ≠ BA (usually)</li>
+      <li>IS associative: (AB)C = A(BC)</li>
+      <li>IS distributive: A(B+C) = AB + AC</li>
+      <li>Transpose rule: (AB)ᵀ = BᵀAᵀ ← note the order reverses!</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>মনে রাখার নিয়ম:</strong> (m×<span style="color:var(--red)">n</span>) × (<span style="color:var(--red)">n</span>×p) = (m×p)</p>
+    <p class="bn">ভেতরের সংখ্যা দুটো <span style="color:var(--red)">একসাথে মিলিয়ে যায়</span>, বাইরের সংখ্যা দুটো ফলাফলের আকার।</p>
+    <br>
+    <p class="bn"><strong>C[i,j] কীভাবে হিসাব করবো?</strong></p>
+    <p class="bn">A এর i-তম সারি নাও, B এর j-তম কলাম নাও, এদের ডট প্রোডাক্ট নাও → সেটাই C[i,j]</p>
+    <br>
+    <p class="bn">⚠️ <strong>গুরুত্বপূর্ণ:</strong> AB ≠ BA সাধারণত! ম্যাট্রিক্স গুণ ক্রমবিনিময়যোগ্য নয়।</p>
+    <p class="bn">(AB)ᵀ = BᵀAᵀ — ট্রান্সপোজ করলে ক্রম উল্টে যায়!</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> STEP-BY-STEP EXAMPLE</div>
+    <div class="formula-label">A (2×3) × B (3×2) = C (2×2)</div>
+    <div class="formula-box">A = ⎡1  2  3⎤    B = ⎡7  8 ⎤
+    ⎣4  5  6⎦        ⎢9  10⎥
+                     ⎣11 12⎦
+
+C[0,0] = row0_A · col0_B = 1×7 + 2×9 + 3×11 = 7+18+33  = <span style="color:var(--green)">58</span>
+C[0,1] = row0_A · col1_B = 1×8 + 2×10 + 3×12 = 8+20+36 = <span style="color:var(--green)">64</span>
+C[1,0] = row1_A · col0_B = 4×7 + 5×9 + 6×11 = 28+45+66 = <span style="color:var(--green)">139</span>
+C[1,1] = row1_A · col1_B = 4×8 + 5×10 + 6×12 = 32+50+72 = <span style="color:var(--green)">154</span>
+
+C = ⎡ 58   64⎤
+    ⎣139  154⎦</div>
+    <div class="formula-label">In Python</div>
+    <div class="formula-box">import numpy as np
+A = np.array([[1,2,3],[4,5,6]])    # shape (2,3)
+B = np.array([[7,8],[9,10],[11,12]]) # shape (3,2)
+C = A @ B   # or np.matmul(A, B)
+# C.shape = (2,2), C = [[58,64],[139,154]]</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> ANALOGY — Currency Exchange</div>
+    <p>Imagine you have <strong>prices in 3 currencies</strong> (matrix A: items × currencies). You have <strong>exchange rates</strong> (matrix B: currencies × target_currencies). Matrix multiply A×B gives you prices in all target currencies at once — every element of the result combines a row of A (item prices) with a column of B (exchange rates).</p>
+    <p class="bn" style="margin-top:8px">বাংলায়: ৩টা মুদ্রায় পণ্যের দাম × বিনিময় হার = নতুন মুদ্রায় পণ্যের দাম। ম্যাট্রিক্স গুণ এই পুরো কাজটা একসাথে করে!</p>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application — Every Neural Network Layer IS Matrix Multiplication</h4>
+    <table>
+      <tr><th>Layer Type</th><th>Operation</th><th>Shapes</th></tr>
+      <tr><td>Dense / Linear</td><td><code>Y = XW + b</code></td><td>X:(batch,in) × W:(in,out) → Y:(batch,out)</td></tr>
+      <tr><td>Conv (as matrix)</td><td>im2col + matmul</td><td>Unrolled patches × filters</td></tr>
+      <tr><td>Multi-head attention</td><td><code>Attention(Q,K,V) = softmax(QKᵀ/√d)V</code></td><td>Multiple matmuls</td></tr>
+      <tr><td>Backpropagation</td><td>Chain rule via matmul</td><td>δ = δₙₑₓₜ × Wᵀ</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Why is matrix multiplication so important in deep learning? <span class="q-arrow">▶</span></div>
+      <div class="a">Every layer in a neural network fundamentally performs matrix multiplication (plus non-linearity). The weight matrix W transforms input representations from one space to another. GPUs are specifically optimized for BLAS (Basic Linear Algebra Subprograms) operations, especially matrix multiplications, making them ideal for deep learning. The entire forward and backward pass is a chain of matrix multiplications.<br><br><span class="bn">বাংলায়: নিউরাল নেটওয়ার্কের প্রতিটি স্তর মূলত ম্যাট্রিক্স গুণ। GPU এই অপারেশনের জন্যই তৈরি।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What does it mean geometrically when you multiply a vector by a matrix? <span class="q-arrow">▶</span></div>
+      <div class="a">A matrix multiplication Mv transforms a vector v — it can rotate it, scale it, reflect it, or project it to a different dimension. Neural network layers learn to transform input data into more useful representations. A 3→2 layer projects 3D data onto a 2D plane; a 2→4 layer embeds 2D data into 4D space. The model learns the best transformation W for the task.<br><br><span class="bn">বাংলায়: ম্যাট্রিক্স দিয়ে গুণ মানে ভেক্টরকে ঘোরানো, প্রসারিত করা, বা ভিন্ন মাত্রায় নিয়ে যাওয়া।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q3: Why is (AB)ᵀ = BᵀAᵀ and not AᵀBᵀ? <span class="q-arrow">▶</span></div>
+      <div class="a">Because matrix multiplication requires inner dimensions to match. If AB is valid (A is m×n, B is n×p), then Aᵀ is n×m and Bᵀ is p×n. AᵀBᵀ would need n×m times p×n — inner dims n≠p, which doesn't work! BᵀAᵀ is p×n times n×m = p×m, which matches (AB)ᵀ which is p×m. This is critical in backpropagation calculations!<br><br><span class="bn">বাংলায়: ট্রান্সপোজ করলে গুণের ক্রম উল্টে দিতে হয়, নইলে মাত্রা মেলে না।</span></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>Which of these matrix multiplications are valid? Give the output shape:<br>
+      (a) (3,4)×(4,5) → ? (b) (4,3)×(4,5) → ? (c) (3,)×(3,4) → ? (d) (5,3)×(3,) → ?</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">Answers: (a) Valid → (3,5) (b) Invalid! (c) Valid → (4,) [treated as 1×3 × 3×4] (d) Valid → (5,)</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Neural Network)</h4>
+      <p>Input batch: X shape (32, 784) (batch of 32 MNIST images). Layer 1: W₁(784,256), b₁(256,). Layer 2: W₂(256,10), b₂(10,). What are the shapes at each step?</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">Z₁ = XW₁+b₁ → (32,256). Z₂ = Z₁W₂+b₂ → (32,10). Output: 32 samples, 10 class scores each.</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=XkY2DOUCWMU" target="_blank">🎬 3B1B: Matrix Multiplication</a>
+    <a class="resource-link" href="https://cs231n.github.io/linear-classify/" target="_blank">🎓 CS231n: Linear Classification</a>
+  </div>`
+},
+{
+  title:"Identity, Transpose, Inverse",
+  bn_title:"আইডেন্টিটি, ট্রান্সপোজ, ইনভার্স",
+  tags:["Matrix Properties","Inverse","Transpose"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>For a weight matrix W, what does W·Wᵀ represent? And when does W⁻¹ not exist?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ W·Wᵀ gives a square matrix — it's related to correlations between rows of W. W⁻¹ doesn't exist when W is <strong>singular</strong> (determinant = 0) — meaning rows/columns are linearly dependent.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Trying to invert a non-square matrix (only square matrices have inverses)</li>
+      <li>❌ Using inverse when pseudo-inverse (Moore-Penrose) is needed for rectangular matrices</li>
+      <li>❌ Numerically computing inverses for large matrices — use LU decomposition or solve instead!</li>
+      <li>❌ Forgetting (Aᵀ)ᵀ = A and (A⁻¹)⁻¹ = A</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p><strong>1. Identity Matrix I</strong> — The "1" of matrices:</p>
+    <ul style="padding-left:16px;margin:8px 0">
+      <li>Square matrix with 1s on the diagonal, 0s everywhere else</li>
+      <li>For any matrix A: <strong>AI = IA = A</strong></li>
+      <li>Like multiplying by 1 in scalar arithmetic</li>
+    </ul>
+    <p style="margin-top:12px"><strong>2. Transpose Aᵀ</strong> — Flip along the diagonal:</p>
+    <ul style="padding-left:16px;margin:8px 0">
+      <li><strong>(Aᵀ)[i,j] = A[j,i]</strong> — rows become columns</li>
+      <li>Shape (m×n) → (n×m)</li>
+      <li>Key rule: (AB)ᵀ = BᵀAᵀ (order reverses!)</li>
+    </ul>
+    <p style="margin-top:12px"><strong>3. Inverse A⁻¹</strong> — The "reciprocal" of a matrix:</p>
+    <ul style="padding-left:16px;margin:8px 0">
+      <li><strong>A·A⁻¹ = A⁻¹·A = I</strong></li>
+      <li>Exists only if A is square AND non-singular (det(A) ≠ 0)</li>
+      <li>For solving Ax = b: x = A⁻¹b</li>
+      <li>Key rule: (AB)⁻¹ = B⁻¹A⁻¹ (order reverses!)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>আইডেন্টিটি ম্যাট্রিক্স (I):</strong> এটা ম্যাট্রিক্সের "১" এর মতো। যেকোনো ম্যাট্রিক্সকে I দিয়ে গুণ করলে সেই ম্যাট্রিক্সই পাওয়া যায়।</p>
+    <br>
+    <p class="bn"><strong>ট্রান্সপোজ (Aᵀ):</strong> ম্যাট্রিক্সকে কর্ণরেখা (diagonal) বরাবর উল্টে দাও। সারি হয়ে যাবে কলাম, কলাম হয়ে যাবে সারি।</p>
+    <br>
+    <p class="bn"><strong>ইনভার্স (A⁻¹):</strong> ম্যাট্রিক্সের "ভগ্নাংশ" বা "বিপরীত"। যেমন 3 × (1/3) = 1, তেমনি A × A⁻¹ = I।</p>
+    <br>
+    <p class="bn">⚠️ <strong>সাবধান:</strong> সব ম্যাট্রিক্সের ইনভার্স থাকে না! শুধু square ম্যাট্রিক্স এবং যার determinant ≠ 0, তারই ইনভার্স আছে।</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Identity Matrix (3×3)</div>
+    <div class="formula-box">I₃ = ⎡1  0  0⎤   AI = IA = A  for any compatible A
+     ⎢0  1  0⎥
+     ⎣0  0  1⎦</div>
+    <div class="formula-label">Transpose</div>
+    <div class="formula-box">A = ⎡1  2  3⎤   →  Aᵀ = ⎡1  4⎤
+    ⎣4  5  6⎦          ⎢2  5⎥
+                        ⎣3  6⎦
+(Aᵀ)ᵀ = A    (AB)ᵀ = BᵀAᵀ    (cA)ᵀ = cAᵀ</div>
+    <div class="formula-label">Inverse (2×2 formula)</div>
+    <div class="formula-box">A = ⎡a  b⎤   →   A⁻¹ = 1/det(A) × ⎡ d  -b⎤
+    ⎣c  d⎦                              ⎣-c   a⎦
+where det(A) = ad - bc   (must be ≠ 0!)
+
+Properties: AA⁻¹ = I    (AB)⁻¹ = B⁻¹A⁻¹    (Aᵀ)⁻¹ = (A⁻¹)ᵀ</div>
+    <div class="formula-label">Orthogonal Matrix (special case: Qᵀ = Q⁻¹)</div>
+    <div class="formula-box">If Q is orthogonal: QᵀQ = QQᵀ = I  →  Q⁻¹ = Qᵀ (cheap to compute!)</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Operation</th><th>Uses Which Property</th></tr>
+      <tr><td>Normal Equation (Linear Regression)</td><td>Inverse: <code>θ = (XᵀX)⁻¹Xᵀy</code></td></tr>
+      <tr><td>Whitening/decorrelating data</td><td>Inverse of covariance matrix</td></tr>
+      <tr><td>Attention in Transformers</td><td>Transpose: <code>QKᵀ</code></td></tr>
+      <tr><td>Weight initialization (orthogonal)</td><td>Orthogonal matrices preserve norms</td></tr>
+      <tr><td>Batch normalization</td><td>Identity initialization for scale/shift</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Why should you never explicitly compute the matrix inverse in ML code? <span class="q-arrow">▶</span></div>
+      <div class="a">Computing A⁻¹ is numerically unstable and O(n³) expensive. For Ax=b, instead of x=A⁻¹b, use <code>np.linalg.solve(A, b)</code> which uses LU decomposition — more stable and efficient. The normal equation <code>(XᵀX)⁻¹Xᵀy</code> also fails when XᵀX is nearly singular (multicollinearity). That's why gradient descent is preferred over the normal equation for large-scale ML.<br><br><span class="bn">বাংলায়: ইনভার্স সরাসরি হিসাব করা ধীর ও অস্থিতিশীল। <code>np.linalg.solve</code> ব্যবহার করুন।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What is a pseudo-inverse and when is it used? <span class="q-arrow">▶</span></div>
+      <div class="a">The Moore-Penrose pseudo-inverse (A⁺) generalizes the inverse for non-square or singular matrices. For an m×n matrix A, A⁺ is n×m. It gives the minimum-norm least-squares solution to Ax=b. In ML, it's used in linear regression with redundant features (rank-deficient XᵀX). <code>np.linalg.pinv(A)</code> computes it via SVD.<br><br><span class="bn">বাংলায়: যে ম্যাট্রিক্সের সাধারণ ইনভার্স নেই, তার জন্য pseudo-inverse ব্যবহার হয়।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>For A = [[2,1],[5,3]], find A⁻¹ using the 2×2 formula. Verify that A·A⁻¹ = I.</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">det(A) = 2×3 - 1×5 = 1. A⁻¹ = [[3,-1],[-5,2]]. Check: [[2,1],[5,3]]×[[3,-1],[-5,2]] = [[1,0],[0,1]] ✓</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.khanacademy.org/math/linear-algebra/matrix-transformations" target="_blank">📘 Khan Academy: Matrix Transforms</a>
+    <a class="resource-link" href="https://numpy.org/doc/stable/reference/routines.linalg.html" target="_blank">📘 NumPy Linear Algebra</a>
+  </div>`
+},
+{
+  title:"Rank of a Matrix",
+  bn_title:"ম্যাট্রিক্সের র‍্যাঙ্ক",
+  tags:["Linear Independence","Dimensionality","Feature Engineering"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>You have a dataset with 10 features, but feature 3 = 2×feature 1. What is the rank of your feature matrix?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ Rank = <strong>9, not 10</strong>! Feature 3 is linearly dependent on feature 1 — it adds no new information. This is multicollinearity, and it makes the matrix rank-deficient.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Thinking rank = number of rows or columns (it's the number of <em>independent</em> ones)</li>
+      <li>❌ Ignoring rank deficiency in linear regression — causes degenerate solutions</li>
+      <li>❌ Not understanding that rank tells you the "true" dimensionality of data</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>The rank of a matrix A is the <span class="hl-blue">number of linearly independent rows (or columns)</span>.</p>
+    <p style="margin-top:8px"><strong>What "linearly independent" means:</strong> A set of vectors is linearly independent if <em>no vector can be written as a combination of the others</em>.</p>
+    <div style="background:var(--bg3);padding:12px;border-radius:8px;margin:12px 0">
+      <p style="color:var(--muted)">Example: [1,0], [0,1] — INDEPENDENT (you can't get [0,1] from [1,0])</p>
+      <p style="color:var(--muted)">Example: [1,0], [0,1], [2,1] — DEPENDENT! [2,1] = 2×[1,0] + 1×[0,1]</p>
+    </div>
+    <p><strong>Key facts:</strong></p>
+    <ul style="padding-left:16px">
+      <li>rank(A) ≤ min(m, n) — can't exceed smaller dimension</li>
+      <li>Full rank: rank = min(m,n) — no redundancy</li>
+      <li>rank(A) = rank(Aᵀ) — row rank = column rank</li>
+      <li>rank(A) = 0 only if A is the zero matrix</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn">র‍্যাঙ্ক হলো ম্যাট্রিক্সের <strong>প্রকৃত তথ্যের পরিমাণ</strong>।</p>
+    <br>
+    <p class="bn">💡 <strong>সহজ উদাহরণ:</strong> তোমার কাছে ৩টা বন্ধু আছে এবং তাদের উচ্চতা, ওজন, এবং BMI আছে। কিন্তু BMI = ওজন/উচ্চতা² — তাই BMI আলাদা তথ্য দেয় না। এই ডেটাসেটের rank = ২, কারণ মাত্র ২টা feature স্বাধীন।</p>
+    <br>
+    <p class="bn"><strong>Full Rank:</strong> প্রতিটা feature সত্যিকারের নতুন তথ্য দেয়।</p>
+    <p class="bn"><strong>Rank Deficient:</strong> কিছু feature অন্যদের combination — অপ্রয়োজনীয় তথ্য আছে।</p>
+    <br>
+    <p class="bn">মনে রাখো: rank(A) ≤ min(সারির সংখ্যা, কলামের সংখ্যা)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS & EXAMPLES</div>
+    <div class="formula-label">Finding rank via row reduction</div>
+    <div class="formula-box">A = ⎡1  2  3⎤   Row reduce →  ⎡1  2  3⎤
+    ⎢4  5  6⎥                ⎢0 -3 -6⎥
+    ⎣7  8  9⎦                ⎣0  0  0⎦
+→ rank(A) = <span style="color:var(--green)">2</span>  (only 2 non-zero rows after reduction)
+Note: row 3 = 2×row2 - row1 (linearly dependent!)</div>
+    <div class="formula-label">Rank in Python</div>
+    <div class="formula-box">import numpy as np
+A = np.array([[1,2,3],[4,5,6],[7,8,9]])
+print(np.linalg.matrix_rank(A))  # Output: 2</div>
+    <div class="formula-label">Rank-Nullity Theorem</div>
+    <div class="formula-box">rank(A) + nullity(A) = n   (n = number of columns)
+where nullity = dimension of null space (# of free variables)</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Context</th><th>Rank Matters Because</th></tr>
+      <tr><td>Linear regression (multicollinearity)</td><td>If X is rank-deficient, (XᵀX)⁻¹ doesn't exist</td></tr>
+      <tr><td>PCA / Dimensionality reduction</td><td>Finds the true rank (intrinsic dimensionality) of data</td></tr>
+      <tr><td>Low-rank factorization (LoRA, SVD)</td><td>Approximate high-rank matrices with low-rank ones</td></tr>
+      <tr><td>Recommendation systems (matrix factorization)</td><td>User-item matrix often has low rank</td></tr>
+      <tr><td>Neural network compression</td><td>Weight matrices often have low effective rank</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: What is LoRA and how does rank relate to it? <span class="q-arrow">▶</span></div>
+      <div class="a">LoRA (Low-Rank Adaptation) is a parameter-efficient fine-tuning method. Instead of updating a full weight matrix W (potentially billions of parameters), it learns two small matrices: A (d×r) and B (r×d) where r ≪ d. The update ΔW = BA has rank at most r. This works because pre-trained model weight updates tend to have intrinsically low rank. With r=8, you update only 2×d×8 parameters instead of d² — massive reduction!<br><br><span class="bn">বাংলায়: LoRA বড় weight matrix আপডেটের বদলে দুটো ছোট low-rank matrix শেখে, যা অনেক কম parameter দিয়ে fine-tuning করতে দেয়।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What is multicollinearity and why is it a problem in ML? <span class="q-arrow">▶</span></div>
+      <div class="a">Multicollinearity occurs when features are linearly correlated (rank-deficient feature matrix). Problems: (1) The normal equation (XᵀX)⁻¹ becomes numerically unstable or undefined. (2) Coefficients become unreliable — tiny data changes cause huge coefficient swings. (3) Hard to interpret feature importance. Solutions: remove correlated features, use PCA, add L2 regularization (Ridge), or use gradient descent instead of normal equation.<br><br><span class="bn">বাংলায়: মাল্টিকোলিনিয়ারিটি মানে features পরস্পর correlated, যা regression অস্থির করে দেয়।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise</h4>
+      <p>Find the rank of: A=[[1,2],[2,4]] and B=[[1,0,0],[0,1,0],[0,0,1],[1,1,0]]</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">A: row2 = 2×row1, so rank=1. B: first 3 rows are independent (identity), row4 = row1+row2, rank=3</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=uQhTuRlWMxw" target="_blank">🎬 3B1B: Linear Independence</a>
+    <a class="resource-link" href="https://arxiv.org/abs/2106.09685" target="_blank">📄 LoRA Paper</a>
+  </div>`
+},
+{
+  title:"Systems of Linear Equations",
+  bn_title:"রৈখিক সমীকরণ পদ্ধতি",
+  tags:["Ax=b","Least Squares","Normal Equation"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>In linear regression, the "normal equation" is θ = (XᵀX)⁻¹Xᵀy. When should you use gradient descent instead?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ Use gradient descent when n (features) > ~10,000. Normal equation requires inverting XᵀX which is O(n³) — becomes too slow. Also use gradient descent when XᵀX is rank-deficient (multicollinearity).</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Assuming every Ax=b system has a solution — might be overdetermined (no solution) or underdetermined (infinite solutions)</li>
+      <li>❌ Computing (XᵀX)⁻¹ directly — numerically unstable, use np.linalg.solve or lstsq instead</li>
+      <li>❌ Forgetting that gradient descent for least squares IS solving Ax=b iteratively</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>A system of linear equations in matrix form: <strong>Ax = b</strong></p>
+    <p style="margin-top:8px">Three cases based on rank:</p>
+    <table>
+      <tr><th>Case</th><th>Condition</th><th>Solutions</th><th>ML Example</th></tr>
+      <tr><td><span class="hl-green">Exactly determined</span></td><td>A is square, full rank</td><td>Unique solution</td><td>Exact interpolation</td></tr>
+      <tr><td><span class="hl-red">Overdetermined</span></td><td>More equations than unknowns (m>n)</td><td>No exact solution → least squares</td><td>Linear regression (more data than params)</td></tr>
+      <tr><td><span class="hl-gold">Underdetermined</span></td><td>Fewer equations than unknowns (m&lt;n)</td><td>Infinite solutions</td><td>Compressed sensing, sparse ML</td></tr>
+    </table>
+    <p style="margin-top:12px"><strong>Least Squares Solution</strong> (for overdetermined — most common in ML):</p>
+    <div style="background:var(--bg3);padding:12px;border-radius:8px">Minimize ||Ax - b||² → Solution: <strong>x = (AᵀA)⁻¹Aᵀb</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>Ax = b</strong> মানে: A ম্যাট্রিক্স দিয়ে x ভেক্টর গুণ করলে b পাওয়া যাবে।</p>
+    <p class="bn">এটা মূলত বলছে: "x এমন একটা ভেক্টর খুঁজে বের করো যেটাকে A দিয়ে transform করলে b পাওয়া যায়।"</p>
+    <br>
+    <p class="bn"><strong>৩টা সম্ভাব্য অবস্থা:</strong></p>
+    <p class="bn">✅ সমীকরণ সংখ্যা = অজানা সংখ্যা → একটাই সমাধান</p>
+    <p class="bn">🤔 সমীকরণ > অজানা → সরাসরি সমাধান নেই, least squares দিয়ে সেরা সমাধান খুঁজি</p>
+    <p class="bn">♾️ সমীকরণ < অজানা → অসংখ্য সমাধান আছে</p>
+    <br>
+    <p class="bn">📊 <strong>Linear Regression একটা overdetermined system!</strong> n টা ডেটা পয়েন্ট থেকে মাত্র k টা parameter শিখতে হয়। সেরা fit = least squares।</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Linear System (Ax = b)</div>
+    <div class="formula-box">System: 2x + y = 5          Matrix form: ⎡2  1⎤⎡x⎤   ⎡5⎤
+         x - y = 1                         ⎣1 -1⎦⎣y⎦ = ⎣1⎦
+                                              A      x    b
+
+Solution: x = A⁻¹b = [[1/3, 1/3],[1/3,-2/3]] × [5,1]ᵀ = [2, 1]ᵀ</div>
+    <div class="formula-label">Normal Equation (Linear Regression)</div>
+    <div class="formula-box">Minimize: ||Xθ - y||²   (sum of squared errors)
+
+Setting gradient to zero → <span style="color:var(--green)">θ = (XᵀX)⁻¹Xᵀy</span>
+
+In code (preferred over explicit inverse):
+θ, _, _, _ = np.linalg.lstsq(X, y, rcond=None)</div>
+    <div class="formula-label">Gaussian Elimination (to solve Ax=b)</div>
+    <div class="formula-box">Augmented matrix [A|b] → Row operations → [I|x]
+Steps: (1) Forward elimination to upper triangular
+       (2) Back substitution to get solution</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Algorithm</th><th>Linear System Solved</th></tr>
+      <tr><td>Linear Regression</td><td><code>θ = (XᵀX)⁻¹Xᵀy</code> (overdetermined)</td></tr>
+      <tr><td>Ridge Regression</td><td><code>θ = (XᵀX + λI)⁻¹Xᵀy</code></td></tr>
+      <tr><td>Gaussian Process</td><td>Solve <code>(K + σ²I)α = y</code></td></tr>
+      <tr><td>Newton's method</td><td>Solve Hessian system: <code>H Δθ = ∇L</code></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Compare Normal Equation vs Gradient Descent for linear regression. <span class="q-arrow">▶</span></div>
+      <div class="a">Normal Equation: O(n³) for n features, no hyperparameter (learning rate), gives exact solution in one step, fails with singular/near-singular XᵀX. Gradient Descent: O(kn) per iteration for k iterations, needs learning rate tuning, iterative, works with regularization easily, scales to millions of features. Rule of thumb: Normal equation for n < 10,000 features; gradient descent otherwise.<br><br><span class="bn">বাংলায়: Normal equation একধাপে সমাধান দেয় কিন্তু বড় dataset-এ ধীর। Gradient descent ধীরে ধীরে শেখে কিন্তু scalable।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What does adding λI to XᵀX in Ridge Regression do mathematically? <span class="q-arrow">▶</span></div>
+      <div class="a">Adding λI (λ>0) to XᵀX ensures the matrix is always invertible (positive definite), even when XᵀX is rank-deficient. It "regularizes" the problem. Geometrically, it shrinks coefficients toward zero. It prevents overfitting by penalizing large weights. The condition number improves, making the solution numerically stable. This is called Tikhonov regularization.<br><br><span class="bn">বাংলায়: λI যোগ করলে ম্যাট্রিক্স সবসময় invertible হয় এবং বড় coefficient থেকে রক্ষা পাওয়া যায়।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise</h4>
+      <p>Solve: 3x + 2y = 12 and x + y = 5 using matrix method. Then check: does the normal equation solution minimize sum of squared errors?</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">A=[[3,2],[1,1]], b=[12,5]. det(A)=1. A⁻¹=[[1,-2],[-1,3]]. x=[2,3]. Check: 3(2)+2(3)=12✓, 2+3=5✓</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.khanacademy.org/math/linear-algebra/vectors-and-spaces/null-column-space" target="_blank">📘 Khan: Systems of Equations</a>
+    <a class="resource-link" href="https://cs229.stanford.edu/notes2022fall/main_notes.pdf" target="_blank">📄 Stanford CS229 Notes</a>
+  </div>`
+},
+{
+  title:"Linear Transformations",
+  bn_title:"রৈখিক রূপান্তর",
+  tags:["Transformations","Neural Networks","Geometry"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>A neural network layer with a ReLU activation — is it a linear transformation? Predict before reading!</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ NO! The matrix multiply part (Wx+b) IS linear (technically "affine" due to bias). But ReLU(x) = max(0,x) breaks linearity because ReLU(x+y) ≠ ReLU(x)+ReLU(y). Non-linearity is what makes deep networks powerful!</p>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>A function T is a <span class="hl-blue">linear transformation</span> if it satisfies two rules:</p>
+    <div class="grid-2">
+      <div style="background:var(--bg3);padding:14px;border-radius:8px">
+        <p><span class="hl-green">Rule 1: Additivity</span></p>
+        <p>T(u + v) = T(u) + T(v)</p>
+        <p style="color:var(--muted);font-size:0.88em">Transform then add = Add then transform</p>
+      </div>
+      <div style="background:var(--bg3);padding:14px;border-radius:8px">
+        <p><span class="hl-blue">Rule 2: Homogeneity</span></p>
+        <p>T(cu) = cT(u)</p>
+        <p style="color:var(--muted);font-size:0.88em">Scale then transform = Transform then scale</p>
+      </div>
+    </div>
+    <p style="margin-top:14px"><strong>Every linear transformation can be represented by a matrix!</strong></p>
+    <p style="margin-top:8px">Common linear transformations:</p>
+    <table>
+      <tr><th>Transformation</th><th>Matrix</th><th>Effect</th></tr>
+      <tr><td>Scale by s</td><td><code>[[s,0],[0,s]]</code></td><td>Stretch/shrink uniformly</td></tr>
+      <tr><td>Rotate by θ</td><td><code>[[cos θ,-sin θ],[sin θ, cos θ]]</code></td><td>Rotate vectors</td></tr>
+      <tr><td>Reflect x-axis</td><td><code>[[1,0],[0,-1]]</code></td><td>Flip vertically</td></tr>
+      <tr><td>Project onto x-axis</td><td><code>[[1,0],[0,0]]</code></td><td>Collapse y component</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>রৈখিক রূপান্তর</strong> হলো এমন একটা ফাংশন যা স্থানকে "ভাঁজ ছাড়া" রূপান্তর করে।</p>
+    <br>
+    <p class="bn">💡 <strong>মনে রাখার উপায়:</strong> রাবারের একটা শিট কল্পনা করো। তুমি এটাকে টেনে লম্বা করতে পারো (scale), ঘোরাতে পারো (rotate), এবং ভাঁজ করতে পারো (shear) — এগুলো সব linear transformation। কিন্তু যদি শিটটাকে মুচড়ে দাও বা ভেঁজে ফেলো — সেটা non-linear!</p>
+    <br>
+    <p class="bn"><strong>নিউরাল নেটওয়ার্কে:</strong> প্রতিটা layer একটা linear transformation (matrix multiply) + non-linear activation function। Linear শুধু করলে স্তর যতই বাড়াও, একটা linear transformation-ই থাকে — non-linearity ছাড়া deep network কাজ করে না!</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Linear Transformation Definition</div>
+    <div class="formula-box">T: ℝⁿ → ℝᵐ is linear if:
+  1. T(u+v) = T(u) + T(v)    [additivity]
+  2. T(cv) = cT(v)            [scalar homogeneity]
+  Combined: T(αu + βv) = αT(u) + βT(v)  [superposition]</div>
+    <div class="formula-label">Matrix Representation</div>
+    <div class="formula-box">Every linear T: ℝⁿ → ℝᵐ can be written as T(x) = Ax
+where A is an m×n matrix.
+
+Example — Rotation by 90°:
+T([x,y]) = [-y, x]   →   A = ⎡0 -1⎤
+                              ⎣1  0⎦
+Check: T([1,0]) = [0,1] ✓   T([0,1]) = [-1,0] ✓</div>
+    <div class="formula-label">Composition of Transformations</div>
+    <div class="formula-box">T₂(T₁(x)) = A₂(A₁x) = (A₂A₁)x
+← Matrix multiplication IS composition of transformations!</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Concept</th><th>Linear Transformation Role</th></tr>
+      <tr><td>Neural network layer (no activation)</td><td>y = Wx+b is affine (linear + translation)</td></tr>
+      <tr><td>Feature transformation/engineering</td><td>Map features to new space</td></tr>
+      <tr><td>PCA</td><td>Linear transformation to principal components</td></tr>
+      <tr><td>Word embeddings</td><td>Map one-hot → dense vector (linear transform)</td></tr>
+      <tr><td>Why deep nets need non-linearity</td><td>Stack of linear transforms = one linear transform</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Why does stacking multiple linear layers without activation functions not help? <span class="q-arrow">▶</span></div>
+      <div class="a">Because the composition of linear transformations is itself linear! W₃(W₂(W₁x)) = (W₃W₂W₁)x = Wx — just one matrix multiply. No matter how many layers you stack, you're still computing a linear function of the input. You could approximate it with a single layer. Non-linear activations (ReLU, tanh, sigmoid) break this — they create non-linear decision boundaries, enabling the network to learn complex patterns.<br><br><span class="bn">বাংলায়: linear × linear = linear। Activation function ছাড়া গভীর নেটওয়ার্ক শুধু একটা layer-ই।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: Is y = 2x + 3 a linear transformation? <span class="q-arrow">▶</span></div>
+      <div class="a">Mathematically NO — it's an AFFINE transformation (linear + constant). T(0) = 3 ≠ 0, which violates the requirement that linear transformations map zero to zero. However, in ML, we often loosely call Wx+b "linear" informally. Technically: "linear" = Wx (no bias), "affine" = Wx+b. The bias term is the "+3" in y=2x+3. This matters for understanding what neural network layers can represent.<br><br><span class="bn">বাংলায়: y=2x+3 একটা affine transformation। Pure linear হলে x=0 → y=0, কিন্তু এখানে x=0 → y=3।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise</h4>
+      <p>Check which are linear transformations: (a) T(x,y) = (2x, 3y) (b) T(x,y) = (x+1, y) (c) T(x,y) = (x², y)</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">(a) Linear ✓ (b) Not linear — T(0,0)=(1,0)≠(0,0) (c) Not linear — x² breaks homogeneity</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=kYB8IZa5AuE" target="_blank">🎬 3B1B: Linear Transformations</a>
+  </div>`
+},
+{
+  title:"Column Space & Null Space",
+  bn_title:"কলাম স্পেস ও নাল স্পেস",
+  tags:["Subspaces","Rank-Nullity","Solutions"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>If Ax=b has no solution, what does that tell you about where b lives relative to the column space of A?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ b lies <strong>outside the column space</strong> of A. The column space is all possible outputs of Ax. If b isn't in there, there's no x that can produce it. Least squares finds the closest point IN the column space to b.</p>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p><strong>Column Space C(A):</strong> The set of all possible outputs <code>Ax</code> for any input x.</p>
+    <ul style="padding-left:16px;margin:8px 0">
+      <li>= All linear combinations of columns of A</li>
+      <li>= "What can this matrix produce?"</li>
+      <li>dim(C(A)) = rank(A)</li>
+    </ul>
+    <p style="margin-top:12px"><strong>Null Space N(A):</strong> The set of all inputs x where <code>Ax = 0</code>.</p>
+    <ul style="padding-left:16px;margin:8px 0">
+      <li>= Vectors that get "annihilated" by A</li>
+      <li>= "What inputs produce zero output?"</li>
+      <li>dim(N(A)) = nullity(A) = n - rank(A)</li>
+    </ul>
+    <p style="margin-top:12px"><span class="hl-blue">Rank-Nullity Theorem:</span> rank(A) + nullity(A) = n (columns)</p>
+    <p style="color:var(--muted);font-size:0.9em">"The sum of what you can express plus what gets lost = total input dimensions"</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>কলাম স্পেস (Column Space):</strong> A দিয়ে যত ধরনের output সম্ভব, তার পুরো সংগ্রহ।</p>
+    <p class="bn">💡 উদাহরণ: ধরো A একটা projector। কলাম স্পেস হলো দেয়ালে যা যা দেখাতে পারে — projector-এর পরিসর।</p>
+    <br>
+    <p class="bn"><strong>নাল স্পেস (Null Space):</strong> এমন সব input x যা A দিয়ে transform করলে শূন্য হয়ে যায়।</p>
+    <p class="bn">💡 উদাহরণ: projector-এ যদি একটা lens-এর অক্ষ বরাবর আলো দাও, সেটা দেয়ালে কিছুই দেখায় না — এটাই null space।</p>
+    <br>
+    <p class="bn"><strong>Rank-Nullity Theorem:</strong> rank + nullity = columns</p>
+    <p class="bn">মানে: যত information A সংরক্ষণ করে + যত information হারিয়ে ফেলে = মোট input dimension</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS & EXAMPLE</div>
+    <div class="formula-label">Example — Finding Null Space</div>
+    <div class="formula-box">A = ⎡1  2⎤   Find null space: Ax = 0
+    ⎣2  4⎦
+Row reduce: ⎡1  2 | 0⎤ → ⎡1  2 | 0⎤
+            ⎣2  4 | 0⎦   ⎣0  0 | 0⎦
+Free variable: x₂ = t. Then x₁ = -2t.
+Null space = span{[-2, 1]ᵀ}   (all scalar multiples of [-2,1])
+
+Note: rank(A)=1, nullity(A)=1, n=2. Rank-Nullity: 1+1=2 ✓</div>
+    <div class="formula-label">Column Space Example</div>
+    <div class="formula-box">A = ⎡1  2⎤   columns are [1,2]ᵀ and [2,4]ᵀ
+    ⎣2  4⎦
+But col2 = 2×col1! So column space = span{[1,2]ᵀ} — a 1D line!
+(rank=1 → column space is 1-dimensional)</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Context</th><th>Column/Null Space Meaning</th></tr>
+      <tr><td>Linear regression</td><td>Col space = all achievable predictions; if y∉col space, use least squares</td></tr>
+      <tr><td>Neural network expressiveness</td><td>Column space of W = all possible layer outputs</td></tr>
+      <tr><td>Dimensionality reduction</td><td>Find low-dim subspace (column space of reduced A)</td></tr>
+      <tr><td>Regularization</td><td>L2 reg prevents weights in null space of data matrix</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Why does having multiple solutions to Ax=b relate to the null space? <span class="q-arrow">▶</span></div>
+      <div class="a">If x₀ is one solution (Ax₀=b) and n is in the null space (An=0), then A(x₀+n)=Ax₀+An=b+0=b. So x₀+n is ALSO a solution. Every vector in the null space generates another solution. If null space is non-trivial (contains non-zero vectors), there are infinitely many solutions. This is why underdetermined systems in ML (more parameters than data) have infinitely many optimal solutions — regularization picks the simplest one!<br><br><span class="bn">বাংলায়: null space-এর প্রতিটা vector একটা নতুন সমাধান তৈরি করে। Regularization "সহজতম" সমাধান বেছে নেয়।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/" target="_blank">🎓 MIT 18.06 (Gilbert Strang)</a>
+  </div>`
+},
+{
+  title:"Eigenvalues & Eigenvectors",
+  bn_title:"আইগেনভ্যালু ও আইগেনভেক্টর",
+  tags:["PCA","SVD","Covariance Matrix","Core ML Concept"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>In PCA, what do the eigenvectors of the covariance matrix represent physically?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ They are the <strong>principal components</strong> — the directions of maximum variance in your data! The eigenvector with the largest eigenvalue = direction where data varies the most (PC1). This is the best single axis to project your data onto.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Thinking all matrices have real eigenvectors — only symmetric (and some other) matrices guarantee real eigenvalues</li>
+      <li>❌ Computing eigen decomposition of non-square matrices — use SVD instead!</li>
+      <li>❌ Forgetting that eigenvectors are only defined up to a scalar multiple — direction matters, not magnitude</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>For a square matrix A, an <span class="hl-blue">eigenvector v</span> is a special vector that, when multiplied by A, <strong>only gets scaled</strong> — it doesn't change direction:</p>
+    <div style="background:var(--bg3);padding:14px;border-radius:8px;margin:12px 0;text-align:center">
+      <p style="font-size:1.2em"><strong>Av = λv</strong></p>
+      <p style="color:var(--muted);margin-top:4px">A × eigenvector = eigenvalue × eigenvector</p>
+    </div>
+    <ul style="padding-left:16px">
+      <li><span class="hl-blue">v</span> = eigenvector (the special direction)</li>
+      <li><span class="hl-green">λ</span> (lambda) = eigenvalue (the scaling factor)</li>
+      <li>λ > 1 → vector stretches; 0 < λ < 1 → shrinks; λ < 0 → flips direction</li>
+      <li>λ = 0 → vector mapped to zero (matrix is singular!)</li>
+    </ul>
+    <p style="margin-top:12px"><strong>How to find eigenvalues:</strong> Solve <code>det(A - λI) = 0</code></p>
+    <p style="margin-top:4px"><strong>How to find eigenvectors:</strong> For each λ, solve <code>(A - λI)v = 0</code></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>আইগেনভেক্টর</strong> হলো এমন একটা বিশেষ দিক (direction) যেটা ম্যাট্রিক্স transform করলেও পরিবর্তন হয় না — শুধু বড় বা ছোট হয়।</p>
+    <br>
+    <p class="bn">💡 <strong>সহজ কল্পনা:</strong> একটা ম্যাট্রিক্স রাবারের শিটকে টেনে-বাঁকিয়ে transform করে। বেশিরভাগ দিক বদলে যায়। কিন্তু কিছু বিশেষ দিক আছে (eigenvectors) যেগুলো সেই transform-এর পরেও একই দিকে থাকে — শুধু দীর্ঘ (eigenvalue>1) বা সংক্ষিপ্ত (eigenvalue<1) হয়।</p>
+    <br>
+    <p class="bn"><strong>PCA-তে ব্যবহার:</strong> Covariance matrix-এর eigenvectors = ডেটার সর্বোচ্চ variance-এর দিক। সবচেয়ে বড় eigenvalue = সবচেয়ে বেশি তথ্যসমৃদ্ধ দিক।</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> STEP-BY-STEP EXAMPLE</div>
+    <div class="formula-label">Find eigenvalues of A = [[3,1],[0,2]]</div>
+    <div class="formula-box">Step 1: Solve det(A - λI) = 0
+A - λI = ⎡3-λ   1 ⎤
+          ⎣ 0   2-λ⎦
+
+det = (3-λ)(2-λ) - 0×1 = λ² - 5λ + 6 = (λ-3)(λ-2) = 0
+
+<span style="color:var(--green)">λ₁ = 3,  λ₂ = 2</span>  ← eigenvalues
+
+Step 2: Find eigenvectors for λ₁ = 3:
+(A - 3I)v = 0  →  ⎡0  1⎤⎡v₁⎤ = 0  →  v₂ = 0, v₁ free
+                   ⎣0 -1⎦⎣v₂⎦
+<span style="color:var(--blue)">v₁ = [1, 0]ᵀ</span>   (eigenvector for λ₁=3)
+
+For λ₂ = 2: (A-2I)v=0  →  [[1,1],[0,0]]v=0  →  v₁=-v₂
+<span style="color:var(--blue)">v₂ = [-1, 1]ᵀ</span>  (eigenvector for λ₂=2)</div>
+    <div class="formula-label">Properties of Eigenvalues</div>
+    <div class="formula-box">Sum of eigenvalues = trace(A) = Σ diagonal elements
+Product of eigenvalues = det(A)
+Symmetric matrix A=Aᵀ → all eigenvalues are REAL
+Positive definite matrix → all eigenvalues > 0</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> ANALOGY — The Stretching Directions</div>
+    <p>Imagine kneading bread dough (your matrix transformation). Most directions in the dough get twisted and mixed. But there are <strong>special axes</strong> (eigenvectors) where the dough only stretches or compresses — it doesn't rotate around those axes. The <strong>eigenvalue</strong> tells you how much it stretches (>1) or compresses (<1) along that axis.</p>
+    <p class="bn" style="margin-top:8px">বাংলায়: রুটির ময়দা মাখার সময় বেশিরভাগ দিক ঘুরে যায়। কিন্তু কিছু বিশেষ অক্ষ শুধু লম্বা বা ছোট হয় — এগুলোই eigenvectors।</p>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application — THIS IS CRITICAL FOR ML!</h4>
+    <table>
+      <tr><th>ML Algorithm</th><th>How Eigenvalues/Eigenvectors Are Used</th></tr>
+      <tr><td><strong>PCA</strong></td><td>Eigenvectors of covariance matrix = principal components; eigenvalues = variance explained</td></tr>
+      <tr><td><strong>SVD</strong></td><td>Generalization of eigen decomp for rectangular matrices: A = UΣVᵀ</td></tr>
+      <tr><td>Graph Neural Networks</td><td>Graph Laplacian eigenvectors as node features</td></tr>
+      <tr><td>Markov chains (RL)</td><td>Stationary distribution = eigenvector with λ=1</td></tr>
+      <tr><td>Training stability</td><td>Largest eigenvalue of Hessian = sharpest curvature, limits learning rate</td></tr>
+      <tr><td>Power iteration (PageRank)</td><td>Find dominant eigenvector iteratively</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Explain PCA from the eigenvalue perspective. <span class="q-arrow">▶</span></div>
+      <div class="a">PCA steps: (1) Center data (subtract mean). (2) Compute covariance matrix C = XᵀX/(n-1). (3) Find eigenvectors/eigenvalues of C. (4) Sort eigenvectors by decreasing eigenvalue. (5) Project data onto top-k eigenvectors. Why? The covariance matrix is symmetric positive semi-definite, so eigenvectors are orthogonal and eigenvalues ≥ 0. The eigenvector with largest eigenvalue is the direction of maximum variance. Projecting onto it captures the most information in a single dimension.<br><br><span class="bn">বাংলায়: PCA covariance matrix-এর eigenvector খোঁজে — এগুলো data-এর সর্বোচ্চ variance-এর দিক।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What is the relationship between eigendecomposition and SVD? <span class="q-arrow">▶</span></div>
+      <div class="a">Eigendecomposition A = QΛQ⁻¹ works only for square matrices. SVD A = UΣVᵀ works for ANY m×n matrix. Connection: The columns of V are eigenvectors of AᵀA; columns of U are eigenvectors of AAᵀ; diagonal entries of Σ are square roots of eigenvalues of AᵀA. For symmetric positive definite A: SVD and eigendecomposition coincide. SVD is more numerically stable and general — always prefer SVD in practice.<br><br><span class="bn">বাংলায়: SVD হলো eigendecomposition-এর generalization — যেকোনো আকারের matrix-এ কাজ করে।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q3: What does it mean if a neural network's Hessian has very large eigenvalues? <span class="q-arrow">▶</span></div>
+      <div class="a">Large Hessian eigenvalues = sharp curvature = the loss landscape has steep valleys in some directions. If you take too large a gradient descent step, you'll overshoot. This limits the maximum learning rate. Flat minima (small eigenvalues) generalize better. Modern techniques like Adam, learning rate warmup, and gradient clipping address sharp curvature. LoRA and other methods often work by staying in low-curvature subspaces.<br><br><span class="bn">বাংলায়: বড় eigenvalue = খাড়া loss landscape = ছোট learning rate দরকার, নইলে training unstable হবে।</span></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>For A = [[4,0],[0,3]], what are the eigenvalues and eigenvectors? (Hint: diagonal matrices make this easy!)</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">Diagonal matrix! λ₁=4 with v₁=[1,0]ᵀ; λ₂=3 with v₂=[0,1]ᵀ. The basis vectors ARE the eigenvectors!</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Conceptual)</h4>
+      <p>If a 10D dataset has covariance matrix eigenvalues [5, 3, 1, 0.5, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02], how many PCA components do you keep to explain 80% of variance?</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">Total variance = 10.2. 80% = 8.16. Sum first 3: 5+3+1=9 > 8.16. Keep 3 components → 3D from 10D! (88% variance explained with just 3 components)</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=PFDu9oVAE-g" target="_blank">🎬 3B1B: Eigenvalues & Eigenvectors</a>
+    <a class="resource-link" href="https://setosa.io/ev/principal-component-analysis/" target="_blank">🎯 Interactive PCA Visualization</a>
+    <a class="resource-link" href="https://scikit-learn.org/stable/modules/decomposition.html" target="_blank">📘 sklearn PCA docs</a>
+  </div>`
+},
+{
+  title:"Orthogonality",
+  bn_title:"অর্থোগোনালিটি",
+  tags:["Orthogonal Vectors","QR Decomposition","Attention"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>Why do we want orthogonal weight matrices for neural network initialization?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ Orthogonal matrices <strong>preserve vector norms</strong> (||Qx|| = ||x||). During forward and backward pass, signals don't explode or vanish. This is why orthogonal initialization helps train very deep networks!</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p><strong>Orthogonal vectors:</strong> Two vectors a, b are orthogonal if <code>a·b = 0</code> (perpendicular in geometry)</p>
+    <p style="margin-top:12px"><strong>Orthonormal vectors:</strong> Orthogonal + unit length. For set {v₁,...,vₙ}:</p>
+    <div class="formula-box">vᵢ·vⱼ = 0 if i≠j  (orthogonal)
+vᵢ·vᵢ = 1        (unit length)
+Combined: vᵢ·vⱼ = δᵢⱼ  (Kronecker delta: 1 if i=j, 0 otherwise)</div>
+    <p style="margin-top:12px"><strong>Orthogonal Matrix Q:</strong> A square matrix whose columns are orthonormal vectors.</p>
+    <ul style="padding-left:16px">
+      <li>QᵀQ = QQᵀ = I (columns are orthonormal)</li>
+      <li>Q⁻¹ = Qᵀ (transpose IS the inverse — very cheap!)</li>
+      <li>||Qx|| = ||x|| (preserves vector length)</li>
+      <li>Examples: rotation matrix, reflection matrix, permutation matrix</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>অর্থোগোনাল ভেক্টর:</strong> দুটো ভেক্টর পরস্পর লম্ব (90°)। তাদের ডট প্রোডাক্ট = ০।</p>
+    <p class="bn">উদাহরণ: পূর্ব দিক এবং উত্তর দিক — এরা পরস্পর অর্থোগোনাল।</p>
+    <br>
+    <p class="bn"><strong>অর্থোনর্মাল:</strong> পরস্পর লম্ব + প্রতিটার দৈর্ঘ্য = ১।</p>
+    <p class="bn">এটা একটা আদর্শ coordinate system — প্রতিটা অক্ষ স্বাধীন এবং একক দৈর্ঘ্যের।</p>
+    <br>
+    <p class="bn"><strong>অর্থোগোনাল ম্যাট্রিক্স Q:</strong> এটা শুধু ঘোরায়/প্রতিফলিত করে কিন্তু আকার বদলায় না।</p>
+    <p class="bn">বিশেষত্ব: Q⁻¹ = Qᵀ — ইনভার্স হিসাব না করেও জানা যায়!</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Orthogonality Test</div>
+    <div class="formula-box">a = [1, 0],  b = [0, 1]:  a·b = 0 → <span style="color:var(--green)">ORTHOGONAL ✓</span>
+a = [1, 1],  b = [1,-1]: a·b = 0 → <span style="color:var(--green)">ORTHOGONAL ✓</span>
+a = [1, 2],  b = [1, 1]: a·b = 3 → <span style="color:var(--red)">NOT orthogonal</span></div>
+    <div class="formula-label">Orthogonal Matrix Example</div>
+    <div class="formula-box">Rotation by 45°:  Q = 1/√2 ⎡1  -1⎤
+                                  ⎣1   1⎦
+Verify: QᵀQ = 1/2 ⎡1  1⎤⎡1 -1⎤ = ⎡1  0⎤ = I  ✓
+                   ⎣-1 1⎦⎣1  1⎦   ⎣0  1⎦</div>
+    <div class="formula-label">Gram-Schmidt Process (orthogonalize any set of vectors)</div>
+    <div class="formula-box">Given vectors {a₁, a₂, ..., aₙ}, produce orthonormal {q₁, q₂, ..., qₙ}:
+q₁ = a₁/||a₁||
+u₂ = a₂ - (a₂·q₁)q₁   [remove component along q₁]
+q₂ = u₂/||u₂||
+u₃ = a₃ - (a₃·q₁)q₁ - (a₃·q₂)q₂  [remove q₁ and q₂ components]
+q₃ = u₃/||u₃||   ... and so on</div>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application</h4>
+    <table>
+      <tr><th>ML Use</th><th>Why Orthogonality Matters</th></tr>
+      <tr><td>Weight initialization</td><td>Orthogonal init preserves norms, prevents vanishing/exploding gradients</td></tr>
+      <tr><td>QR decomposition</td><td>Numerically stable least squares (prefer over normal equation)</td></tr>
+      <tr><td>Attention heads</td><td>Different heads should attend to different (orthogonal) features</td></tr>
+      <tr><td>PCA</td><td>Principal components are orthogonal — no redundancy</td></tr>
+      <tr><td>Regularization</td><td>Orthogonality constraints in some regularizers</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: Why are principal components orthogonal in PCA? <span class="q-arrow">▶</span></div>
+      <div class="a">PCA finds eigenvectors of the symmetric covariance matrix. A key theorem (Spectral Theorem): eigenvectors of a SYMMETRIC matrix corresponding to DIFFERENT eigenvalues are always orthogonal. Since the covariance matrix is symmetric (C = XᵀX/(n-1), which satisfies Cᵀ=C), all its eigenvectors are orthogonal. This is desirable: orthogonal components are statistically uncorrelated — each principal component captures completely independent information!<br><br><span class="bn">বাংলায়: symmetric matrix-এর eigenvectors সবসময় orthogonal। PCA-র components তাই uncorrelated তথ্য ধারণ করে।</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=7nYi7i0MkHQ" target="_blank">🎬 3B1B: Dot Products and Duality</a>
+    <a class="resource-link" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.orthogonal_" target="_blank">📘 PyTorch Orthogonal Init</a>
+  </div>`
+},
+{
+  title:"Norms & Distances (L1, L2)",
+  bn_title:"নর্ম ও দূরত্ব (L1, L2)",
+  tags:["Regularization","Loss Functions","Distance Metrics","Lasso/Ridge"],
+  content:`
+  <div class="card law-card">
+    <div class="card-title"><span class="icon">⚡</span> LAW 1 — PREDICTION FIRST</div>
+    <p>L1 regularization produces sparse models (many weights = 0). L2 regularization makes weights small but rarely zero. Why?</p>
+    <p style="margin-top:8px;color:var(--teal)">✅ L1's gradient is ±1 (constant) regardless of weight magnitude, so it keeps pushing small weights all the way to zero. L2's gradient is 2w — when w is already small, the push toward zero is also small. The L1 "diamond" shape in optimization has corners on the axes, where optimal solutions tend to land.</p>
+  </div>
+  <div class="card law-card law2">
+    <div class="card-title"><span class="icon">🔴</span> LAW 2 — FAILURE MODES</div>
+    <ul style="padding-left:16px;color:var(--muted)">
+      <li>❌ Confusing L2 norm with L2 loss — they're different! L2 norm = ||x||₂ (vector size); L2 loss = MSE (mean squared error between predictions)</li>
+      <li>❌ Using L1 loss when you need gradients everywhere — L1 is not differentiable at 0!</li>
+      <li>❌ Forgetting to normalize features before computing distances — scale matters!</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> CORE CONCEPT — English</div>
+    <p>A <span class="hl-blue">norm</span> is a function that measures the "size" or "length" of a vector. The Lp norm family:</p>
+    <table>
+      <tr><th>Norm</th><th>Formula</th><th>Also Called</th><th>ML Use</th></tr>
+      <tr><td><span class="hl-muted">L0</span></td><td>count(non-zero elements)</td><td>Sparsity measure</td><td>Sparse learning (approx)</td></tr>
+      <tr><td><span class="hl-blue">L1</span></td><td>||x||₁ = Σ|xᵢ|</td><td>Manhattan / Taxicab</td><td>Lasso regularization</td></tr>
+      <tr><td><span class="hl-green">L2</span></td><td>||x||₂ = √(Σxᵢ²)</td><td>Euclidean</td><td>Ridge regularization, SGD, MSE</td></tr>
+      <tr><td><span class="hl-gold">L∞</span></td><td>||x||∞ = max(|xᵢ|)</td><td>Chebyshev</td><td>Robust optimization</td></tr>
+    </table>
+    <p style="margin-top:12px"><strong>Distance = norm of the difference:</strong> dist(a,b) = ||a-b||</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+    <p class="bn"><strong>নর্ম</strong> হলো একটা ভেক্টরের "আকার" বা "দৈর্ঘ্য" পরিমাপ করার পদ্ধতি।</p>
+    <br>
+    <p class="bn"><span style="color:var(--blue)">L1 নর্ম (Manhattan):</span> শহরের রাস্তায় হাঁটার মতো — শুধু সরাসরি উত্তর-দক্ষিণ বা পূর্ব-পশ্চিম যেতে পারবে। মোট দূরত্ব = |x| + |y|।</p>
+    <br>
+    <p class="bn"><span style="color:var(--green)">L2 নর্ম (Euclidean):</span> সরল রেখায় দূরত্ব — পাখি যেভাবে উড়ে যায়। দূরত্ব = √(x² + y²)।</p>
+    <br>
+    <p class="bn"><strong>Regularization-এ:</strong></p>
+    <p class="bn">• L1 = Lasso → অনেক weight শূন্য করে দেয় → sparse model → feature selection</p>
+    <p class="bn">• L2 = Ridge → সব weight ছোট করে → smooth model → overfitting কমায়</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> FORMULAS</div>
+    <div class="formula-label">Norms for vector x = [3, -4, 0, 2]</div>
+    <div class="formula-box">L1: ||x||₁ = |3| + |-4| + |0| + |2| = 3+4+0+2 = <span style="color:var(--blue)">9</span>
+L2: ||x||₂ = √(3²+4²+0²+2²) = √(9+16+0+4) = √29 ≈ <span style="color:var(--green)">5.39</span>
+L∞: ||x||∞ = max(3,4,0,2) = <span style="color:var(--gold)">4</span>
+
+Normalized (L2): x̂ = x/||x||₂ = [3,−4,0,2]/5.39 ≈ [0.56,−0.74,0,0.37]</div>
+    <div class="formula-label">L1 vs L2 Regularization in Loss Functions</div>
+    <div class="formula-box">Standard loss:   L = (1/n)Σ(yᵢ - ŷᵢ)²
+
+L1 (Lasso):  L₁ = L + <span style="color:var(--blue)">λΣ|wⱼ|</span>        → promotes sparsity
+L2 (Ridge):  L₂ = L + <span style="color:var(--green)">λΣwⱼ²</span>           → promotes small weights
+Elastic Net: Lₑ = L + <span style="color:var(--purple)">λ₁Σ|wⱼ| + λ₂Σwⱼ²</span>  → best of both</div>
+    <div class="formula-label">Why L1 creates sparsity (geometric intuition)</div>
+    <div class="formula-box">L1 ball = diamond shape ◇ (corners on axes)
+L2 ball = circle/sphere shape ○
+
+When loss contours meet the constraint ball:
+L1: tends to hit at CORNERS where some coords = 0 → SPARSE
+L2: tends to hit at edges → small but non-zero weights</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="card-title"><span class="icon">🎯</span> ANALOGY — Taxi vs Bird</div>
+    <p>Imagine traveling from (0,0) to (3,4) in a city:</p>
+    <ul style="padding-left:16px">
+      <li>🚕 <span class="hl-blue">L1 (taxi)</span>: Must follow grid streets. Distance = 3+4 = 7 blocks. (Manhattan distance!)</li>
+      <li>🐦 <span class="hl-green">L2 (bird)</span>: Flies in a straight line. Distance = √(9+16) = 5. (Euclidean!)</li>
+      <li>🏁 <span class="hl-gold">L∞ (chess king)</span>: Maximum of x or y move. Distance = max(3,4) = 4. (How many moves for a chess king?)</li>
+    </ul>
+    <p class="bn" style="margin-top:8px">বাংলায়: L1=ট্যাক্সি (রাস্তা ধরে), L2=পাখি (সরল রেখা), L∞=দাবার রাজা (সর্বোচ্চ চাল)।</p>
+  </div>
+
+  <div class="ml-app-box">
+    <h4>🤖 ML Application — Norms Are Everywhere in ML!</h4>
+    <table>
+      <tr><th>ML Context</th><th>Norm Used</th><th>Why</th></tr>
+      <tr><td>Gradient clipping</td><td>L2 norm of gradient</td><td>Prevent exploding gradients: if ||g||₂ > threshold, scale down</td></tr>
+      <tr><td>Weight decay (L2 reg)</td><td>L2 of weights</td><td>Keep weights small, prevent overfitting</td></tr>
+      <tr><td>Lasso feature selection</td><td>L1 of weights</td><td>Drive irrelevant features to exactly zero</td></tr>
+      <tr><td>Batch normalization</td><td>L2 norm</td><td>Normalize feature vectors to unit sphere</td></tr>
+      <tr><td>Word vector similarity</td><td>Cosine = normalized dot product</td><td>Direction, not magnitude</td></tr>
+      <tr><td>Adversarial examples</td><td>L∞ perturbation</td><td>Constrain max pixel change</td></tr>
+      <tr><td>Distance-based models (KNN)</td><td>L2 (or L1)</td><td>Find nearest neighbors</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💼</span> INTERVIEW Q&A</div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q1: When would you choose L1 regularization over L2? <span class="q-arrow">▶</span></div>
+      <div class="a">Choose L1 (Lasso) when: (1) You believe most features are irrelevant and want automatic feature selection. (2) You want an interpretable sparse model. (3) You have thousands of features but only a few should matter (e.g., genomics). (4) You want to identify which genes/features actually matter. Choose L2 (Ridge) when: (1) You believe all features contribute a little. (2) You have multicollinearity. (3) You need differentiable loss everywhere (L1 is not at 0). Choose Elastic Net when you want both sparsity and stability.<br><br><span class="bn">বাংলায়: L1 ব্যবহার করো যখন অপ্রয়োজনীয় feature শূন্য করতে চাও। L2 ব্যবহার করো যখন সব feature ছোট করতে চাও।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q2: What is gradient clipping and why use L2 norm for it? <span class="q-arrow">▶</span></div>
+      <div class="a">Gradient clipping prevents exploding gradients in RNNs and transformers. If the L2 norm of all gradients ||g||₂ exceeds a threshold (e.g., 1.0), scale all gradients by threshold/||g||₂. Why L2 norm? Because it measures the "overall magnitude" of the gradient vector, treating all parameters jointly. Clipping by L2 norm preserves the direction of the gradient update while bounding its magnitude — safer than clipping each gradient independently (L∞ clipping changes the direction).<br><br><span class="bn">বাংলায়: gradient clipping gradient-এর দৈর্ঘ্য সীমিত রাখে training stable করতে।</span></div>
+    </div>
+    <div class="qa-item">
+      <div class="q" onclick="toggleQ(this)">Q3: What is the difference between L2 loss (MSE) and L2 regularization (Ridge)? <span class="q-arrow">▶</span></div>
+      <div class="a">They're both based on L2 norm but serve different purposes. L2 loss (MSE) = (1/n)Σ(yᵢ-ŷᵢ)² — measures prediction error, how wrong your predictions are. L2 regularization (Ridge) = λΣwⱼ² — penalizes large weights, prevents overfitting. In Ridge Regression, you minimize BOTH: MSE_loss + λ||w||₂². The loss measures accuracy, the regularization term measures model complexity. They're combined in the total objective function.<br><br><span class="bn">বাংলায়: L2 loss = ভুল prediction-এর শাস্তি। L2 regularization = বড় weight-এর শাস্তি। দুটো ভিন্ন উদ্দেশ্যে ব্যবহার হয়।</span></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="card-title"><span class="icon">🏋️</span> EXERCISES</div>
+    <div class="exercise-box">
+      <h4>Exercise 1</h4>
+      <p>Compute L1, L2, L∞ norms for: x = [-1, 2, -3, 4]</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">L1 = 1+2+3+4 = 10. L2 = √(1+4+9+16) = √30 ≈ 5.48. L∞ = max(1,2,3,4) = 4</p>
+    </div>
+    <div class="exercise-box">
+      <h4>Exercise 2 (Regularization)</h4>
+      <p>Your model has weights w = [0.8, 0.1, 3.2, 0.05, 2.1]. Which weights does L1 regularization most aggressively push toward zero? Why?</p>
+      <p style="color:var(--muted);font-size:0.88em;margin-top:6px">L1 pushes small weights (0.1, 0.05) to zero first — they're easiest to eliminate. L2 pushes the large weights (3.2, 2.1) more strongly (gradient proportional to value). L1 creates sparsity; L2 "squeezes" all weights.</p>
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">🔗</span> RESOURCES</div>
+    <a class="resource-link" href="https://explained.ai/regularization/index.html" target="_blank">📘 Visual Guide to Regularization</a>
+    <a class="resource-link" href="https://www.youtube.com/watch?v=sO4ZirJh9ds" target="_blank">🎬 StatQuest: Ridge & Lasso</a>
+    <a class="resource-link" href="https://scikit-learn.org/stable/modules/linear_model.html" target="_blank">📘 sklearn Linear Models</a>
+  </div>`
+}
+];
+
+const navLabels = [
+  "Scalars, Vectors, Matrices, Tensors","Vector & Matrix Operations",
+  "Dot Product & Geometric","Matrix Multiplication","Identity, Transpose, Inverse",
+  "Rank of a Matrix","Systems of Linear Equations","Linear Transformations",
+  "Column Space & Null Space","Eigenvalues & Eigenvectors","Orthogonality","Norms & Distances (L1, L2)"
+];
+
+function buildNav() {
+  const nb = document.getElementById('nav-buttons');
+  navLabels.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'topic-btn' + (i===0?' active':'');
+    btn.innerHTML = `<span class="topic-num">${String(i+1).padStart(2,'0')}</span><span>${label}</span>`;
+    btn.onclick = () => showTopic(i);
+    nb.appendChild(btn);
+  });
+}
+
+function buildContent() {
+  const main = document.getElementById('main-content');
+  topics.forEach((topic, i) => {
+    const sec = document.createElement('section');
+    sec.className = 'topic-section' + (i===0?' active':'');
+    sec.id = 'topic-' + i;
+    sec.innerHTML = `
+      <div class="topic-header">
+        <div class="topic-title">📚 ${topic.title}</div>
+        <div class="topic-subtitle">${topic.bn_title}</div>
+        <div class="topic-tags">${topic.tags.map(t=>`<span class="tag tag-ml">${t}</span>`).join('')}</div>
+      </div>
+      ${topic.content}`;
+    main.appendChild(sec);
+  });
+}
+
+function showTopic(idx) {
+  idx = parseInt(idx);
+  document.querySelectorAll('.topic-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('topic-' + idx).classList.add('active');
+  document.querySelectorAll('.topic-btn')[idx]?.classList.add('active');
+  document.getElementById('progress').style.width = ((idx+1)/topics.length*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleQ(el) {
+  el.classList.toggle('open');
+  const a = el.nextElementSibling;
+  a.classList.toggle('open');
+}
+
+buildNav();
+buildContent();
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

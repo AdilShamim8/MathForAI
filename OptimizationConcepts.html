@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimization for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c14;--bg2:#0e1520;--bg3:#141e2e;--bg4:#1c2a3e;
+  --border:#1e3050;--text:#e8f0fe;--muted:#7a93b8;
+  --cyan:#00d4ff;--lime:#a8ff3e;--orange:#ff6b35;
+  --violet:#9d4edd;--gold:#ffd166;--red:#ef233c;
+  --pink:#f72585;--teal:#06d6a0;
+  --radius:12px;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'IBM Plex Mono',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:0.84em;color:var(--cyan)}
+
+/* === LAYOUT === */
+.app{display:flex;min-height:100vh}
+.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:40px;max-width:960px;overflow-x:hidden}
+
+/* === SIDEBAR === */
+.s-brand{padding:24px 20px 18px;border-bottom:1px solid var(--border)}
+.s-icon{font-size:2.2em;line-height:1;margin-bottom:6px}
+.s-title{font-size:1em;font-weight:700;color:var(--cyan);letter-spacing:.02em}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:0.8em;margin-top:3px}
+.s-sub{font-size:0.72em;color:var(--muted);margin-top:5px;line-height:1.4}
+.prog-wrap{margin-top:14px}
+.prog-row{display:flex;justify-content:space-between;font-size:0.7em;color:var(--muted);margin-bottom:5px}
+.prog-bar{height:3px;background:var(--bg3);border-radius:2px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.nav-wrap{padding:12px 0;flex:1;overflow-y:auto}
+.nav-btn{display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;padding:11px 20px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:0.8em;line-height:1.35;transition:all .2s;border-left:3px solid transparent}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--bg3);color:var(--cyan);border-left-color:var(--cyan)}
+.nav-num{font-family:'IBM Plex Mono',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:0.72em;font-weight:500;flex-shrink:0;margin-top:1px}
+.nav-btn.active .nav-num{background:var(--cyan);color:var(--bg)}
+
+/* === SECTIONS === */
+.sec{display:none;animation:pop .3s ease}
+.sec.active{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* === CHAPTER HEADER === */
+.ch-header{margin-bottom:32px;padding:28px;border-radius:var(--radius);position:relative;overflow:hidden;border:1px solid var(--border)}
+.ch-header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(168,255,62,.04));pointer-events:none}
+.ch-num{font-family:'IBM Plex Mono',monospace;font-size:0.7em;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:2em;font-weight:700;line-height:1.15;color:var(--text)}
+.ch-title span{color:var(--cyan)}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:0.95em;margin-top:6px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tag{padding:3px 12px;border-radius:20px;font-size:0.71em;font-weight:600;border:1px solid;letter-spacing:.03em}
+.tc{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.08)}
+.tl{border-color:var(--lime);color:var(--lime);background:rgba(168,255,62,.08)}
+.to{border-color:var(--orange);color:var(--orange);background:rgba(255,107,53,.08)}
+.tv{border-color:var(--violet);color:var(--violet);background:rgba(157,78,221,.08)}
+
+/* === CARDS === */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:22px}
+.card-hd{font-size:0.71em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+/* law variants */
+.law1{border-left:4px solid var(--cyan);background:rgba(0,212,255,.04)}
+.law2{border-left:4px solid var(--red);background:rgba(239,35,60,.04)}
+.law3{border-left:4px solid var(--gold);background:rgba(255,209,102,.04)}
+
+/* === FORMULA === */
+.fl{font-size:0.71em;color:var(--muted);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'IBM Plex Mono',monospace;font-size:0.85em;color:var(--cyan);line-height:2;overflow-x:auto;margin:10px 0;white-space:pre}
+.fc{color:var(--cyan)}.fg{color:var(--lime)}.fo{color:var(--orange)}.fp{color:var(--pink)}.fy{color:var(--gold)}.ft{color:var(--teal)}.fr{color:var(--red)}
+
+/* === HIGHLIGHTS === */
+.hc{color:var(--cyan);font-weight:600}.hl{color:var(--lime);font-weight:600}.ho{color:var(--orange);font-weight:600}.hv{color:var(--violet);font-weight:600}.hy{color:var(--gold);font-weight:600}.ht{color:var(--teal);font-weight:600}.hr{color:var(--red);font-weight:600}.hp{color:var(--pink);font-weight:600}
+
+/* === GRIDS === */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-title{font-size:0.78em;font-weight:700;margin-bottom:7px}
+
+/* === CALLOUT === */
+.callout{background:rgba(0,212,255,.06);border-left:4px solid var(--cyan);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:0.9em}
+.callout-bn{background:rgba(255,209,102,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,209,102,.9);font-size:0.88em;line-height:1.9}
+.callout-red{background:rgba(239,35,60,.06);border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0}
+.callout-lime{background:rgba(168,255,62,.05);border-left:4px solid var(--lime);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0}
+
+/* === TABLE === */
+table{width:100%;border-collapse:collapse;font-size:0.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:0.77em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* === Q&A === */
+.qa{margin-bottom:13px}
+.qbtn{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:0.87em;font-weight:500;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:background .15s;gap:10px}
+.qbtn:hover{background:var(--bg4)}
+.qbtn.open{color:var(--cyan);border-bottom-color:transparent}
+.qarrow{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qbtn.open .qarrow{transform:rotate(90deg);color:var(--cyan)}
+.apanel{display:none;padding:15px 16px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:0.86em;color:var(--muted);line-height:1.85}
+.apanel.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,209,102,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:0.93em}
+
+/* === EXERCISE === */
+.ex{background:rgba(255,209,102,.04);border:1px solid rgba(255,209,102,.2);border-radius:9px;padding:16px;margin-bottom:12px}
+.ex-title{color:var(--gold);font-size:0.76em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.ex-ans{color:var(--muted);font-size:0.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* === STEPS === */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:11px;align-items:flex-start;counter-increment:s;font-size:0.92em}
+.steps li::before{content:counter(s);background:var(--cyan);color:var(--bg);min-width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* === CANVAS === */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px;margin:14px 0}
+.clabel{font-size:0.73em;color:var(--muted);text-align:center;margin-top:6px;font-family:'IBM Plex Mono',monospace}
+
+/* === CONTROLS === */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:0.79em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--cyan);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.8em;font-family:'Space Grotesk',sans-serif}
+.cval{font-family:'IBM Plex Mono',monospace;font-size:0.8em;color:var(--cyan);min-width:44px}
+.cout{font-family:'IBM Plex Mono',monospace;font-size:0.85em;color:var(--lime);background:var(--bg3);padding:8px 14px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+
+/* === ANALOGY === */
+.analogy{background:linear-gradient(135deg,rgba(6,214,160,.06),rgba(0,212,255,.04));border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:18px;margin:14px 0}
+
+/* === ML BOX === */
+.mlbox{background:rgba(168,255,62,.04);border:1px solid rgba(168,255,62,.15);border-radius:10px;padding:18px;margin:14px 0}
+.mlbox-title{color:var(--lime);font-size:0.74em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px}
+
+/* === FAIL ITEM === */
+.fi{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;font-size:0.9em}
+.fi-icon{color:var(--red);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* === RESOURCE === */
+.res-link{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--cyan);text-decoration:none;font-size:0.81em;margin:4px;transition:all .2s}
+.res-link:hover{border-color:var(--cyan);background:var(--bg4)}
+
+/* === MOBILE === */
+.mob{display:none;padding:12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:0.88em}
+@media(max-width:740px){.mob{display:block}.sidebar{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* === BADGE === */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.72em;font-weight:700;margin:0 3px}
+.badge-c{background:rgba(0,212,255,.15);color:var(--cyan)}
+.badge-g{background:rgba(168,255,62,.15);color:var(--lime)}
+.badge-r{background:rgba(239,35,60,.15);color:var(--red)}
+.badge-o{background:rgba(255,107,53,.15);color:var(--orange)}
+.badge-y{background:rgba(255,209,102,.15);color:var(--gold)}
+
+/* === MINI CHART === */
+.mini-chart{display:flex;align-items:flex-end;gap:3px;height:60px;padding:6px 0}
+.bar{background:var(--cyan);border-radius:3px 3px 0 0;flex:1;transition:height .3s;opacity:.7}
+.bar:nth-child(even){background:var(--lime)}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="showSec(this.value)">
+    <option value="0">01 — Gradient Descent</option>
+    <option value="1">02 — Learning Rate Intuition</option>
+    <option value="2">03 — Cost / Loss Functions</option>
+    <option value="3">04 — Saddle Points</option>
+    <option value="4">05 — Vanishing & Exploding Gradients</option>
+  </select>
+</div>
+
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="s-brand">
+    <div class="s-icon">⚙️</div>
+    <div class="s-title">Optimization Concepts</div>
+    <div class="s-bn">অপ্টিমাইজেশন ধারণা</div>
+    <div class="s-sub">ML Engineer's Deep-Dive · Learning Happens Here</div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span>Progress</span><span id="pp">20%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="pf" style="width:20%"></div></div>
+    </div>
+  </div>
+  <div class="nav-wrap" id="nav-wrap"></div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main" id="main-content"></main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   TOPIC DATA
+═══════════════════════════════════════════════ */
+const TOPICS = [
+
+/* ─── 01  GRADIENT DESCENT ─── */
+{
+title:"Gradient Descent",
+titleHL:"Gradient <span>Descent</span>",
+bn:"গ্রেডিয়েন্ট ডিসেন্ট",
+tags:[{t:"Core Algorithm",c:"tc"},{t:"Weight Updates",c:"tl"},{t:"SGD / Adam",c:"to"},{t:"Training Loop",c:"tv"}],
+body:`
+<div class="card law1">
+  <div class="card-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A model has 175 billion parameters (like GPT-3). We compute the loss. How do we update ALL 175B weights in ONE training step — efficiently?</p>
+  <p style="margin-top:9px;color:var(--lime)">✅ Backpropagation + Gradient Descent. Backprop computes ∂L/∂θ for every parameter simultaneously using the chain rule and reverse-mode autodiff. Then: θ ← θ − α·∂L/∂θ. One backward pass updates all 175B parameters. This is why autodiff (PyTorch/JAX) is non-negotiable in modern ML.</p>
+</div>
+
+<div class="card law2">
+  <div class="card-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Gradient descent is not the same as backpropagation.</strong> Backprop = computing gradients. Gradient descent = using those gradients to update weights. One is calculus; the other is optimization. Know the distinction cold.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Batch size matters more than people think.</strong> Large batch → stable gradient → sharp minima → worse generalization. Small batch → noisy gradient → flat minima → better generalization (usually). This is counterintuitive.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>GD does NOT guarantee convergence for non-convex losses.</strong> Neural networks have non-convex loss surfaces. GD finds a local minimum or saddle point, not global minimum. Yet in practice, most local minima are "good enough."</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📖 THE CORE IDEA — English</div>
+  <p>Imagine you are <span class="hc">blindfolded on a hilly landscape</span> (the loss surface). Your goal: reach the lowest valley (minimum loss). You can't see the whole landscape, but you <em>can</em> feel the slope under your feet. Gradient descent says:</p>
+  <ol class="steps" style="margin-top:14px">
+    <li>Feel the slope (compute gradient ∇L — which direction is uphill?)</li>
+    <li>Take a small step <em>downhill</em> (subtract the gradient, scaled by learning rate α)</li>
+    <li>Repeat until you reach a flat spot (gradient ≈ 0)</li>
+  </ol>
+  <div class="callout" style="margin-top:16px">
+    <strong>The Update Rule — The Most Important Equation in ML:</strong><br>
+    <code style="font-size:1.05em;color:var(--cyan)">θₜ₊₁ = θₜ − α · ∇L(θₜ)</code><br>
+    <span style="font-size:0.88em;color:var(--muted);margin-top:4px;display:block">θ = parameters (weights) · α = learning rate · ∇L = gradient of loss</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Three flavours — which data do you use per update?</strong></p>
+  <table>
+    <tr><th>Variant</th><th>Data / Step</th><th>Gradient Quality</th><th>Speed</th><th>Practical Use</th></tr>
+    <tr><td><span class="hc">Batch GD</span></td><td>ALL n samples</td><td>Exact — true gradient</td><td>Very slow</td><td>Small datasets only</td></tr>
+    <tr><td><span class="hl">Stochastic GD (SGD)</span></td><td>1 sample</td><td>Very noisy</td><td>Fast</td><td>Online learning</td></tr>
+    <tr><td><span class="ho">Mini-batch SGD</span></td><td>32–512 samples</td><td>Slightly noisy</td><td>Fast + stable</td><td>🏆 Default in DL</td></tr>
+  </table>
+
+  <p style="margin-top:16px"><strong>Modern Optimizers — Gradient Descent upgrades:</strong></p>
+  <table>
+    <tr><th>Optimizer</th><th>Key Trick</th><th>Update Rule</th><th>Best For</th></tr>
+    <tr><td><span class="hc">SGD + Momentum</span></td><td>Accumulate velocity</td><td>v←βv−α∇L; θ←θ+v</td><td>CV / ResNet</td></tr>
+    <tr><td><span class="hl">RMSprop</span></td><td>Adaptive lr per param</td><td>θ←θ−α∇L/√(E[g²]+ε)</td><td>RNNs</td></tr>
+    <tr><td><span class="ho">Adam</span></td><td>Momentum + RMSprop</td><td>m̂/(√v̂+ε)×α</td><td>🏆 Default choice</td></tr>
+    <tr><td><span class="hv">AdamW</span></td><td>Adam + decoupled wd</td><td>Adam + λθ penalty</td><td>Transformers / LLMs</td></tr>
+    <tr><td><span class="ht">Lion</span></td><td>Sign-based momentum</td><td>sign(βm+(1-β)∇L)</td><td>Large-scale LLMs</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Gradient Descent</strong> হলো ML-এর সবচেয়ে মূল algorithm। এটা দিয়ে neural network শেখে।</p>
+  <div class="callout-bn">💡 সহজ উদাহরণ: কল্পনা করো তুমি রাতের অন্ধকারে পাহাড়ে আছ এবং নিচে নামতে চাও। তুমি দেখতে পাচ্ছ না, কিন্তু পায়ের নিচে ঢাল অনুভব করতে পারছ। প্রতিটা পদক্ষেপে তুমি সবচেয়ে খাড়া নিচের দিকে একটু পা বাড়াও। এটাই Gradient Descent — loss-এর পাহাড়ে নিচে নামা!</div>
+  <p class="bn" style="margin-top:12px"><strong>Update Rule বাংলায়:</strong></p>
+  <p class="bn">নতুন weight = পুরনো weight − (learning rate × gradient)</p>
+  <p class="bn">• gradient ধনাত্মক → weight কমাও (downhill যাও)</p>
+  <p class="bn">• gradient ঋণাত্মক → weight বাড়াও (তবুও downhill যাচ্ছ!)</p>
+  <p class="bn">• gradient ≈ 0 → minimum পাওয়া গেছে, থামো!</p>
+  <p class="bn" style="margin-top:10px"><strong>Mini-batch কেন সেরা?</strong> পুরো dataset ব্যবহার করলে প্রতিটা step ধীর। একটা sample ব্যবহার করলে gradient অনেক noisy। মাঝামাঝি পথ: ৩২–৫১২টা sample = fast + reasonably accurate gradient।</p>
+</div>
+
+<!-- INTERACTIVE GD VISUALIZER -->
+<div class="card">
+  <div class="card-hd">🎮 INTERACTIVE — Gradient Descent Visualizer</div>
+  <div class="cw">
+    <canvas id="gd-vis" width="580" height="240" style="width:100%;display:block"></canvas>
+    <div class="clabel" id="gd-label">f(θ) = θ² − 6θ + 12 · Drag sliders to explore</div>
+  </div>
+  <div class="ctrl">
+    <label>Optimizer</label>
+    <select id="opt-sel">
+      <option value="sgd">SGD</option>
+      <option value="momentum">Momentum</option>
+      <option value="adam" selected>Adam</option>
+    </select>
+    <label>Learning Rate</label>
+    <input type="range" id="lr-s" min="1" max="30" value="15">
+    <span class="cval" id="lr-v">0.30</span>
+    <label>Steps</label>
+    <input type="range" id="st-s" min="1" max="30" value="12">
+    <span class="cval" id="st-v">12</span>
+  </div>
+  <div><span class="cout" id="gd-out">Initialising...</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q1: Why does mini-batch SGD generalize better than full-batch gradient descent? <span class="qarrow">▶</span></button>
+  <div class="apanel">The noise in mini-batch gradients acts as implicit regularization. It prevents the optimizer from settling into sharp, narrow minima (which overfit) and instead finds broader, flatter minima that generalize better. This is the "noise = regularization" insight from the generalization theory of SGD. Mathematically: full-batch GD minimizes the exact training loss → may find a sharp minimum with low training loss but poor test loss. Mini-batch SGD's gradient noise perturbs the trajectory, exploring broader regions and finding flat minima where loss is robust to weight perturbations. Large-batch training is a known failure mode — it generalizes worse even at the same final training loss.
+  <div class="a-bn">বাংলায়: mini-batch-এর noisy gradient আসলে regularization-এর কাজ করে। এটা sharp minimum-এ আটকায় না, flat minimum খোঁজে → ভালো generalization।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q2: What is the difference between SGD and Adam in practice? When would you choose SGD? <span class="qarrow">▶</span></button>
+  <div class="apanel">Adam: adaptive per-parameter learning rate. Converges fast, works well out-of-the-box, less sensitive to learning rate choice. But: can generalize slightly worse than well-tuned SGD (finds sharper minima), uses 2× memory (stores first & second moment estimates). SGD+Momentum: simpler, better generalization in vision tasks (ResNet, ViT), requires careful lr tuning. Choose Adam for: NLP, LLMs, transformers, fast prototyping, most tasks. Choose SGD: computer vision when training from scratch, final fine-tuning for best accuracy, when memory is constrained.
+  <div class="a-bn">বাংলায়: Adam দ্রুত কাজ করে কিন্তু বেশি memory নেয়। SGD ধীর কিন্তু vision task-এ generalize ভালো করে।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q3: What is gradient accumulation and why is it useful? <span class="qarrow">▶</span></button>
+  <div class="apanel">Gradient accumulation simulates a larger batch size when GPU memory can't fit it. Instead of batch_size=1024 in one forward pass, you do 8 forward passes with batch_size=128, accumulate gradients (don't zero them), then do one optimizer step. The gradient becomes the average over all 8 mini-batches = equivalent to batch_size=1024. Critical for training large models (LLMs) on limited hardware. Code: optimizer.zero_grad() → (forward+backward)×8 with loss/8 → optimizer.step(). Used in Hugging Face Trainer via <code>gradient_accumulation_steps</code> parameter.
+  <div class="a-bn">বাংলায়: GPU memory কম থাকলে gradient accumulation ব্যবহার করো। ছোট batch-এ gradient জমা করো, তারপর একসাথে update দাও — বড় batch-এর মতো কাজ করে।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-title">Exercise 1 — Manual Update</div>
+  <p>Loss L(w,b) = (3w + b − 7)². At w=1, b=1, compute ∂L/∂w and ∂L/∂b. Then do one GD step with α=0.1.</p>
+  <div class="ex-ans">L=(3+1−7)²=(−3)²=9. ∂L/∂w=2(3w+b−7)·3=2(−3)·3=−18. ∂L/∂b=2(3w+b−7)·1=−6. w←1−0.1·(−18)=2.8. b←1−0.1·(−6)=1.6. Loss decreased: L(2.8,1.6)=(8.4+1.6−7)²=9 → (3)²=9... wait: 3(2.8)+1.6=8.4+1.6=10. 10−7=3. L=9. Same? Yes — one step isn't enough. Keep going!</div></div>
+  <div class="ex"><div class="ex-title">Exercise 2 — Conceptual</div>
+  <p>You train with batch_size=32 for 100 epochs on 3200 samples. How many gradient updates happen? What if batch_size=1?</p>
+  <div class="ex-ans">Samples/batch=3200/32=100 steps/epoch. 100 epochs × 100 steps = 10,000 updates. With batch_size=1: 3200 steps/epoch × 100 epochs = 320,000 updates — 32× more frequent updates with nosier gradient.</div></div>
+</div>
+<div class="card"><div class="card-hd">🔗 RESOURCES</div>
+  <a class="res-link" href="https://www.deeplearning.ai/ai-notes/optimization/" target="_blank">📘 DeepLearning.AI Optimization Notes</a>
+  <a class="res-link" href="https://distill.pub/2017/momentum/" target="_blank">🎯 Distill: Why Momentum Really Works</a>
+  <a class="res-link" href="https://arxiv.org/abs/1412.6980" target="_blank">📄 Adam Paper (Kingma & Ba 2014)</a>
+  <a class="res-link" href="https://pytorch.org/docs/stable/optim.html" target="_blank">🔥 PyTorch Optimizers Docs</a>
+</div>`
+},
+
+/* ─── 02  LEARNING RATE ─── */
+{
+title:"Learning Rate Intuition",
+titleHL:"Learning Rate <span>Intuition</span>",
+bn:"লার্নিং রেট — অনুভূতি",
+tags:[{t:"Hyperparameter",c:"tc"},{t:"LR Scheduling",c:"tl"},{t:"Warmup",c:"to"},{t:"Convergence",c:"tv"}],
+body:`
+<div class="card law1">
+  <div class="card-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You train a model and the loss goes: 2.3 → 2.8 → 3.5 → 9.2 → NaN. What is almost certainly the problem?</p>
+  <p style="margin-top:9px;color:var(--lime)">✅ <strong>Learning rate is too large.</strong> The optimizer is overshooting the minimum — each step jumps past the valley to the other side (higher loss), and each subsequent step makes it worse. NaN appears when loss diverges to infinity. Fix: reduce lr by 10× and restart.</p>
+</div>
+<div class="card law2">
+  <div class="card-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Using a fixed LR for all of training.</strong> The optimal LR changes as training progresses. Early: need larger LR to explore. Late: need tiny LR to fine-tune. LR scheduling is not optional — it's standard practice.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Thinking Adam makes LR irrelevant.</strong> Adam has adaptive LRs per parameter, but the global LR (α) still matters enormously. The typical Adam LR is 3e-4 (Karpathy's "golden rule"), but this varies by architecture and batch size.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Not using warmup for transformers.</strong> Transformers without warmup often diverge in the first few hundred steps. The random initialization + large gradients = chaotic updates. Warmup lets the model stabilize before large steps.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📖 CORE CONCEPT — English</div>
+  <p>The learning rate α controls <span class="hc">how big each gradient descent step is</span>. It's the single most important hyperparameter to tune.</p>
+
+  <div class="g3" style="margin:16px 0">
+    <div class="gbox" style="border-color:rgba(239,35,60,.3)">
+      <div class="gbox-title" style="color:var(--red)">🔴 Too Large (α → ∞)</div>
+      <p style="font-size:0.85em">Overshoots minimum. Loss oscillates or diverges. NaN appears. Model never converges.</p>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:40px;margin-top:8px">
+        <div style="height:30%;background:var(--red);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:80%;background:var(--red);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:40%;background:var(--red);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:100%;background:var(--red);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:60%;background:var(--red);width:100%;border-radius:2px;opacity:.6"></div>
+      </div>
+    </div>
+    <div class="gbox" style="border-color:rgba(168,255,62,.3)">
+      <div class="gbox-title" style="color:var(--lime)">✅ Just Right</div>
+      <p style="font-size:0.85em">Smooth convergence. Loss decreases steadily. Finds a good minimum efficiently.</p>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:40px;margin-top:8px">
+        <div style="height:100%;background:var(--lime);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:75%;background:var(--lime);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:50%;background:var(--lime);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:30%;background:var(--lime);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:15%;background:var(--lime);width:100%;border-radius:2px;opacity:.6"></div>
+      </div>
+    </div>
+    <div class="gbox" style="border-color:rgba(255,209,102,.3)">
+      <div class="gbox-title" style="color:var(--gold)">🟡 Too Small (α → 0)</div>
+      <p style="font-size:0.85em">Converges but agonizingly slow. May get stuck in shallow local minima or plateaus.</p>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:40px;margin-top:8px">
+        <div style="height:100%;background:var(--gold);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:97%;background:var(--gold);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:94%;background:var(--gold);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:91%;background:var(--gold);width:100%;border-radius:2px;opacity:.6"></div>
+        <div style="height:88%;background:var(--gold);width:100%;border-radius:2px;opacity:.6"></div>
+      </div>
+    </div>
+  </div>
+
+  <p><strong>LR Schedules — Changing LR during training:</strong></p>
+  <table>
+    <tr><th>Schedule</th><th>How it Works</th><th>Used By</th></tr>
+    <tr><td><span class="hc">Step Decay</span></td><td>Multiply LR by γ every N epochs</td><td>ResNet training (γ=0.1 every 30ep)</td></tr>
+    <tr><td><span class="hl">Cosine Annealing</span></td><td>LR follows cosine curve → 0</td><td>Most modern DL, GPT-3</td></tr>
+    <tr><td><span class="ho">Linear Warmup</span></td><td>LR ramps from 0 → target over K steps</td><td>Transformers (first 2K steps)</td></tr>
+    <tr><td><span class="hv">Warmup + Cosine</span></td><td>Warmup then cosine decay</td><td>🏆 LLM standard (BERT, GPT)</td></tr>
+    <tr><td><span class="ht">Cyclic LR (CLR)</span></td><td>Oscillate between min/max LR</td><td>Faster convergence, escapes plateaus</td></tr>
+    <tr><td><span class="hy">OneCycle</span></td><td>Single large cycle up+down</td><td>FastAI, super-convergence</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Learning Rate (α)</strong> হলো প্রতিটা gradient descent step কতটা বড় হবে তার নিয়ন্ত্রক। এটা ML-এর সবচেয়ে গুরুত্বপূর্ণ hyperparameter।</p>
+  <div class="callout-bn">💡 উদাহরণ: তুমি পাহাড়ে নামছ। Learning rate = তোমার প্রতিটা পদক্ষেপের দৈর্ঘ্য।
+• খুব বড় পদক্ষেপ → উপত্যকার ওপার চলে যাও (diverge!)
+• খুব ছোট পদক্ষেপ → পৌঁছাতে যুগ লাগে
+• সঠিক পদক্ষেপ → দ্রুত এবং নিরাপদে valley-তে পৌঁছাও</div>
+  <p class="bn" style="margin-top:12px"><strong>Warmup কেন দরকার?</strong></p>
+  <p class="bn">Training শুরুতে model-এর weights random। এই সময় gradient অনেক বড় ও অনির্ভরযোগ্য। বড় LR দিলে training শুরুতেই ভেঙে পড়ে। Warmup মানে: প্রথম কয়েক হাজার step-এ LR আস্তে আস্তে বাড়াও — model settle করার সুযোগ দাও। তারপর cosine decay দিয়ে আস্তে কমাও।</p>
+  <p class="bn" style="margin-top:10px"><strong>কার্পাথির সোনার নিয়ম:</strong> Adam-এর জন্য lr=3e-4 থেকে শুরু করো। যদি loss NaN হয়: lr÷10। যদি খুব ধীর: lr×3।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd">📐 FORMULAS — LR Schedules</div>
+  <div class="fl">Linear Warmup then Cosine Decay (Transformer standard)</div>
+  <div class="fx"><span class="fg">lr(t)</span> = lr_max × min(t/warmup_steps,  cosine_decay(t))
+
+cosine_decay(t) = 0.5 × (1 + cos(π × (t−w)/(T−w)))
+where w = warmup_steps, T = total_steps
+
+t < warmup: lr increases linearly 0 → lr_max
+t ≥ warmup: lr follows cosine curve from lr_max → lr_min</div>
+  <div class="fl">Batch Size ↔ Learning Rate Scaling Rule (Linear Scaling Rule)</div>
+  <div class="fx"><span class="fg">lr_new</span> = lr_base × (batch_size_new / batch_size_base)
+Example: base lr=0.1 with batch=256
+         new batch=1024: lr_new = 0.1 × 4 = 0.4
+Intuition: larger batch = more stable gradient = can take bigger steps</div>
+  <div class="fl">Adam LR — Effective Step Size</div>
+  <div class="fx">Effective_lr = α × m̂ / (√v̂ + ε)
+m̂ = bias-corrected 1st moment (mean gradient)
+v̂ = bias-corrected 2nd moment (mean gradient²)
+Per-parameter: large gradient² → smaller effective lr (auto-scaling!)
+→ parameters with noisy/large gradients are automatically throttled</div>
+</div>
+
+<div class="card">
+  <div class="card-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q1: How do you find the optimal learning rate without extensive trial and error? <span class="qarrow">▶</span></button>
+  <div class="apanel">Use the <strong>LR Range Test</strong> (Leslie Smith, 2015): start with a very small LR (1e-7), train for one mini-batch, gradually increase LR exponentially each step, record loss at each LR. Plot LR vs loss. The optimal LR is just before the loss starts increasing — typically the steepest downward slope on the plot. fastai's <code>lr_finder()</code> automates this. Rule: use the LR at the steepest descent ÷ 10 for safe training. This test takes only a few minutes and saves hours of trial and error.
+  <div class="a-bn">বাংলায়: LR Range Test — lr আস্তে বাড়াও, loss কমতে থাকে, তারপর হঠাৎ বাড়ে। সেই turning point-এর আগে থাকাই সেরা lr।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q2: Why does the Transformer paper use the formula lr = d_model^-0.5 × min(step^-0.5, step × warmup^-1.5)? <span class="qarrow">▶</span></button>
+  <div class="apanel">This formula does two things: (1) Scales inversely with d_model (larger model = smaller lr — larger models need more careful updates). (2) Linear warmup for <code>step &lt; warmup_steps</code> (lr increases proportional to step number), then inverse-square-root decay (lr decreases as 1/√step). The peak LR occurs at step = warmup_steps. Why? Early training: random attention patterns generate noisy gradients — linear warmup prevents destructive updates. Late training: approaching a good solution, need finer steps. The specific schedule was found empirically; other schedules (cosine) often work as well or better in practice.
+  <div class="a-bn">বাংলায়: এই formula প্রথমে lr বাড়ায় (warmup), তারপর ধীরে ধীরে কমায় (decay)। বড় model-এ ছোট lr লাগে।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q3: What is gradient clipping and how does it relate to learning rate? <span class="qarrow">▶</span></button>
+  <div class="apanel">Gradient clipping caps the norm of the gradient before the optimizer step: if ||g||₂ > threshold, g ← g × (threshold/||g||₂). It's a safeguard against exploding gradients (which act like temporarily infinite learning rates). Without clipping, one very large gradient could devastate the model's weights in a single step. In practice: PyTorch's <code>torch.nn.utils.clip_grad_norm_(params, max_norm=1.0)</code>. Common thresholds: 0.5–5.0. Transformer training always uses gradient clipping (typically max_norm=1.0). It complements LR — clipping handles spikes, LR handles the average step size.
+  <div class="a-bn">বাংলায়: gradient clipping হঠাৎ বড় gradient-কে কেটে দেয় — একটা বড় জাম্প যেন model ভেঙে না দেয়। LR schedule + clipping একসাথে stable training নিশ্চিত করে।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-title">Exercise 1</div>
+  <p>You train with Adam, lr=1e-3. After epoch 1 loss=2.1, epoch 2 loss=2.09, epoch 3 loss=2.08. What's the problem and what do you try first?</p>
+  <div class="ex-ans">Loss is decreasing but extremely slowly — learning rate is likely too small. Try lr=3e-3 or 1e-2. Also check: is the model's architecture appropriate? Is data normalized? Also consider using a LR scheduler with warmup to give an initial boost.</div></div>
+  <div class="ex"><div class="ex-title">Exercise 2 — LR Scaling</div>
+  <p>You found optimal lr=0.01 with batch_size=64. You want to use batch_size=256. What LR should you try first (linear scaling rule)?</p>
+  <div class="ex-ans">lr_new = 0.01 × (256/64) = 0.01 × 4 = 0.04. But: at very large lr, use warmup for the first 5 epochs to prevent divergence.</div></div>
+</div>
+<div class="card"><div class="card-hd">🔗 RESOURCES</div>
+  <a class="res-link" href="https://arxiv.org/abs/1506.01186" target="_blank">📄 Cyclical LRs (Leslie Smith)</a>
+  <a class="res-link" href="https://arxiv.org/abs/1706.02677" target="_blank">📄 Don't Decay the LR (Goyal et al.)</a>
+  <a class="res-link" href="https://www.fast.ai/posts/2018-07-02-adam-weight-decay.html" target="_blank">📘 FastAI: Fixing Adam + WD</a>
+</div>`
+},
+
+/* ─── 03  LOSS FUNCTIONS ─── */
+{
+title:"Cost / Loss Functions",
+titleHL:"Cost & Loss <span>Functions</span>",
+bn:"কস্ট এবং লস ফাংশন",
+tags:[{t:"MSE",c:"tc"},{t:"Cross-Entropy",c:"tl"},{t:"KL Divergence",c:"to"},{t:"Objective Design",c:"tv"}],
+body:`
+<div class="card law1">
+  <div class="card-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Why can't you use MSE loss for classification? And why can't you use Cross-Entropy for regression? Think before reading.</p>
+  <p style="margin-top:9px;color:var(--lime)">✅ MSE for classification: treats class labels as continuous values (class 0 and class 2 are "2 apart" — meaningless for categories). Cross-Entropy for regression: undefined for negative predictions (requires log of probabilities, which must be in (0,1)). Each loss function encodes assumptions about your task — using the wrong one is a fundamental design error.</p>
+</div>
+<div class="card law2">
+  <div class="card-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Confusing "loss" and "metric."</strong> Loss = what you minimize via gradients. Metric = what you report/care about. F1 score is a metric; cross-entropy is its loss proxy. You can't directly differentiate F1 — it's not smooth. This is why we optimize cross-entropy but report accuracy/F1.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>MSE is sensitive to outliers.</strong> A prediction error of 100 contributes 10,000 to MSE. One bad sample dominates training. Use MAE or Huber loss if your data has outliers.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Class imbalance + cross-entropy = disaster.</strong> If 99% of data is class 0, predicting class 0 always gives 99% accuracy and low cross-entropy — but the model learned nothing. Fix: weighted cross-entropy, focal loss, resampling.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📖 WHAT IS A LOSS FUNCTION?</div>
+  <p>A loss function L(y, ŷ) measures <span class="hc">how wrong your model's prediction ŷ is compared to the true label y</span>. It converts "wrongness" into a single scalar number we can minimize via gradient descent.</p>
+  <div class="callout"><strong>Loss function requirements:</strong> (1) Differentiable (almost) everywhere — so we can compute gradients. (2) Lower = better prediction. (3) Zero when prediction is perfect. (4) Encodes the right assumptions about your task.</div>
+
+  <p style="margin-top:16px"><strong>THE MAJOR LOSS FUNCTIONS:</strong></p>
+
+  <div class="fl">① Mean Squared Error (MSE) — Regression</div>
+  <div class="fx"><span class="fg">L_MSE</span> = (1/n) Σᵢ (yᵢ − ŷᵢ)²
+Gradient: ∂L/∂ŷᵢ = −(2/n)(yᵢ − ŷᵢ)
+Properties: penalizes large errors heavily (quadratic), differentiable everywhere
+Problem: sensitive to outliers (error² makes big errors huge)</div>
+
+  <div class="fl">② Mean Absolute Error (MAE / L1 Loss) — Regression</div>
+  <div class="fx"><span class="fg">L_MAE</span> = (1/n) Σᵢ |yᵢ − ŷᵢ|
+Gradient: sign(ŷᵢ − yᵢ)  [+1 or −1, undefined at 0]
+Properties: robust to outliers, but non-differentiable at 0</div>
+
+  <div class="fl">③ Huber Loss — Robust Regression (best of MSE + MAE)</div>
+  <div class="fx"><span class="fg">L_Huber</span> = { 0.5·(y−ŷ)²          if |y−ŷ| ≤ δ
+               { δ·(|y−ŷ| − 0.5δ)  otherwise
+Uses MSE for small errors (smooth), MAE for large errors (robust to outliers)</div>
+
+  <div class="fl">④ Binary Cross-Entropy — Binary Classification</div>
+  <div class="fx"><span class="fg">L_BCE</span> = −(1/n) Σᵢ [yᵢ·log(ŷᵢ) + (1−yᵢ)·log(1−ŷᵢ)]
+where ŷᵢ ∈ (0,1) is sigmoid output (probability of class 1)
+Gradient w.r.t. logit z (before sigmoid): ∂L/∂z = ŷ − y  ← beautifully simple!</div>
+
+  <div class="fl">⑤ Categorical Cross-Entropy — Multi-class Classification</div>
+  <div class="fx"><span class="fg">L_CCE</span> = −(1/n) Σᵢ Σⱼ yᵢⱼ · log(ŷᵢⱼ)
+where ŷ = softmax(logits), y = one-hot vector
+If one-hot: simplifies to −log(ŷ_correct_class) ← only the correct class matters!</div>
+
+  <div class="fl">⑥ KL Divergence — Probability Distribution Matching</div>
+  <div class="fx"><span class="fg">KL(P||Q)</span> = Σₓ P(x) · log(P(x)/Q(x))
+Measures: how much info is lost if Q is used to approximate P
+Properties: KL ≥ 0,  KL = 0 iff P = Q,  NOT symmetric: KL(P||Q) ≠ KL(Q||P)
+Used in: VAEs, knowledge distillation, RL (KL penalty), LLM alignment (RLHF)</div>
+
+  <div class="fl">⑦ Focal Loss — Class Imbalance (Retinanet)</div>
+  <div class="fx"><span class="fg">L_focal</span> = −(1−pₜ)ᵞ · log(pₜ)
+where pₜ = model probability for correct class, γ = focusing parameter (γ=2 common)
+When pₜ → 1 (easy example): (1−pₜ)ᵞ → 0, loss nearly zero → easy examples ignored
+When pₜ → 0 (hard example): weight close to 1 → hard examples dominate training</div>
+</div>
+
+<div class="card">
+  <div class="card-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Loss Function</strong> হলো: model-এর prediction কতটা ভুল সেটা একটা সংখ্যায় প্রকাশ করার উপায়। এই সংখ্যাটাকে minimize করাই training।</p>
+  <div class="callout-bn">💡 উদাহরণ: তুমি একটা বাড়ির দাম predict করছ। সত্যিকারের দাম 50 লক্ষ, তোমার prediction 45 লক্ষ।
+• MSE: (50−45)² = 25 লক্ষ² → বড় ত্রুটি বেশি শাস্তি পায়
+• MAE: |50−45| = 5 লক্ষ → সরল, outlier-এ কম sensitive
+• Huber: মাঝামাঝি — ছোট ত্রুটিতে MSE, বড় ত্রুটিতে MAE</div>
+  <p class="bn" style="margin-top:12px"><strong>Cross-Entropy কেন classification-এ?</strong></p>
+  <p class="bn">যখন model বলে "এটা বিড়াল হওয়ার সম্ভাবনা 80%", cross-entropy শাস্তি দেয় log(0.8)-এর উপর। সঠিক class-এর probability 100% হলে শাস্তি 0। এটা information theory থেকে আসা — model কতটা "surprised" হলো সঠিক উত্তরে।</p>
+  <p class="bn" style="margin-top:8px"><strong>Focal Loss কেন?</strong> যদি 99% data class-0 হয়, model শুধু class-0 predict করলে 99% accurate। Focal Loss সহজ example-কে উপেক্ষা করে কঠিন example-এ focus করে।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd">📐 LOSS COMPARISON TABLE</div>
+  <table>
+    <tr><th>Loss</th><th>Task</th><th>Output Activation</th><th>Outlier Robust</th><th>Differentiable</th></tr>
+    <tr><td><span class="hc">MSE</span></td><td>Regression</td><td>Linear</td><td>❌ No</td><td>✅ Yes</td></tr>
+    <tr><td><span class="hl">MAE</span></td><td>Regression</td><td>Linear</td><td>✅ Yes</td><td>⚠️ Not at 0</td></tr>
+    <tr><td><span class="ho">Huber</span></td><td>Regression</td><td>Linear</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+    <tr><td><span class="hv">BCE</span></td><td>Binary classification</td><td>Sigmoid</td><td>N/A</td><td>✅ Yes</td></tr>
+    <tr><td><span class="ht">CCE</span></td><td>Multi-class</td><td>Softmax</td><td>N/A</td><td>✅ Yes</td></tr>
+    <tr><td><span class="hy">Focal</span></td><td>Imbalanced classification</td><td>Sigmoid/Softmax</td><td>N/A</td><td>✅ Yes</td></tr>
+    <tr><td><span class="hp">KL Div</span></td><td>Distribution matching</td><td>Softmax</td><td>N/A</td><td>✅ Yes</td></tr>
+    <tr><td><span class="hc">Contrastive</span></td><td>Similarity/Embeddings</td><td>L2-normalized</td><td>N/A</td><td>✅ Yes</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q1: Why is cross-entropy preferred over MSE for classification? <span class="qarrow">▶</span></button>
+  <div class="apanel">Three reasons: (1) <strong>Gradient behavior</strong>: MSE with sigmoid output → gradient = (ŷ−y)·ŷ(1−ŷ). When prediction is confidently wrong (ŷ≈0, y=1): ŷ(1−ŷ)≈0 → tiny gradient → slow learning! Cross-entropy gradient = ŷ−y (constant) → strong gradient even when confidently wrong. (2) <strong>Probabilistic interpretation</strong>: BCE = maximum likelihood estimation under Bernoulli distribution. (3) <strong>Information theory</strong>: CE measures the number of bits needed to encode the true distribution using the predicted distribution — a natural measure for probability outputs.
+  <div class="a-bn">বাংলায়: MSE ব্যবহার করলে model confidently ভুল হলেও gradient ছোট হয় → শেখা বন্ধ হয়। Cross-entropy এই সমস্যা এড়ায়।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q2: What is the role of KL divergence in variational autoencoders (VAE)? <span class="qarrow">▶</span></button>
+  <div class="apanel">VAE loss = Reconstruction loss + β·KL(q(z|x)||p(z)). The KL term forces the encoder q(z|x) to stay close to the standard normal prior p(z)~N(0,I). Without KL: encoder can use any distribution → latent space has "holes" → decoder can't generate from random z. With KL: latent space is smooth and complete — you can sample z~N(0,1) and decode to realistic samples. KL = 0 when q=p. β controls the tradeoff: large β → smoother latent space but worse reconstruction; small β → better reconstruction but less structured latent space. β-VAE uses large β for disentangled representations.
+  <div class="a-bn">বাংলায়: VAE-তে KL divergence latent space-কে normal distribution-এর মতো রাখে, যাতে যেকোনো random point থেকে realistic output generate হয়।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q3: What is the RLHF objective and how does KL penalty fit in? <span class="qarrow">▶</span></button>
+  <div class="apanel">RLHF (Reinforcement Learning from Human Feedback) objective for LLM alignment: max_π [E[r(y)] − β·KL(π||π_ref)]. The model policy π tries to maximize reward r(y) (from reward model) while staying close to the reference policy π_ref (original SFT model). The KL penalty prevents the model from "reward hacking" — finding degenerate outputs that fool the reward model but are not actually good. Without KL: model might generate repetitive, nonsensical text that scores highly on a flawed reward model. β controls the tradeoff: high β = stays close to reference (safe but less optimized); low β = optimizes reward aggressively (risky). This is how ChatGPT/Claude are trained.
+  <div class="a-bn">বাংলায়: RLHF-এ KL penalty নিশ্চিত করে যে LLM reward চাইতে গিয়ে মূল স্বভাব হারিয়ে না ফেলে।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-title">Exercise 1 — Loss Selection</div>
+  <p>Choose the appropriate loss function: (a) Predicting house prices with known outliers (b) Detecting tumors in 1% positive, 99% negative images (c) Training a language model to predict next token (d) Training a VAE</p>
+  <div class="ex-ans">(a) Huber Loss — robust to outlier prices (b) Focal Loss — handles class imbalance (c) Categorical Cross-Entropy — next token is multi-class classification (d) MSE (reconstruction) + KL Divergence (latent regularization)</div></div>
+  <div class="ex"><div class="ex-title">Exercise 2 — Compute Cross-Entropy</div>
+  <p>True label: y=[0,1,0] (class 1). Predicted: ŷ=[0.1, 0.7, 0.2]. Compute cross-entropy loss.</p>
+  <div class="ex-ans">L = −Σ y·log(ŷ) = −(0·log(0.1) + 1·log(0.7) + 0·log(0.2)) = −log(0.7) ≈ 0.357. Only the correct class probability matters! If ŷ_class1=0.9: L=−log(0.9)≈0.105 (lower, better prediction).</div></div>
+</div>
+<div class="card"><div class="card-hd">🔗 RESOURCES</div>
+  <a class="res-link" href="https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html" target="_blank">📘 ML Cheatsheet: Loss Functions</a>
+  <a class="res-link" href="https://arxiv.org/abs/1708.02002" target="_blank">📄 Focal Loss Paper (RetinaNet)</a>
+  <a class="res-link" href="https://pytorch.org/docs/stable/nn.html#loss-functions" target="_blank">🔥 PyTorch Loss Functions</a>
+</div>`
+},
+
+/* ─── 04  SADDLE POINTS ─── */
+{
+title:"Saddle Points",
+titleHL:"Saddle <span>Points</span>",
+bn:"স্যাডল পয়েন্ট",
+tags:[{t:"Critical Points",c:"tc"},{t:"High-Dimensional",c:"tl"},{t:"Escape Strategies",c:"to"},{t:"Loss Landscape",c:"tv"}],
+body:`
+<div class="card law1">
+  <div class="card-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Your model's gradient reaches exactly zero during training, but validation loss is still high. What is likely happening, and what should you do?</p>
+  <p style="margin-top:9px;color:var(--lime)">✅ You're likely at a <strong>saddle point</strong> (not a minimum). The gradient is zero but loss is NOT minimized — you're at a flat region that's a minimum in some directions and a maximum in others. Solutions: (1) Add noise (SGD mini-batches do this naturally). (2) Use momentum to push through. (3) Reduce LR and use a schedule. (4) Check if the model is learning at all — may be a dying ReLU or weight initialization issue.</p>
+</div>
+<div class="card law2">
+  <div class="card-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Treating all zero-gradient points as minima.</strong> In 1D: zero gradient = min or max. In 1M dimensions: zero gradient is almost always a saddle point. The probability of all 1M Hessian eigenvalues being positive is essentially zero.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Thinking saddle points are catastrophic.</strong> In practice, gradient descent with mini-batch noise naturally escapes most saddle points. Saddle points near low-loss regions have nearly the same loss as the global minimum. They're less problematic than textbooks suggest.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Confusing plateaus with saddle points.</strong> Plateaus: gradient is near-zero everywhere in a flat region. Saddle points: gradient is exactly zero at one point, non-zero everywhere nearby. Plateaus are often the real training bottleneck, not saddle points.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📖 CORE CONCEPT — English</div>
+  <p>A <span class="hc">saddle point</span> is a critical point (∇f = 0) where the function is neither a local minimum nor a local maximum. It is a <strong>minimum in some directions and a maximum in others</strong> — like a horse saddle.</p>
+
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(0,212,255,.3)">
+      <div class="gbox-title hc">Mathematical Definition</div>
+      <p style="font-size:0.85em">At saddle point x*:<br>∇f(x*) = 0 (gradient is zero)<br>Hessian H is <em>indefinite</em>:<br>Some eigenvalues > 0<br>Some eigenvalues < 0<br>→ Min in some directions<br>→ Max in other directions</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(168,255,62,.3)">
+      <div class="gbox-title hl">Signature in 2D: f(x,y) = x² − y²</div>
+      <p style="font-size:0.85em">At origin (0,0):<br>∂f/∂x = 2x = 0 ✓<br>∂f/∂y = −2y = 0 ✓<br>∂²f/∂x² = +2 → min in x<br>∂²f/∂y² = −2 → max in y<br>→ Saddle point!</p>
+    </div>
+  </div>
+
+  <p style="margin-top:16px"><strong>Why saddle points dominate in deep learning:</strong></p>
+  <div class="callout">
+    A critical point in d-dimensional space is a local minimum only if ALL d Hessian eigenvalues are positive. With d = 100 million parameters, this requires 100M "lucky" eigenvalues. Probability ≈ (1/2)^100M ≈ 0. <strong>Almost every critical point in a deep network is a saddle point.</strong> But this is actually fine — saddle points near low-loss regions have nearly identical loss to the global minimum.
+  </div>
+
+  <p style="margin-top:14px"><strong>All critical points — a complete taxonomy:</strong></p>
+  <table>
+    <tr><th>Point Type</th><th>Gradient</th><th>Hessian Eigenvalues</th><th>Frequency in Deep Nets</th></tr>
+    <tr><td><span class="hl">Local minimum</span></td><td>= 0</td><td>All > 0</td><td>Very rare (d parameters)</td></tr>
+    <tr><td><span class="hr">Local maximum</span></td><td>= 0</td><td>All < 0</td><td>Extremely rare</td></tr>
+    <tr><td><span class="hy">Saddle point</span></td><td>= 0</td><td>Mixed signs</td><td>🏆 Most common by far</td></tr>
+    <tr><td><span class="hv">Plateau</span></td><td>≈ 0 (not exactly)</td><td>Near 0</td><td>Common, the real bottleneck</td></tr>
+    <tr><td><span class="ho">Global minimum</span></td><td>= 0</td><td>All ≥ 0</td><td>Essentially never reached</td></tr>
+  </table>
+
+  <p style="margin-top:16px"><strong>Escape strategies:</strong></p>
+  <table>
+    <tr><th>Method</th><th>How It Escapes</th><th>Downside</th></tr>
+    <tr><td><span class="hc">Mini-batch SGD noise</span></td><td>Random gradient perturbation kicks you off saddle</td><td>May also kick you out of good minima</td></tr>
+    <tr><td><span class="hl">Momentum</span></td><td>Accumulated velocity rolls through flat regions</td><td>May overshoot</td></tr>
+    <tr><td><span class="ho">Perturbed GD</span></td><td>Add explicit Gaussian noise to gradient</td><td>Adds a hyperparameter</td></tr>
+    <tr><td><span class="hv">Second-order methods</span></td><td>Use Hessian direction to escape (Newton's)</td><td>O(n²) memory — infeasible at scale</td></tr>
+    <tr><td><span class="ht">Large LR warmup</span></td><td>Explore widely early, find better basins</td><td>Risk of instability</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Saddle Point (স্যাডল পয়েন্ট):</strong> এমন একটা বিন্দু যেখানে gradient = 0, কিন্তু সেটা minimum নয়। কিছু দিকে minimum, কিছু দিকে maximum।</p>
+  <div class="callout-bn">💡 ঘোড়ার জিনের কল্পনা করো। জিনের মাঝখানে বসলে সামনে-পেছনে তুমি সবচেয়ে নিচে (minimum), কিন্তু বাম-ডানে তুমি সবচেয়ে উঁচুতে (maximum)। এটাই saddle point — gradient zero, কিন্তু সত্যিকারের minimum নয়!</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ কেন saddle point বেশি?</strong></p>
+  <p class="bn">১ কোটি parameter থাকলে সব eigenvalue একসাথে positive হওয়ার সম্ভাবনা = (½)^{১ কোটি} ≈ শূন্য। তাই deep network-এ প্রায় সব critical point = saddle point।</p>
+  <p class="bn" style="margin-top:8px"><strong>ভালো খবর:</strong> কম-loss অঞ্চলের saddle point-এর loss প্রায় global minimum-এর সমান। তাই saddle point-এ আটকা পড়লেও model প্রায়ই ভালো কাজ করে। Mini-batch noise নিজে থেকেই saddle point থেকে বের করে দেয়।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd">📐 FORMULAS</div>
+  <div class="fl">Identifying saddle points via Hessian (2D example)</div>
+  <div class="fx">f(x,y) = x² − y²     (monkey saddle, classic example)
+Hessian H = ⎡∂²f/∂x²   ∂²f/∂x∂y⎤ = ⎡+2   0⎤
+             ⎣∂²f/∂y∂x  ∂²f/∂y²⎦   ⎣ 0  −2⎦
+Eigenvalues: λ₁=+2, λ₂=−2  → mixed signs → <span class="fo">SADDLE POINT ✓</span>
+det(H) = −4 < 0  (negative determinant → always saddle in 2D)</div>
+  <div class="fl">Gradient near a saddle point — why GD escapes naturally</div>
+  <div class="fx">At saddle point x*: ∇f = 0  (exactly)
+But: any perturbation ε away from x* → gradient appears:
+f(x*+ε) ≈ f(x*) + εᵀ∇f + ½εᵀHε = f(x*) + ½εᵀHε
+Gradient at x*+ε: ≈ Hε  (Hessian × perturbation)
+In negative-curvature direction (eigenvalue < 0): gradient points AWAY from saddle
+→ SGD noise ε naturally triggers escape in these directions!</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd">🎯 ANALOGY — The Mountain Pass</div>
+  <p>A saddle point is like a <strong>mountain pass</strong> between two peaks. If you stand at the pass: walking east-west you're at the lowest point (minimum). Walking north-south you're at the highest point (maximum). You're "stuck" there only if you walk in exactly the right direction. Any breeze (noise from mini-batches) will push you off to one side — either deeper into the valley (good!) or up a slope where you'll slide back down anyway. This is why SGD's noise is a feature, not a bug for escaping saddle points.</p>
+  <p class="callout-bn" style="margin-top:10px">বাংলায়: পাহাড়ের গিরিপথ (mountain pass) — পূর্ব-পশ্চিমে সবচেয়ে নিচু, উত্তর-দক্ষিণে সবচেয়ে উঁচু। একটু বাতাস (SGD noise) গিরিপথ ছেড়ে valley-তে নিয়ে যায়।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q1: Are saddle points the main obstacle to training deep networks? What is? <span class="qarrow">▶</span></button>
+  <div class="apanel">Saddle points are NOT the main obstacle. Research (Goodfellow et al., Dauphin et al.) shows that saddle points near the bottom of the loss landscape have nearly the same loss as the global minimum — they're "good enough." The real obstacles are: (1) <strong>Plateaus</strong> — regions where gradients are near-zero everywhere (not just at one point). Training feels like loss is stuck. (2) <strong>Sharp minima</strong> — narrow valleys where small weight changes cause large loss increases (poor generalization). (3) <strong>Vanishing/exploding gradients</strong> — prevent effective backpropagation. (4) <strong>Poor conditioning</strong> — loss surface has very different curvature in different directions, making gradient descent inefficient.
+  <div class="a-bn">বাংলায়: saddle point-এর চেয়ে plateau, sharp minima, এবং vanishing gradient deep learning-এ বড় সমস্যা।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q2: Why do Transformers seem to avoid saddle point problems more than RNNs? <span class="qarrow">▶</span></button>
+  <div class="apanel">Several reasons: (1) <strong>Residual connections</strong> create direct gradient paths, preventing vanishing gradients that could trap training near saddle points. (2) <strong>Layer normalization</strong> keeps activations in well-conditioned regions, avoiding extreme curvature. (3) <strong>Attention mechanism</strong> is more expressive — fewer parameters in degenerate configurations compared to RNN's sequential bottleneck. (4) <strong>Adam + warmup</strong> is standard for transformers — momentum helps escape saddle points; warmup prevents early saddle-point traps from random initialization. (5) <strong>Parallel computation</strong> — large mini-batches with good hardware, providing stable gradient estimates.
+  <div class="a-bn">বাংলায়: Transformer-এ residual connection, layer norm, এবং attention মিলে saddle point এড়ানো সহজ হয়।</div></div></div>
+</div>
+<div class="card"><div class="card-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-title">Exercise</div>
+  <p>For f(x,y) = x³ − 3xy², find all critical points and classify them (min, max, or saddle).</p>
+  <div class="ex-ans">∂f/∂x=3x²−3y²=0 → x²=y². ∂f/∂y=−6xy=0 → xy=0. So x=0 or y=0. Cases: (0,0). H at (0,0): [[0,0],[0,0]] — degenerate, need higher-order test. This is a "monkey saddle" — saddle point with 3 valleys. For simple cases: f(x,y)=x²−y² saddle at (0,0) with H=[[2,0],[0,−2]], det(H)=−4<0 confirms saddle.</div></div>
+</div>
+<div class="card"><div class="card-hd">🔗 RESOURCES</div>
+  <a class="res-link" href="https://arxiv.org/abs/1406.2572" target="_blank">📄 Identifying & Attacking Saddle Points</a>
+  <a class="res-link" href="https://losslandscape.com" target="_blank">🗺️ Loss Landscape Visualizer</a>
+  <a class="res-link" href="https://arxiv.org/abs/1712.09913" target="_blank">📄 Visualizing NN Loss Landscapes</a>
+</div>`
+},
+
+/* ─── 05  VANISHING & EXPLODING ─── */
+{
+title:"Vanishing & Exploding Gradients",
+titleHL:"Vanishing & Exploding <span>Gradients</span>",
+bn:"ভ্যানিশিং ও এক্সপ্লোডিং গ্রেডিয়েন্ট",
+tags:[{t:"Deep Networks",c:"tc"},{t:"RNN / LSTM",c:"tl"},{t:"ResNet",c:"to"},{t:"Initialization",c:"tv"}],
+body:`
+<div class="card law1">
+  <div class="card-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A 20-layer sigmoid network. In backpropagation, each layer multiplies the gradient by the sigmoid derivative (max 0.25). What happens to the gradient at layer 1?</p>
+  <p style="margin-top:9px;color:var(--lime)">✅ After 20 layers: gradient ≤ 0.25²⁰ ≈ 10⁻¹² (one trillionth of original!). The gradient at early layers is effectively <strong>zero</strong>. These layers receive no meaningful learning signal — they're frozen. This is vanishing gradient and it's why sigmoid-only deep networks were untrainable before 2012.</p>
+</div>
+<div class="card law2">
+  <div class="card-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Diagnosing without evidence.</strong> Don't assume vanishing/exploding gradients without checking. Log gradient norms during training: if ||∂L/∂W_layer1|| ≈ 0 → vanishing. If ||∂L/∂W_layer1|| → ∞ or NaN → exploding. PyTorch: use <code>tensor.grad.norm()</code>.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Applying gradient clipping everywhere.</strong> Gradient clipping fixes exploding gradients for the current step but doesn't address the root cause (poor initialization or architecture). Fix the root cause AND clip.</span></div>
+  <div class="fi"><span class="fi-icon">✗</span><span><strong>Thinking these are only RNN problems.</strong> CNNs without residual connections also suffer vanishing gradients at depth >50 layers. Transformers can have exploding gradients in early training without warmup. These are universal deep learning challenges.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📖 THE PROBLEM — Deep Intuition</div>
+  <p>In backpropagation, gradient flows backward through all layers multiplied together:</p>
+  <div class="fx"><span class="fy">∂L/∂W₁</span> = ∂L/∂Wₙ × ∂Wₙ/∂Wₙ₋₁ × ... × ∂W₂/∂W₁
+          = ∂L/∂Wₙ × <span class="fo">∏ᵢ (Wᵢ · σ'(zᵢ))</span>   ← product of N terms!
+
+If each factor &lt; 1:  product → 0   (VANISHING)
+If each factor > 1:  product → ∞   (EXPLODING)</div>
+
+  <div class="g2" style="margin-top:16px">
+    <div class="gbox" style="border-color:rgba(0,212,255,.3)">
+      <div class="gbox-title hc">🌊 Vanishing Gradient</div>
+      <p style="font-size:0.84em;margin-bottom:8px"><strong>Cause:</strong> Sigmoid/tanh derivatives < 1 multiplied across many layers</p>
+      <p style="font-size:0.84em;margin-bottom:8px"><strong>Symptom:</strong> Early layers don't learn. Loss plateaus. First layers have near-zero gradients.</p>
+      <p style="font-size:0.84em"><strong>Sign:</strong> <code>W_layer1.grad.norm() ≈ 0</code></p>
+    </div>
+    <div class="gbox" style="border-color:rgba(239,35,60,.3)">
+      <div class="gbox-title hr">💥 Exploding Gradient</div>
+      <p style="font-size:0.84em;margin-bottom:8px"><strong>Cause:</strong> Large weight matrices multiply gradients, each layer amplifies signal</p>
+      <p style="font-size:0.84em;margin-bottom:8px"><strong>Symptom:</strong> Loss becomes NaN. Weights become very large or NaN.</p>
+      <p style="font-size:0.84em"><strong>Sign:</strong> <code>W.grad.norm() → ∞ or NaN</code></p>
+    </div>
+  </div>
+
+  <p style="margin-top:20px"><strong>Complete Solutions Toolkit:</strong></p>
+  <table>
+    <tr><th>Problem</th><th>Solution</th><th>How It Helps</th><th>Used In</th></tr>
+    <tr><td rowspan="4" style="color:var(--cyan)">Vanishing</td><td>ReLU activation</td><td>Derivative=1 for x>0, no shrinkage</td><td>All modern CNNs</td></tr>
+    <tr><td>Residual connections</td><td>Gradient highway: +1 path always flows</td><td>ResNet, Transformers</td></tr>
+    <tr><td>Batch normalization</td><td>Re-centers inputs to high-gradient region</td><td>Nearly all deep networks</td></tr>
+    <tr><td>Xavier/He initialization</td><td>Keeps activations in good variance range</td><td>Standard practice</td></tr>
+    <tr><td rowspan="3" style="color:var(--red)">Exploding</td><td>Gradient clipping</td><td>Cap gradient norm at threshold</td><td>RNNs, Transformers</td></tr>
+    <tr><td>Weight regularization</td><td>Penalizes large weights</td><td>All networks</td></tr>
+    <tr><td>LR warmup</td><td>Small initial steps, prevents early explosion</td><td>Transformers, LLMs</td></tr>
+    <tr><td style="color:var(--violet)">Both</td><td>LSTM gates</td><td>Controlled gradient flow via gates</td><td>Sequence models</td></tr>
+    <tr><td style="color:var(--violet)">Both</td><td>Layer normalization</td><td>Stabilizes activations at every layer</td><td>Transformers</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Vanishing Gradient (অদৃশ্যমান গ্রেডিয়েন্ট):</strong> Backpropagation-এ gradient অনেক layer-এর মধ্যে দিয়ে যাওয়ার সময় ক্রমশ ছোট হয়ে শূন্যের কাছে আসে। ফলে প্রথম দিকের layer-গুলো আর কিছু শিখতে পারে না।</p>
+  <div class="callout-bn">💡 ফোন-এ কথা বলার analogy: তুমি ২০ জনের মধ্যে দিয়ে whisper করে message পাঠাচ্ছ। প্রতিটা জন মাত্র ২৫% শুনতে পায়। ২০ জন পর: 0.25²⁰ ≈ প্রায় শূন্য — message পৌঁছায় না! প্রথম layer এই কারণে শিখতে পারে না।</div>
+  <div class="callout-bn" style="margin-top:8px">💥 Exploding Gradient: whisper করার বদলে প্রতিটা জন message 3 গুণ জোরে বলে (|weight|>1)। 20 জন পর: 3²⁰ = 3.5 billion! Number NaN হয়ে যায়।</div>
+  <p class="bn" style="margin-top:12px"><strong>ReLU কেন vanishing gradient সমাধান করে?</strong></p>
+  <p class="bn">Sigmoid-এর derivative সর্বোচ্চ 0.25। ReLU-এর derivative = 1 (x>0 হলে)। তাই ReLU দিয়ে gradient পুরো মাত্রায় আগের layer-এ পৌঁছায়।</p>
+  <p class="bn" style="margin-top:8px"><strong>Residual Connection কীভাবে সাহায্য করে?</strong></p>
+  <p class="bn">ResNet-এ: output = F(x) + x। Gradient: ∂L/∂x = ∂L/∂y × (F'(x) + 1)। F'(x) = 0 হলেও "+1" থাকে → gradient সবসময় কিছুটা পৌঁছায়!</p>
+</div>
+
+<!-- INTERACTIVE GRADIENT FLOW VISUALIZER -->
+<div class="card">
+  <div class="card-hd">🎮 INTERACTIVE — Gradient Flow Visualizer</div>
+  <p style="font-size:0.85em;color:var(--muted);margin-bottom:12px">See how gradient magnitude changes across layers with different activations</p>
+  <div class="ctrl">
+    <label>Activation</label>
+    <select id="act-sel">
+      <option value="sigmoid">Sigmoid (max deriv = 0.25)</option>
+      <option value="tanh">Tanh (max deriv = 1.0)</option>
+      <option value="relu" selected>ReLU (deriv = 1)</option>
+    </select>
+    <label>Layers</label>
+    <input type="range" id="layers-s" min="2" max="20" value="10">
+    <span class="cval" id="layers-v">10</span>
+  </div>
+  <div class="cw">
+    <canvas id="grad-vis" width="580" height="200" style="width:100%;display:block"></canvas>
+    <div class="clabel" id="grad-label">Gradient magnitude at each layer</div>
+  </div>
+  <div><span class="cout" id="grad-out">Layer 1 gradient: ...</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd">📐 FORMULAS — Solutions in Detail</div>
+  <div class="fl">Xavier (Glorot) Initialization — for tanh/sigmoid</div>
+  <div class="fx">W ~ Uniform(-√(6/(nᵢₙ+nₒᵤₜ)), +√(6/(nᵢₙ+nₒᵤₜ)))
+Variance: Var(W) = 2/(nᵢₙ+nₒᵤₜ)
+Goal: keep variance of activations ≈ 1 through layers
+→ prevents both vanishing AND exploding</div>
+  <div class="fl">He (Kaiming) Initialization — for ReLU</div>
+  <div class="fx">W ~ N(0, √(2/nᵢₙ))
+Variance: Var(W) = 2/nᵢₙ
+Why 2/nᵢₙ instead of 1/nᵢₙ? ReLU kills ~half the neurons (negative side)
+→ need 2× variance to compensate for the zeroed-out half</div>
+  <div class="fl">Batch Normalization — Re-center activations each layer</div>
+  <div class="fx">For a mini-batch of activations {xᵢ}:
+μ_B = (1/m) Σxᵢ           (batch mean)
+σ²_B = (1/m) Σ(xᵢ−μ)²     (batch variance)
+x̂ᵢ = (xᵢ−μ_B) / √(σ²_B+ε)  (normalize)
+yᵢ = γx̂ᵢ + β              (learn scale γ and shift β)
+Effect: keeps activations near 0 where sigmoid/tanh have highest gradient!</div>
+  <div class="fl">Gradient Clipping</div>
+  <div class="fx">g = ∇L  (gradient vector)
+if ||g||₂ > threshold:
+    g ← g × threshold/||g||₂   (rescale, preserve direction)
+PyTorch: torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)</div>
+  <div class="fl">LSTM Cell — gated gradient flow</div>
+  <div class="fx">Cell state update: C_t = f_t ⊙ C_{t-1} + i_t ⊙ g_t
+Gradient of cell state: ∂C_t/∂C_{t-1} = f_t  (forget gate, ∈[0,1])
+Key insight: gradient flows through C uninterrupted (additive update)
+→ No repeated multiplication by small numbers → no vanishing in long sequences</div>
+</div>
+
+<div class="card">
+  <div class="card-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q1: How does Batch Normalization solve vanishing gradients? Walk through the mechanism. <span class="qarrow">▶</span></button>
+  <div class="apanel">Three mechanisms: (1) <strong>Activation re-centering</strong>: sigmoid/tanh have near-zero gradient far from 0. BN normalizes activations to have ~zero mean and ~unit variance → pushes them into the high-gradient "sweet spot" of sigmoid/tanh. (2) <strong>Smoothing the loss surface</strong>: BN makes the loss surface smoother (higher Lipschitz constant) — gradients don't explode and can flow more effectively. (3) <strong>Implicit regularization</strong>: BN adds noise (each mini-batch has different stats) — acts as a regularizer, preventing sharp minima. Importantly, with BN, learning rate can be much larger because activations are bounded, so gradient steps are more predictable.
+  <div class="a-bn">বাংলায়: BatchNorm activation-কে sigmoid-এর সবচেয়ে steep অংশে রাখে → gradient সর্বোচ্চ থাকে। এছাড়া loss surface smooth করে।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q2: Why do Transformers use Layer Norm instead of Batch Norm? <span class="qarrow">▶</span></button>
+  <div class="apanel">Batch Norm normalizes across the batch dimension (across samples for each feature). Problems for transformers: (1) Sequence length varies — padding makes batch statistics noisy. (2) Autoregressive generation uses batch_size=1 — BN statistics are meaningless with one sample. (3) Different positions in a sequence have different semantic roles — normalizing across positions (like BN does) loses position-specific information. Layer Norm normalizes across the feature dimension (across features for each sample). For each token independently, regardless of batch size or sequence length. Works with batch_size=1, works with variable length. Used before attention (Pre-LN) in modern transformers for better gradient flow than original Post-LN.
+  <div class="a-bn">বাংলায়: BN batch জুড়ে normalize করে — sequence model-এ কাজ করে না। LayerNorm প্রতিটা token নিজে নিজে normalize করে → batch size 1-এও কাজ করে।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q3: How do you diagnose vanishing or exploding gradients in a running training job? <span class="qarrow">▶</span></button>
+  <div class="apanel">Diagnostic toolkit: (1) <strong>Log gradient norms per layer</strong>: <code>for name, p in model.named_parameters(): writer.add_scalar(f'grad/{name}', p.grad.norm())</code>. If early layer norms → 0: vanishing. If → ∞: exploding. (2) <strong>Watch for NaN loss</strong>: first sign of exploding. Check with <code>torch.isnan(loss)</code>. (3) <strong>Monitor activation distributions</strong>: if activations become all-zero (dead ReLUs) or all-one (saturated sigmoid), gradients will vanish. (4) <strong>Plot weight update ratio</strong>: update_norm / weight_norm should be ~1e-3. If much smaller → vanishing; much larger → exploding. (5) <strong>Gradient flow visualization</strong>: plot gradient magnitude vs layer depth. Should be roughly flat for healthy training.
+  <div class="a-bn">বাংলায়: প্রতিটা layer-এর gradient norm log করো। Early layer-এ শূন্যের কাছে = vanishing। NaN দেখা দিলে = exploding।</div></div></div>
+  <div class="qa"><button class="qbtn" onclick="tQ(this)">Q4: What is the "dying ReLU" problem and how do you fix it? <span class="qarrow">▶</span></button>
+  <div class="apanel">Dying ReLU: a ReLU neuron that outputs 0 for ALL training inputs → its gradient is always 0 → weights never update → neuron is permanently "dead." Cause: a large negative bias or gradient update pushes all inputs to the negative side of ReLU. Once there, gradient = 0 → no recovery. Diagnosis: if ~30%+ of neurons in a layer have zero activation across the entire dataset, dying ReLU is occurring. Solutions: (1) Leaky ReLU: small slope for x<0 (α=0.01). (2) ELU: smooth exponential for x<0. (3) GELU: smooth approximation (used in BERT, GPT). (4) Better initialization (He init). (5) Lower learning rate. (6) Careful bias initialization (not too negative).
+  <div class="a-bn">বাংলায়: Dying ReLU = একটা neuron সব input-এ ০ output দেয়, gradient সবসময় ০ → কখনো শেখে না। Fix: Leaky ReLU, ELU, বা GELU ব্যবহার করো।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-title">Exercise 1 — Gradient Magnitude</div>
+  <p>A 10-layer network uses sigmoid (max derivative 0.25) with weight matrices all having ||W||=1. Starting gradient at output = 1.0. What is the approximate gradient at layer 1? Compare with ReLU.</p>
+  <div class="ex-ans">Sigmoid: gradient ≈ 1.0 × 0.25¹⁰ ≈ 9.5×10⁻⁷ (essentially zero!). ReLU: gradient ≈ 1.0 × 1¹⁰ = 1.0 (unchanged!). This is why ReLU enabled training deep networks.</div></div>
+  <div class="ex"><div class="ex-title">Exercise 2 — He Init</div>
+  <p>A ReLU layer has 512 input features. What should std(W) be for He initialization? Why not 1/512?</p>
+  <div class="ex-ans">std(W) = √(2/512) ≈ 0.0625. Not 1/512 because ReLU zeros out ~50% of neurons (negative half). If we used 1/512, variance would shrink by half each layer due to ReLU → vanishing. The factor of 2 compensates for ReLU's zeroing.</div></div>
+  <div class="ex"><div class="ex-title">Exercise 3 — Code Debug</div>
+  <p>Your training loss is 2.3 at step 1, then suddenly NaN at step 2. List 3 things you check in order.</p>
+  <div class="ex-ans">(1) Learning rate too large? Start: try lr÷10. (2) Input data contains NaN or ∞? Add: assert not torch.isnan(x).any(). (3) Gradient norm exploding? Add clip_grad_norm_(params, 1.0). Also check: log normalization (adding ε), division by zero in loss.</div></div>
+</div>
+<div class="card"><div class="card-hd">🔗 RESOURCES</div>
+  <a class="res-link" href="https://arxiv.org/abs/1502.03167" target="_blank">📄 Batch Normalization Paper</a>
+  <a class="res-link" href="https://arxiv.org/abs/1512.03385" target="_blank">📄 ResNet Paper (He et al.)</a>
+  <a class="res-link" href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank">🎬 Colah: Understanding LSTMs</a>
+  <a class="res-link" href="https://www.deeplearning.ai/ai-notes/initialization/" target="_blank">📘 Weight Initialization Guide</a>
+</div>`
+}
+
+]; /* end TOPICS */
+
+/* ═══════════════════════════════════════════════
+   NAV LABELS
+═══════════════════════════════════════════════ */
+const NAV = [
+  "Gradient Descent",
+  "Learning Rate Intuition",
+  "Cost / Loss Functions",
+  "Saddle Points",
+  "Vanishing & Exploding Gradients"
+];
+
+/* ═══════════════════════════════════════════════
+   BUILD NAV + CONTENT
+═══════════════════════════════════════════════ */
+function buildAll(){
+  const nw=document.getElementById('nav-wrap');
+  const mc=document.getElementById('main-content');
+  TOPICS.forEach((t,i)=>{
+    // nav
+    const b=document.createElement('button');
+    b.className='nav-btn'+(i===0?' active':'');
+    b.innerHTML=`<span class="nav-num">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>showSec(i);
+    nw.appendChild(b);
+    // section
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`
+      <div class="ch-header">
+        <div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · OPTIMIZATION CONCEPTS</div>
+        <div class="ch-title">${t.titleHL}</div>
+        <div class="ch-bn">${t.bn}</div>
+        <div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div>
+      </div>
+      ${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function showSec(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nav-btn')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===0) initGD();
+    if(i===4) initGradVis();
+  },150);
+}
+
+function tQ(btn){
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════
+   GD VISUALIZER (topic 0)
+═══════════════════════════════════════════════ */
+function initGD(){
+  const c=document.getElementById('gd-vis');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  const lrs=document.getElementById('lr-s');
+  const sts=document.getElementById('st-s');
+  const opts=document.getElementById('opt-sel');
+  const lrv=document.getElementById('lr-v');
+  const stv=document.getElementById('st-v');
+  const out=document.getElementById('gd-out');
+
+  // f(x)=x²−6x+12, min at x=3,f=3
+  const f=x=>x*x-6*x+12;
+  const df=x=>2*x-6;
+  const xMin=0,xMax=7,yMin=2,yMax=15;
+  const cx=x=>(x-xMin)/(xMax-xMin)*W;
+  const cy=y=>H-(y-yMin)/(yMax-yMin)*H;
+
+  function draw(){
+    const lr=parseInt(lrs.value)/100;
+    const steps=parseInt(sts.value);
+    const optName=opts.value;
+    lrv.textContent=lr.toFixed(2);
+    stv.textContent=steps;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#080c14'; ctx.fillRect(0,0,W,H);
+
+    // grid
+    ctx.strokeStyle='#1c2a3e'; ctx.lineWidth=0.5;
+    for(let x=0;x<=7;x++){ctx.beginPath();ctx.moveTo(cx(x),0);ctx.lineTo(cx(x),H);ctx.stroke();}
+    for(let y=2;y<=15;y+=2){ctx.beginPath();ctx.moveTo(0,cy(y));ctx.lineTo(W,cy(y));ctx.stroke();}
+
+    // minimum line
+    ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(168,255,62,.3)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx(3),0);ctx.lineTo(cx(3),H);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // curve
+    ctx.beginPath();ctx.strokeStyle='#3da9fc';ctx.lineWidth=2.5;
+    for(let x=xMin;x<=xMax;x+=0.04){
+      const px=cx(x),py=cy(f(x));
+      x===xMin?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // GD path
+    let x=0.5, m=0, v=0, t=0;
+    const path=[{x,y:f(x)}];
+    for(let s=0;s<steps;s++){
+      const g=df(x);
+      t++;
+      if(optName==='sgd'){
+        x-=lr*g;
+      } else if(optName==='momentum'){
+        m=0.9*m+g; x-=lr*m;
+      } else { // adam
+        m=0.9*m+0.1*g;
+        v=0.999*v+0.001*g*g;
+        const mh=m/(1-Math.pow(0.9,t));
+        const vh=v/(1-Math.pow(0.999,t));
+        x-=lr*mh/(Math.sqrt(vh)+1e-8);
+      }
+      path.push({x,y:f(x)});
+    }
+
+    // path line
+    ctx.beginPath();ctx.strokeStyle='rgba(255,107,53,.5)';ctx.lineWidth=1.5;
+    path.forEach((p,i)=>{i===0?ctx.moveTo(cx(p.x),cy(p.y)):ctx.lineTo(cx(p.x),cy(p.y));});
+    ctx.stroke();
+
+    // dots
+    path.forEach((p,i)=>{
+      ctx.beginPath();
+      ctx.fillStyle=i===0?'#f72585':i===path.length-1?'#a8ff3e':'#ff6b35';
+      const r=i===0||i===path.length-1?6:3.5;
+      ctx.arc(cx(p.x),cy(p.y),r,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    // labels
+    ctx.font='11px IBM Plex Mono';
+    ctx.fillStyle='#f72585'; ctx.fillText('start',cx(0.5)+6,cy(f(0.5))-6);
+    ctx.fillStyle='rgba(168,255,62,.8)'; ctx.fillText('min x=3',cx(3)+4,cy(3)-6);
+
+    const last=path[path.length-1];
+    out.textContent=`${optName.toUpperCase()} | After ${steps} steps: x=${last.x.toFixed(3)}, f=${last.y.toFixed(3)} (target f=3)`;
+  }
+
+  lrs.addEventListener('input',draw);
+  sts.addEventListener('input',draw);
+  opts.addEventListener('change',draw);
+  draw();
+}
+
+/* ═══════════════════════════════════════════════
+   GRADIENT FLOW VISUALIZER (topic 4)
+═══════════════════════════════════════════════ */
+function initGradVis(){
+  const c=document.getElementById('grad-vis');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  const acts=document.getElementById('act-sel');
+  const ls=document.getElementById('layers-s');
+  const lv=document.getElementById('layers-v');
+  const out=document.getElementById('grad-out');
+
+  function draw(){
+    const act=acts.value;
+    const nLayers=parseInt(ls.value);
+    lv.textContent=nLayers;
+
+    // per-layer derivative
+    const deriv={sigmoid:0.22, tanh:0.7, relu:1.0}[act];
+    const grads=[];
+    let g=1.0;
+    for(let i=0;i<nLayers;i++){grads.push(g); g*=deriv;}
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#080c14'; ctx.fillRect(0,0,W,H);
+
+    // grid lines
+    ctx.strokeStyle='#1c2a3e'; ctx.lineWidth=0.5;
+    [0.25,0.5,0.75,1].forEach(r=>{
+      const y=H-r*H*.9-20;
+      ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-10,y);ctx.stroke();
+      ctx.font='9px IBM Plex Mono';ctx.fillStyle='#3a5070';
+      ctx.fillText(r.toFixed(2),2,y+3);
+    });
+
+    // bars
+    const bw=Math.min(40,(W-60)/nLayers-3);
+    const bx=(i)=>50+i*((W-60)/nLayers)+(((W-60)/nLayers)-bw)/2;
+
+    const maxG=Math.max(...grads,1e-10);
+    grads.forEach((g,i)=>{
+      const barH=(g/Math.max(maxG,1))*H*0.82;
+      const x=bx(i);
+      const y=H-barH-20;
+      const health=g>0.1?1:g>0.01?0.6:0.3;
+      const r=act==='relu'?168:act==='tanh'?0:0;
+      const gr=act==='relu'?255:act==='tanh'?212:212;
+      const gb=act==='relu'?62:act==='tanh'?255:255;
+      ctx.fillStyle=`rgba(${r},${gr},${gb},${0.4+health*0.4})`;
+      ctx.fillRect(x,y,bw,barH);
+      ctx.fillStyle=`rgba(${r},${gr},${gb},0.6)`;
+      ctx.fillRect(x,y,bw,3);
+
+      // layer number
+      if(nLayers<=12){
+        ctx.font='9px IBM Plex Mono';
+        ctx.fillStyle='#3a5070';
+        ctx.fillText('L'+(i+1),x+bw/2-6,H-6);
+      }
+    });
+
+    // curve overlay
+    ctx.beginPath();ctx.strokeStyle='rgba(255,107,53,.8)';ctx.lineWidth=2;
+    grads.forEach((g,i)=>{
+      const barH=(g/Math.max(maxG,1))*H*0.82;
+      const x=bx(i)+bw/2;
+      const y=H-barH-20+3;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // label
+    const last=grads[grads.length-1];
+    const status=last>0.1?'✅ Healthy':last>1e-4?'⚠️ Fading':last>1e-8?'🔴 Vanishing':'💀 Dead';
+    out.textContent=`${act.toUpperCase()} | Layer 1 gradient: ${last.toExponential(3)} ${status}`;
+  }
+
+  acts.addEventListener('change',draw);
+  ls.addEventListener('input',draw);
+  draw();
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+buildAll();
+setTimeout(initGD,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

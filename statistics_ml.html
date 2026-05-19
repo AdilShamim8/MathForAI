@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050810;--bg2:#0a0f1e;--bg3:#101828;--bg4:#192236;
+  --border:#1d2d47;--text:#d4e5ff;--muted:#5a7599;
+  --mint:#00f5c4;--blue:#4db8ff;--peach:#ff9f7e;
+  --lavender:#c084fc;--gold:#fde68a;--red:#ff6b6b;
+  --green:#86efac;--sky:#7dd3fc;
+  --radius:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.83em;color:var(--mint)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:280px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:38px 44px;max-width:980px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:22px 18px 16px;border-bottom:1px solid var(--border)}
+.s-sym{font-size:2.2em;margin-bottom:5px}
+.s-title{font-size:.96em;font-weight:700;color:var(--mint)}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.8em;margin-top:2px}
+.s-sub{font-size:.69em;color:var(--muted);margin-top:5px;line-height:1.4}
+.pg-row{display:flex;justify-content:space-between;font-size:.68em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.pg-bar{height:3px;background:var(--bg3);border-radius:2px}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--mint),var(--blue));border-radius:2px;transition:width .5s ease}
+.nav-wrap{padding:10px 0;flex:1;overflow-y:auto}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:10px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.79em;line-height:1.35;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--mint);border-left-color:var(--mint)}
+.nb-n{font-family:'Fira Code',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.69em;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-n{background:var(--mint);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:26px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:28px;background:linear-gradient(135deg,rgba(0,245,196,.05),rgba(77,184,255,.03))}
+.ch-num{font-family:'Fira Code',monospace;font-size:.68em;color:var(--mint);letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px}
+.ch-title{font-size:1.85em;font-weight:800;line-height:1.15;color:var(--text)}
+.ch-title em{color:var(--mint);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.92em;margin-top:5px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 11px;border-radius:20px;font-size:.7em;font-weight:600;border:1px solid}
+.tm{border-color:var(--mint);color:var(--mint);background:rgba(0,245,196,.08)}
+.tb{border-color:var(--blue);color:var(--blue);background:rgba(77,184,255,.08)}
+.tp{border-color:var(--peach);color:var(--peach);background:rgba(255,159,126,.08)}
+.tl{border-color:var(--lavender);color:var(--lavender);background:rgba(192,132,252,.08)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--mint);background:rgba(0,245,196,.04)}
+.law2{border-left:4px solid var(--red);background:rgba(255,107,107,.04)}
+.law3{border-left:4px solid var(--gold);background:rgba(253,230,138,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.69em;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px 19px;font-family:'Fira Code',monospace;font-size:.83em;color:var(--blue);line-height:2.1;overflow-x:auto;margin:10px 0;white-space:pre}
+.fm{color:var(--mint)}.fp{color:var(--peach)}.fv{color:var(--lavender)}.fg{color:var(--green)}.fy{color:var(--gold)}.fr{color:var(--red)}.fw{color:var(--text)}
+
+/* ── HIGHLIGHTS ── */
+.hm{color:var(--mint);font-weight:600}.hb{color:var(--blue);font-weight:600}.hp{color:var(--peach);font-weight:600}.hv{color:var(--lavender);font-weight:600}.hy{color:var(--gold);font-weight:600}.hr{color:var(--red);font-weight:600}.hg{color:var(--green);font-weight:600}.hsk{color:var(--sky);font-weight:600}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(0,245,196,.05);border-left:4px solid var(--mint);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(253,230,138,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(253,230,138,.9);font-size:.88em;line-height:1.9}
+.call-r{background:rgba(255,107,107,.05);border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-b{background:rgba(77,184,255,.05);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.75em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 15px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--mint);border-bottom-color:transparent}
+.qa-a{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-a{transform:rotate(90deg);color:var(--mint)}
+.ap{display:none;padding:14px 15px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.85}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(253,230,138,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(253,230,138,.04);border:1px solid rgba(253,230,138,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--gold);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--mint);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.71em;color:var(--muted);text-align:center;margin-top:6px;font-family:'Fira Code',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--mint);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.78em;font-family:'DM Sans',sans-serif}
+.cval{font-family:'Fira Code',monospace;font-size:.78em;color:var(--mint);min-width:44px}
+.cout{font-family:'Fira Code',monospace;font-size:.82em;color:var(--mint);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--red);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ANALOGY ── */
+.analogy{background:linear-gradient(135deg,rgba(0,245,196,.05),rgba(77,184,255,.04));border:1px solid rgba(0,245,196,.18);border-radius:10px;padding:18px;margin:13px 0}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(77,184,255,.04);border:1px solid rgba(77,184,255,.15);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--blue);font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--blue);text-decoration:none;font-size:.79em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--blue);background:var(--bg4)}
+
+/* ── STAT CHIPS ── */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-family:'Fira Code',monospace;font-size:.79em}
+.chip span{color:var(--mint)}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.87em}
+@media(max-width:750px){.mob{display:block}.sb{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* ── COMPARISON STRIP ── */
+.vs-strip{display:flex;gap:0;margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.vs-side{flex:1;padding:16px;font-size:.87em}
+.vs-side:first-child{background:rgba(0,245,196,.05);border-right:1px solid var(--border)}
+.vs-side:last-child{background:rgba(255,107,107,.05)}
+.vs-title{font-weight:700;font-size:.82em;margin-bottom:8px}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Population vs Sample</option>
+    <option value="1">02 — Central Tendency</option>
+    <option value="2">03 — Dispersion</option>
+    <option value="3">04 — Covariance</option>
+    <option value="4">05 — Correlation</option>
+    <option value="5">06 — Bias & Variance</option>
+    <option value="6">07 — Sampling Techniques</option>
+    <option value="7">08 — Central Limit Theorem</option>
+    <option value="8">09 — Law of Large Numbers</option>
+    <option value="9">10 — Outliers & Robustness</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sb">
+  <div class="s-brand">
+    <div class="s-sym">📊</div>
+    <div class="s-title">Statistics</div>
+    <div class="s-bn">পরিসংখ্যান</div>
+    <div class="s-sub">From Data to Decisions · ML Engineer's Guide</div>
+    <div class="pg-row"><span>Progress</span><span id="pp">10%</span></div>
+    <div class="pg-bar"><div class="pg-fill" id="pf" style="width:10%"></div></div>
+  </div>
+  <div class="nav-wrap" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Population vs Sample","Central Tendency","Dispersion","Covariance","Correlation","Bias & Variance","Sampling Techniques","Central Limit Theorem","Law of Large Numbers","Outliers & Robustness"];
+
+const TOPICS=[
+
+/* ══ 01 POPULATION VS SAMPLE ══ */
+{title:"Population vs <em>Sample</em>",bn:"জনসংখ্যা বনাম নমুনা",tags:[{t:"Inference",c:"tm"},{t:"Estimation",c:"tb"},{t:"Generalization",c:"tp"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>You train a model on 100,000 images and test on 10,000. Which is the "population" and which is the "sample"? And what does this mean for generalization?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ The <strong>population</strong> is ALL possible images the model might ever encounter (infinite, unobservable). Your 110,000 images are a <strong>sample</strong>. Generalization = how well sample-learned patterns reflect the population. If your sample is biased (e.g., only daytime photos), your model fails on the population (night photos). This is train-test distribution mismatch.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Treating your dataset as the population.</strong> Optimizing perfectly on training data = memorizing one sample. The population has unseen variation. Validation set = estimate of population performance. Test set = final population estimate.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Sample statistics ≠ Population parameters.</strong> Sample mean x̄ ≠ population mean μ. Sample variance s² uses (n-1) not n (Bessel's correction). Using n in denominator underestimates population variance — a systematic bias.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Non-representative samples break everything.</strong> If training data comes from one hospital and you deploy in another (different demographics), your sample is biased. No amount of modeling compensates for fundamentally unrepresentative data.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 CORE CONCEPT — English</div>
+<div class="vs-strip">
+  <div class="vs-side"><div class="vs-title" style="color:var(--mint)">🌍 Population (জনসংখ্যা)</div>
+    <p style="font-size:.86em">The ENTIRE group you want to study. Usually infinite or too large to measure. Described by parameters (μ, σ, p). Example: ALL possible medical images ever. ALL emails ever written. All possible values of a random variable.</p>
+    <div class="chips"><div class="chip">μ = <span>population mean</span></div><div class="chip">σ² = <span>population variance</span></div><div class="chip">N = <span>population size (often ∞)</span></div></div>
+  </div>
+  <div class="vs-side"><div class="vs-title" style="color:var(--peach)">🔬 Sample (নমুনা)</div>
+    <p style="font-size:.86em">A SUBSET drawn from the population. What we actually observe and measure. Described by statistics (x̄, s², p̂). Example: 50,000 training images. The ML dataset. Your mini-batch.</p>
+    <div class="chips"><div class="chip">x̄ = <span>sample mean</span></div><div class="chip">s² = <span>sample variance</span></div><div class="chip">n = <span>sample size</span></div></div>
+  </div>
+</div>
+<p style="margin-top:14px"><strong>The inference bridge — from sample to population:</strong></p>
+<table>
+  <tr><th>Parameter</th><th>Population (true, unknown)</th><th>Sample Estimator</th><th>Unbiased?</th></tr>
+  <tr><td>Mean</td><td>μ</td><td>x̄ = (1/n)Σxᵢ</td><td>✅ Yes</td></tr>
+  <tr><td>Variance</td><td>σ²</td><td>s² = Σ(xᵢ−x̄)²/(n−1)</td><td>✅ Yes (Bessel's correction)</td></tr>
+  <tr><td>Proportion</td><td>p</td><td>p̂ = k/n</td><td>✅ Yes</td></tr>
+  <tr><td>Correlation</td><td>ρ (rho)</td><td>r (Pearson)</td><td>Approximately</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Population (জনসংখ্যা):</strong> তুমি যে পুরো দলটা নিয়ে কথা বলতে চাও — সাধারণত এটা এত বড় বা অসীম যে সব measure করা সম্ভব নয়।</p>
+<p class="bn"><strong>Sample (নমুনা):</strong> Population থেকে নেওয়া একটা ছোট অংশ — যা আমরা সত্যিকারে measure করতে পারি।</p>
+<div class="call-bn">💡 উদাহরণ: বাংলাদেশের সব মানুষের গড় উচ্চতা জানতে চাই (population = ১৭ কোটি মানুষ)। সবাইকে measure করা অসম্ভব। তাই ১০,০০০ জনকে random-ভাবে বেছে measure করি (sample)। এই sample থেকে population-এর অনুমান করি।</div>
+<p class="bn" style="margin-top:12px"><strong>ML-এ সংযোগ:</strong></p>
+<p class="bn">• Training data = sample। Real world = population। Test performance ≈ population performance।</p>
+<p class="bn">• Overfitting = sample memorize করা, population learn করা হয়নি।</p>
+<p class="bn">• Validation set = population performance-এর independent estimate।</p>
+<p class="bn">• সূত্র মনে রাখো: sample variance-এ (n−১) দিয়ে ভাগ করো, n দিয়ে নয় — এটা population variance-কে unbiased estimate করে।</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 KEY FORMULAS</div>
+<div class="fl">Sample mean and variance (use in practice)</div>
+<div class="fx"><span class="fm">x̄</span> = (1/n) Σᵢ xᵢ                       sample mean (unbiased for μ)
+<span class="fm">s²</span> = (1/(n-1)) Σᵢ (xᵢ − x̄)²         sample variance (Bessel's correction!)
+<span class="fm">s</span>  = √s²                               sample standard deviation
+Why (n−1)? Estimating μ from x̄ "uses up" one degree of freedom.
+Using n would systematically underestimate σ² — called bias.</div>
+<div class="fl">Standard Error — uncertainty in the sample mean itself</div>
+<div class="fx"><span class="fm">SE</span> = s / √n           standard error of the mean
+Interpretation: how much would x̄ vary across different samples of size n?
+Larger n → smaller SE → more precise estimate of μ
+SE is NOT the same as std dev — it measures mean precision, not data spread</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Concept</th><th>Population/Sample Connection</th></tr>
+  <tr><td>Train/test split</td><td>Test set is your sample estimate of population (real world) performance</td></tr>
+  <tr><td>Cross-validation</td><td>Multiple samples from training data → better population performance estimate</td></tr>
+  <tr><td>Batch normalization</td><td>Batch stats = sample statistics; running stats → population statistics</td></tr>
+  <tr><td>Confidence intervals</td><td>x̄ ± z·(s/√n) → interval likely to contain μ (population mean)</td></tr>
+  <tr><td>A/B testing</td><td>Two samples; test if means differ in population</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why do we divide by (n-1) instead of n when computing sample variance? <span class="qa-a">▶</span></button>
+<div class="ap">Dividing by n gives a <em>biased</em> estimator of population variance — it systematically underestimates σ². Why? When we compute deviations from x̄ (the sample mean), we're measuring distances from a point estimated from the same data. The sample mean is always "too central" — it minimizes the sum of squared deviations by construction. Using n-1 (Bessel's correction) exactly corrects this bias. Proof: E[s²] = σ² when dividing by n-1. E[s²] = (n-1/n)σ² when dividing by n — biased low. Exception: when computing variance of a complete population (not estimating from sample), use n.<div class="a-bn">বাংলায়: n দিয়ে ভাগ করলে population variance কম estimate হয় (biased)। (n-1) দিয়ে ভাগ করলে unbiased estimate পাওয়া যায়। এটাই Bessel's correction।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is data leakage and how does it violate the population/sample distinction? <span class="qa-a">▶</span></button>
+<div class="ap">Data leakage = information from the test set (or future) bleeds into training. It violates the fundamental assumption that training and test data are independent samples from the same population. Common forms: (1) Normalizing features using statistics from the full dataset (including test) before splitting. (2) Target encoding using all data. (3) Time-series: using future data to predict the past. (4) Duplicate examples across train/test. Result: model appears to generalize well (low test loss) but fails in deployment — the sample estimate of population performance is corrupted. Fix: always compute normalization stats on training data only, apply to test.<div class="a-bn">বাংলায়: Data leakage = test data-র তথ্য training-এ ঢুকে পড়া। ফলে test performance artificially ভালো দেখায়, কিন্তু real world-এ fail করে।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1</div><p>Dataset: {4, 7, 13, 2, 1}. Compute: (a) sample mean x̄ (b) sample variance s² using (n-1) (c) standard error of the mean SE</p><div class="ex-ans">x̄=(4+7+13+2+1)/5=27/5=5.4. s²=[(4-5.4)²+(7-5.4)²+(13-5.4)²+(2-5.4)²+(1-5.4)²]/(5-1) = [1.96+2.56+57.76+11.56+19.36]/4 = 93.2/4 = 23.3. SE=√23.3/√5=4.83/2.24≈2.15.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.khanacademy.org/math/statistics-probability/sampling-distributions-library" target="_blank">📘 Khan: Sampling Distributions</a>
+<a class="rl" href="https://www.statlearning.com" target="_blank">📘 ISLP (Introduction to Statistical Learning)</a>
+</div>`},
+
+/* ══ 02 CENTRAL TENDENCY ══ */
+{title:"Measures of Central <em>Tendency</em>",bn:"কেন্দ্রীয় প্রবণতার পরিমাপ",tags:[{t:"Mean",c:"tm"},{t:"Median",c:"tb"},{t:"Mode",c:"tp"},{t:"Skewness",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>House prices in a neighbourhood: {200k, 210k, 195k, 220k, 205k, 5000k (billionaire's mansion)}. Which measure of central tendency should you report — mean, median, or mode? Why?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ <strong>Median</strong>. The mean is dragged up by the outlier (5000k), giving a misleading "average" no typical house is close to. Median = middle value = 207.5k, which actually represents the typical house. This is why income statistics use median income — a few billionaires make the mean useless as a measure of "typical." Same principle applies to model errors.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Using mean when data is skewed or has outliers.</strong> Mean is sensitive to every value — one extreme value can destroy it as a measure of "typical." Always check the distribution shape first.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Using mean for ordinal/categorical data.</strong> "Average rating = 2.3" makes mathematical sense but the mean of {1, 5} is 3, which might not even be a valid option. For ordinal data, mode or median is more appropriate.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Ignoring multi-modality.</strong> If data has two peaks (bimodal), reporting a single mean or median misses the fundamental structure. Example: heights of a mixed male/female population — bimodal! Report two modes.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 THREE MEASURES</div>
+<table>
+  <tr><th>Measure</th><th>Definition</th><th>Formula</th><th>Best For</th><th>Weakness</th></tr>
+  <tr><td><span class="hm">Mean (μ)</span></td><td>Arithmetic average</td><td>(1/n)Σxᵢ</td><td>Symmetric, no outliers. MSE optimization</td><td>Sensitive to outliers</td></tr>
+  <tr><td><span class="hb">Median</span></td><td>Middle value when sorted</td><td>x[(n+1)/2]</td><td>Skewed data, outliers present (income, house prices)</td><td>Ignores magnitude</td></tr>
+  <tr><td><span class="hp">Mode</span></td><td>Most frequent value</td><td>argmax P(X=x)</td><td>Categorical data, finding peaks</td><td>Multiple/no modes possible</td></tr>
+  <tr><td><span class="hv">Geometric Mean</span></td><td>nth root of product</td><td>(∏xᵢ)^(1/n)</td><td>Growth rates, ratios, log-scale data</td><td>Undefined if any xᵢ ≤ 0</td></tr>
+</table>
+<p style="margin-top:14px"><strong>Relationship to distribution shape:</strong></p>
+<div class="g3">
+  <div class="gbox" style="border-color:rgba(0,245,196,.3)"><div class="gbox-t hm">Symmetric</div><p style="font-size:.84em">Mean = Median ≈ Mode<br>Normal distribution<br>Neural network weights<br>(after batch norm)</p></div>
+  <div class="gbox" style="border-color:rgba(77,184,255,.3)"><div class="gbox-t hb">Right-Skewed (+)</div><p style="font-size:.84em">Mean > Median > Mode<br>Income, house prices,<br>social media followers,<br>loss at initialization</p></div>
+  <div class="gbox" style="border-color:rgba(255,159,126,.3)"><div class="gbox-t hp">Left-Skewed (−)</div><p style="font-size:.84em">Mean < Median < Mode<br>Test scores (easy exam)<br>Time to complete task<br>(most fast, few slow)</p></div>
+</div>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Mean (গড়):</strong> সব মান যোগ করে সংখ্যা দিয়ে ভাগ করো। সবচেয়ে পরিচিত, কিন্তু outlier থাকলে misleading।</p>
+<p class="bn"><strong>Median (মধ্যমা):</strong> সাজিয়ে মাঝেরটা নাও। Outlier-এ robust। Income distribution-এ সবচেয়ে উপযুক্ত।</p>
+<p class="bn"><strong>Mode (সংখ্যাগরিষ্ঠ মান):</strong> সবচেয়ে বেশি বার আসা মান। Categorical data-এ সেরা।</p>
+<div class="call-bn">💡 উদাহরণ: একটা ML টিমে ৯জন junior (বেতন ৫০k) এবং ১জন CEO (বেতন ৫০০k)। Mean = (৯×৫০+৫০০)/১০ = ৯৫k — এই ভুয়া average কারো বেতনকে represent করে না। Median = ৫০k — এটাই সত্যিকারের "typical" বেতন।</div>
+<p class="bn" style="margin-top:12px"><strong>ML-এ ব্যবহার:</strong></p>
+<p class="bn">• MSE = mean squared error → mean optimize করে</p>
+<p class="bn">• MAE = mean absolute error → median optimize করে (outlier-robust)</p>
+<p class="bn">• Huber loss → mean কিন্তু outlier-robust করা হয়েছে</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">Arithmetic mean</div>
+<div class="fx"><span class="fm">x̄</span> = (x₁+x₂+...+xₙ)/n = (1/n) Σᵢ xᵢ
+Weighted mean: x̄_w = Σᵢ wᵢxᵢ / Σᵢ wᵢ  (used in weighted loss functions)</div>
+<div class="fl">Median (sorted data x₍₁₎ ≤ x₍₂₎ ≤ ... ≤ x₍ₙ₎)</div>
+<div class="fx"><span class="fm">Median</span> = x₍(n+1)/2₎         if n is odd
+          = (x₍n/2₎ + x₍n/2+1₎)/2  if n is even
+Example: {1,3,5,7,9} → Median = 5  (3rd element, n=5 odd)
+Example: {1,3,5,7}   → Median = 4  (avg of 3,5, n=4 even)</div>
+<div class="fl">Skewness — direction and degree of asymmetry</div>
+<div class="fx"><span class="fm">Skewness</span> = E[(X−μ)³] / σ³     (standardized 3rd central moment)
+Positive (right-skewed): long tail on the right, mean pulled right
+Negative (left-skewed): long tail on the left, mean pulled left
+Zero: symmetric (e.g., Normal distribution)</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Which Average for Which Loss?</div>
+<table>
+  <tr><th>Loss Function</th><th>Optimizes</th><th>Reason</th></tr>
+  <tr><td>MSE = Σ(y-ŷ)²/n</td><td>Conditional <strong>mean</strong> E[Y|X]</td><td>Minimizer of MSE is the conditional mean</td></tr>
+  <tr><td>MAE = Σ|y-ŷ|/n</td><td>Conditional <strong>median</strong></td><td>Minimizer of MAE is the conditional median</td></tr>
+  <tr><td>Quantile loss τ</td><td>τ-th conditional <strong>quantile</strong></td><td>τ=0.5 → median; τ=0.9 → 90th percentile</td></tr>
+  <tr><td>Mode prediction</td><td>Conditional <strong>mode</strong> (most likely)</td><td>MAP estimation finds the mode of posterior</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: MSE minimizes the mean prediction while MAE minimizes the median. Why does this matter for ML? <span class="qa-a">▶</span></button>
+<div class="ap">Mathematical fact: argmin_c Σ(xᵢ-c)² = sample mean; argmin_c Σ|xᵢ-c| = sample median. So MSE regression predicts E[Y|X] — the expected value of Y given X, averaged over all outcomes. MAE regression predicts Median[Y|X] — the middle value. When does the difference matter? When Y has outliers or is skewed. Example: predicting rental prices — a few luxury apartments make E[rent|features] much higher than Median[rent|features]. MAE gives a more "typical" prediction. In safety-critical applications (predicting rare dangerous events), you might want to predict a high quantile instead of the mean.<div class="a-bn">বাংলায়: MSE → conditional mean predict করে। MAE → conditional median predict করে। Outlier থাকলে median বেশি meaningful।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>Model errors: {-3, -1, 0, 1, 2, 4, 47}. Compute mean, median, mode. Which best represents "typical" error? What does the outlier (47) tell you?</p><div class="ex-ans">Mean=(−3−1+0+1+2+4+47)/7=50/7≈7.14. Median=1.0 (4th of 7). Mode=none (all unique). Median=1 best represents typical error. The outlier 47 is a catastrophic prediction — investigate! Maybe a data point with a very different scale, missing feature, or adversarial example. Mean 7.14 is misleading about typical performance.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data" target="_blank">📘 Khan: Summarizing Data</a>
+<a class="rl" href="https://www.youtube.com/watch?v=SzZ6GpcfoQY" target="_blank">🎬 StatQuest: Mean, Median, Mode</a>
+</div>`},
+
+/* ══ 03 DISPERSION ══ */
+{title:"Measures of <em>Dispersion</em>",bn:"বিচ্ছুরণের পরিমাপ",tags:[{t:"Variance",c:"tm"},{t:"Std Dev",c:"tb"},{t:"IQR",c:"tp"},{t:"Range",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>Two models: Model A has mean error = 0, std = 10. Model B has mean error = 2, std = 1. Which would you deploy in production?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ <strong>Model B</strong>. Despite a small bias (mean error = 2), its predictions are very consistent (std = 1). Model A's zero-mean errors average out — but each individual prediction might be off by 10, 20, or -15. High variance = unpredictable. In production, consistency matters more than theoretical zero-bias. This is the practical bias-variance tradeoff.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Reporting only mean without std dev.</strong> "Average accuracy = 92%" without variance is meaningless. Across 5 runs: {91%, 91%, 92%, 93%, 93%} (low var) vs {70%, 85%, 95%, 98%, 99%} (high var) — both have mean ≈ 92% but very different reliability.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Confusing standard deviation with standard error.</strong> Std dev = spread of individual data points. Std error = spread of the sample mean across different samples. Std error = std/√n. Using wrong one in confidence intervals gives wrong interval widths.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Variance collapses with normalization.</strong> After z-score normalization (zero mean, unit variance), variance = 1 by design. Batch normalization does this per feature per batch — effectively removing the original variance information. Know when this is desirable vs. harmful.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 MEASURES OF SPREAD</div>
+<table>
+  <tr><th>Measure</th><th>Formula</th><th>Units</th><th>Sensitive to Outliers</th><th>Use When</th></tr>
+  <tr><td><span class="hm">Range</span></td><td>max − min</td><td>Same as data</td><td>✗ Very</td><td>Quick overview only</td></tr>
+  <tr><td><span class="hb">IQR</span></td><td>Q3 − Q1</td><td>Same as data</td><td>✅ No</td><td>Skewed data, outlier detection</td></tr>
+  <tr><td><span class="hp">Variance σ²</span></td><td>E[(X−μ)²]</td><td>Units²</td><td>✗ Yes</td><td>Mathematical derivations</td></tr>
+  <tr><td><span class="hv">Std Dev σ</span></td><td>√Variance</td><td>Same as data</td><td>✗ Yes</td><td>Interpreting spread, Normal dist</td></tr>
+  <tr><td><span class="hy">MAD</span></td><td>Median|xᵢ−Median|</td><td>Same as data</td><td>✅ No</td><td>Robust spread, outliers present</td></tr>
+  <tr><td><span class="hg">CV</span></td><td>σ/μ × 100%</td><td>Dimensionless</td><td>✗ Yes</td><td>Comparing spread across scales</td></tr>
+</table>
+<div class="call" style="margin-top:14px"><strong>The 68-95-99.7 rule for Normal distributions:</strong> Mean ± 1σ contains 68% of data. Mean ± 2σ contains 95%. Mean ± 3σ contains 99.7%. Values beyond 3σ are considered outliers (probability 0.3%).</div>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Dispersion</strong> হলো data কতটা ছড়িয়ে আছে তার পরিমাপ। শুধু average জানা যথেষ্ট নয়।</p>
+<div class="call-bn">💡 উদাহরণ: দুটো ব্যাংকে সঞ্চয়ের হার:
+• Bank A: সবসময় ৫% return
+• Bank B: গড়ে ৫% কিন্তু কখনো ২%, কখনো ৮%, কখনো -১%
+গড় একই, কিন্তু Bank B অনেক বেশি risky (high variance)! Investment-এ variance = risk।</div>
+<p class="bn" style="margin-top:12px"><strong>Variance vs Standard Deviation:</strong></p>
+<p class="bn">• Variance = গড় squared deviation। Unit = (original unit)²। গণিতে সুবিধাজনক।</p>
+<p class="bn">• Standard Deviation = Variance-এর বর্গমূল। Original unit-এ। মানুষের বুঝতে সহজ।</p>
+<p class="bn"><strong>IQR (Interquartile Range):</strong> Q3 − Q1। Data-কে চারভাগ করলে মাঝের ৫০%-এর পরিসর। Outlier-এ robust।</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">Variance and standard deviation</div>
+<div class="fx"><span class="fm">Population:</span>  σ² = (1/N) Σᵢ (xᵢ − μ)²
+<span class="fm">Sample:</span>      s² = (1/(n−1)) Σᵢ (xᵢ − x̄)²   ← Bessel's correction
+<span class="fm">Short formula:</span> s² = [Σxᵢ² − (Σxᵢ)²/n] / (n−1)
+
+Example: {2, 4, 4, 4, 5, 5, 7, 9}  (n=8, x̄=5)
+s² = [(2−5)²+(4−5)²+(4−5)²+(4−5)²+(5−5)²+(5−5)²+(7−5)²+(9−5)²] / 7
+   = [9+1+1+1+0+0+4+16] / 7 = 32/7 ≈ 4.57,   s ≈ 2.14</div>
+<div class="fl">Quartiles and IQR — outlier detection (Tukey's fences)</div>
+<div class="fx">Q1 = 25th percentile,  Q3 = 75th percentile
+<span class="fm">IQR</span> = Q3 − Q1
+Outlier if: x < Q1 − 1.5×IQR   OR   x > Q3 + 1.5×IQR  (Tukey's fences)
+Extreme outlier: outside Q1 ± 3×IQR</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Dispersion Role</th></tr>
+  <tr><td>Feature normalization (Z-score)</td><td>x' = (x−μ)/σ → mean=0, std=1 per feature</td></tr>
+  <tr><td>Batch normalization</td><td>Normalizes activation variance to 1 per batch</td></tr>
+  <tr><td>He/Xavier initialization</td><td>Sets weight variance to prevent activation variance exploding</td></tr>
+  <tr><td>Uncertainty estimation</td><td>Predict σ² alongside μ — heteroscedastic regression</td></tr>
+  <tr><td>Gradient clipping</td><td>Clips gradient norm (≈ std of updates) to bound</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: You train a model 10 times with different random seeds. Should you report mean ± std of test accuracy? What's the right way to present ML results? <span class="qa-a">▶</span></button>
+<div class="ap">Yes — reporting mean ± std is good practice but incomplete. Best practice: (1) Report mean ± standard error (SE = std/√n), not std — SE tells you uncertainty in the mean estimate, std tells you variability across runs. (2) Report number of runs n. (3) Consider confidence intervals (mean ± 1.96·SE for 95% CI). (4) For comparisons, use paired t-tests or Wilcoxon tests. (5) Include min/max to show worst-case. (6) For ML papers: report median + IQR for robustness. Mean ± std is insufficient if distribution of runs is skewed (one catastrophic run).<div class="a-bn">বাংলায়: Multiple run-এ mean ± SE report করো। SE = std/√n — mean estimate-এর uncertainty। Comparison-এর জন্য statistical test দরকার।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>Model A errors: {1,1,1,1,1,1,1,1}. Model B errors: {0,0,0,0,0,0,0,8}. Compute mean, variance, and IQR for both. Which model is better?</p><div class="ex-ans">A: mean=1, var=0, IQR=0. B: mean=1, var=8, IQR=0. Same mean! But Model A has zero variance — perfectly consistent. Model B's single error-8 makes variance=8. IQR=0 for both (B's outlier doesn't affect IQR). Variance correctly identifies Model A as better. MAE would show both equal at 1.0; MSE shows A=1, B=9 → MSE correctly penalizes B's outlier.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data/variance-standard-deviation-population/a/population-and-sample-standard-deviation-review" target="_blank">📘 Khan: Variance & Std Dev</a>
+</div>`},
+
+/* ══ 04 COVARIANCE ══ */
+{title:"<em>Covariance</em>",bn:"সহভেদাঙ্ক",tags:[{t:"Joint Variation",c:"tm"},{t:"PCA",c:"tb"},{t:"Feature Correlation",c:"tp"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>You have features: height (cm) and shoe size. You compute Cov(height, shoe_size) = 150. Is this a strong or weak relationship? Can you tell?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ You <strong>cannot tell</strong> from covariance alone — it depends on the scale of both variables. 150 in cm×EU_shoe_units means nothing interpretable. This is covariance's main flaw: it is scale-dependent. The correlation coefficient (Cov(X,Y) / (σ_X × σ_Y)) normalizes this to [-1, 1], making it interpretable. Covariance is useful in matrix form (PCA) but Pearson correlation for human interpretation.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Zero covariance ≠ independence.</strong> Cov(X, Y) = 0 means no linear relationship. But non-linear relationships (e.g., Y=X²) can have Cov=0 yet be perfectly dependent. Always visualize — a scatter plot reveals what covariance misses.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Covariance matrix is not correlation matrix.</strong> Covariance matrix Σ has variances on diagonal (not 1s). Correlation matrix has 1s on diagonal. Many algorithms require correlation matrix; using covariance matrix with features of different scales gives misleading results.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 CORE CONCEPT — English</div>
+<p><span class="hm">Covariance</span> measures how two variables <strong>vary together</strong>. Do they move in the same direction, opposite directions, or independently?</p>
+<div class="fx"><span class="fm">Cov(X,Y)</span> = E[(X − μ_X)(Y − μ_Y)]
+            = E[XY] − E[X]·E[Y]
+<span class="fm">Sample Cov:</span> s_XY = Σᵢ (xᵢ−x̄)(yᵢ−ȳ) / (n−1)
+
+Cov(X,Y) > 0 → X and Y tend to increase TOGETHER  (positive relationship)
+Cov(X,Y) < 0 → X increases when Y decreases       (negative relationship)
+Cov(X,Y) = 0 → no LINEAR relationship</div>
+<p style="margin-top:14px"><strong>Covariance Matrix Σ (capital Sigma) — the multivariate version:</strong></p>
+<div class="fx"><span class="fm">Σ</span>[i,j] = Cov(Xᵢ, Xⱼ)        ← (i,j) entry
+Diagonal: Σ[i,i] = Var(Xᵢ)      ← variances on diagonal
+Off-diagonal: covariances between features
+For d features: Σ is d×d, symmetric, positive semi-definite
+
+Example (2 features):  Σ = ⎡Var(X₁)    Cov(X₁,X₂)⎤
+                            ⎣Cov(X₂,X₁) Var(X₂)    ⎦</div>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Covariance</strong> বলে দুটো variable একসাথে কীভাবে পরিবর্তন হয়।</p>
+<div class="call-bn">💡 উদাহরণ: পড়াশোনার ঘণ্টা ও পরীক্ষার নম্বর। যখন পড়াশোনা বাড়ে, নম্বরও বাড়ে → Positive covariance। বাইরে খেলার সময় ও পরীক্ষার নম্বর → বেশি খেললে নম্বর কমে → Negative covariance। TV দেখার সময় ও উচ্চতা → সম্পর্ক নেই → Covariance ≈ 0।</div>
+<p class="bn" style="margin-top:12px"><strong>Covariance Matrix-এর ব্যবহার ML-এ:</strong></p>
+<p class="bn">• PCA: covariance matrix-এর eigenvector = principal components। Data-এর direction of maximum variance।</p>
+<p class="bn">• Gaussian distribution: multivariate Gaussian-এ Σ (covariance matrix) shape নির্ধারণ করে।</p>
+<p class="bn">• Feature selection: high covariance between features = multicollinearity = একটা বাদ দাও।</p>
+<p class="bn">• Decorrelation: features-কে uncorrelated করলে gradient descent দ্রুত converge হয়।</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">Key properties of covariance</div>
+<div class="fx">Cov(X,X) = Var(X)                     (covariance with itself = variance)
+Cov(X,Y) = Cov(Y,X)                    (symmetric)
+Cov(aX+b, cY+d) = ac·Cov(X,Y)          (linear transformation)
+Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y) (variance of sum)
+If X⊥Y: Cov(X,Y)=0 and Var(X+Y)=Var(X)+Var(Y)</div>
+<div class="fl">Computing sample covariance matrix in code</div>
+<div class="fx">import numpy as np
+X = np.array([[1,2],[3,4],[5,6]])   # (n_samples × n_features)
+X_centered = X - X.mean(axis=0)    # center each feature
+Sigma = X_centered.T @ X_centered / (len(X)-1)  # (n_features × n_features)
+# OR: np.cov(X.T)  ← uses (n-1) by default</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Covariance Matrix is Central to ML Theory</div>
+<table>
+  <tr><th>Algorithm</th><th>How Covariance Matrix is Used</th></tr>
+  <tr><td>PCA</td><td>Eigendecomposition of Σ → principal components, explained variance</td></tr>
+  <tr><td>LDA</td><td>Between-class vs within-class covariance matrices</td></tr>
+  <tr><td>Gaussian Naive Bayes</td><td>Assumes diagonal Σ (independent features) per class</td></tr>
+  <tr><td>Multivariate Normal</td><td>P(x) ∝ exp(−½(x−μ)ᵀΣ⁻¹(x−μ)) — uses Σ</td></tr>
+  <tr><td>Whitening/ZCA</td><td>Transform X → Σ⁻¹/²X to make Cov = Identity</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why is PCA equivalent to finding the eigenvectors of the covariance matrix? <span class="qa-a">▶</span></button>
+<div class="ap">PCA seeks directions of maximum variance. Mathematically: find unit vector w that maximizes Var(wᵀX) = wᵀΣw subject to ||w||=1. Using Lagrange multipliers: derivative of wᵀΣw−λ(wᵀw−1) w.r.t. w = 0 → Σw = λw. This IS the eigenvalue equation! So the directions of maximum variance = eigenvectors of Σ. The eigenvalue λ = the variance along that direction. Eigenvectors with largest eigenvalues capture the most variance. This is why PCA is equivalent to eigendecomposition of the covariance matrix.<div class="a-bn">বাংলায়: PCA সর্বোচ্চ variance-এর direction খোঁজে। Lagrange multiplier দিয়ে solve করলে covariance matrix-এর eigenvalue equation পাওয়া যায়।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>X = {1,2,3,4,5}, Y = {2,4,5,4,5}. Compute Cov(X,Y) manually. Then explain what the sign tells you about the relationship.</p><div class="ex-ans">x̄=3, ȳ=4. Deviations: (1-3)(2-4)+(2-3)(4-4)+(3-3)(5-4)+(4-3)(4-4)+(5-3)(5-4) = (-2)(-2)+(-1)(0)+(0)(1)+(1)(0)+(2)(1) = 4+0+0+0+2=6. Cov=6/(5-1)=1.5. Positive → as X increases, Y tends to increase. Intuitive: higher X values paired with higher Y values.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://setosa.io/ev/principal-component-analysis/" target="_blank">🎯 Setosa: Interactive PCA</a>
+<a class="rl" href="https://numpy.org/doc/stable/reference/generated/numpy.cov.html" target="_blank">🐍 NumPy Covariance</a>
+</div>`},
+
+/* ══ 05 CORRELATION ══ */
+{title:"<em>Correlation</em>",bn:"সম্পর্কাঙ্ক",tags:[{t:"Pearson r",c:"tm"},{t:"Spearman ρ",c:"tb"},{t:"Causation",c:"tp"},{t:"Feature Selection",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>Ice cream sales and drowning deaths are strongly correlated (r ≈ 0.85). Should we ban ice cream to reduce drowning? What is actually happening?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ <strong>Confounding variable</strong>: hot weather causes BOTH ice cream sales to increase AND more people to swim (→ more drownings). Ice cream doesn't cause drowning. This is spurious correlation. In ML: if you train a model on correlated features, it might learn the correlation rather than causation, leading to failures when the correlation breaks (distribution shift). "Correlation ≠ Causation" is one of the most critical lessons in data science.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Pearson r only measures linear correlation.</strong> X and Y = X² has Pearson r = 0 but they're perfectly dependent. Always plot (scatter plot) before trusting correlation coefficients.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>High feature-feature correlation ≠ useful feature.</strong> Two features can be highly correlated with each other but both uncorrelated with the target. You need correlation with the TARGET, not just within features. Use feature importance from models, not just pairwise correlations.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Ecological correlation fallacy.</strong> Correlation at group level ≠ correlation at individual level. Example: countries with high GDP correlate with high literacy, but within a country, individual wealth may not perfectly predict literacy. Don't generalize group-level correlations to individuals.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 CORE CONCEPT</div>
+<p>Correlation <span class="hm">normalizes covariance</span> to a scale-free measure in [-1, 1].</p>
+<table>
+  <tr><th>Method</th><th>Formula</th><th>Measures</th><th>Assumes</th><th>Use When</th></tr>
+  <tr><td><span class="hm">Pearson r</span></td><td>Cov(X,Y)/(σ_X·σ_Y)</td><td>Linear relationship</td><td>Continuous, normal-ish</td><td>Most common default</td></tr>
+  <tr><td><span class="hb">Spearman ρ</span></td><td>Pearson of ranks</td><td>Monotonic relationship</td><td>Ordinal or ranked</td><td>Non-normal, ordinal</td></tr>
+  <tr><td><span class="hp">Kendall τ</span></td><td>Concordant-discordant pairs</td><td>Ordinal association</td><td>Small samples</td><td>Ordinal, small n</td></tr>
+  <tr><td><span class="hv">Point-Biserial</span></td><td>Special case of Pearson</td><td>Continuous vs binary</td><td>One binary variable</td><td>Feature vs binary target</td></tr>
+</table>
+
+<div style="margin-top:14px"><strong>Interpreting Pearson r:</strong></div>
+<div class="g3" style="margin:12px 0">
+  <div class="gbox" style="border-color:rgba(0,245,196,.3)"><div class="gbox-t" style="color:var(--mint)">|r| > 0.7</div><p style="font-size:.85em">Strong correlation. Features likely redundant. Consider dropping one.</p></div>
+  <div class="gbox" style="border-color:rgba(77,184,255,.3)"><div class="gbox-t hb">0.3 < |r| < 0.7</div><p style="font-size:.85em">Moderate correlation. Likely some shared information but both may be useful.</p></div>
+  <div class="gbox" style="border-color:rgba(255,107,107,.3)"><div class="gbox-t hr">|r| < 0.3</div><p style="font-size:.85em">Weak correlation. Features are largely independent. Keep both.</p></div>
+</div>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Correlation</strong> দুটো variable-এর মধ্যে রৈখিক সম্পর্ক মাপে, scale-মুক্তভাবে (−১ থেকে +১)।</p>
+<div class="call-bn">💡 উদাহরণ:
+• r = +1: লম্বা মানুষ সবসময় বেশি ভারী (perfect positive)
+• r = −1: বেশি ঘুমালে less fatigue (perfect negative)  
+• r = 0: জুতার সাইজ ও বুদ্ধিমত্তা (কোনো সম্পর্ক নেই)
+• r = 0.7: বেশি পড়লে ভালো নম্বর (strong positive)</div>
+<p class="bn" style="margin-top:12px"><strong>সতর্কতা — Correlation ≠ Causation!</strong></p>
+<p class="bn">Ice cream বিক্রি ও drowning-এ strong correlation কারণ দুটোই summer-এ বাড়ে। Correlation দেখে causation ধরে নেওয়া ভুল। ML model যদি spurious correlation শেখে, production-এ fail করবে যখন correlation ভাঙে।</p>
+<p class="bn" style="margin-top:8px"><strong>Spearman Correlation:</strong> Rank-based। Outlier-robust। Normal distribution না হলেও কাজ করে। Customer review ratings (1-5 stars) → Spearman ব্যবহার করো।</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">Pearson correlation coefficient</div>
+<div class="fx"><span class="fm">r</span> = Cov(X,Y) / (s_X × s_Y)
+  = Σ(xᵢ−x̄)(yᵢ−ȳ) / [√Σ(xᵢ−x̄)² × √Σ(yᵢ−ȳ)²]
+  ∈ [−1, +1]
+r = +1: perfect positive linear relationship
+r = −1: perfect negative linear relationship
+r =  0: no LINEAR relationship (may still be non-linear!)</div>
+<div class="fl">Correlation ↔ Covariance relationship</div>
+<div class="fx"><span class="fm">Correlation matrix R</span> = D⁻¹ Σ D⁻¹
+where D = diag(σ₁, σ₂, ..., σₙ)   (diagonal matrix of std devs)
+→ Divide each Cov(i,j) by σᵢ × σⱼ
+→ Diagonal becomes 1s (variance / variance = 1)</div>
+</div>
+
+<!-- INTERACTIVE CORRELATION VISUALIZER -->
+<div class="card"><div class="ch-hd">🎮 INTERACTIVE — Correlation Visualizer</div>
+<div class="ctrl">
+  <label>True correlation r</label>
+  <input type="range" id="corr-s" min="-99" max="99" value="70">
+  <span class="cval" id="corr-v">0.70</span>
+  <label>Sample size n</label>
+  <input type="range" id="n-s" min="10" max="200" value="60">
+  <span class="cval" id="n-v">60</span>
+  <button onclick="resample()" style="background:var(--bg3);color:var(--mint);border:1px solid var(--border);padding:5px 14px;border-radius:6px;cursor:pointer;font-size:.79em">Resample ↺</button>
+</div>
+<div class="cw">
+  <canvas id="corr-canvas" width="580" height="230" style="width:100%;display:block"></canvas>
+  <div class="clbl" id="corr-lbl">Scatter plot of correlated variables</div>
+</div>
+<div><span class="cout" id="corr-out">r = ...</span></div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Use Case</th><th>Correlation Role</th></tr>
+  <tr><td>Feature selection</td><td>Drop features with |r|>0.9 with another feature (redundant)</td></tr>
+  <tr><td>Multicollinearity detection</td><td>High feature-feature correlation → unstable regression coefficients</td></tr>
+  <tr><td>Target correlation analysis</td><td>Select features with high |r| with target as starting point</td></tr>
+  <tr><td>Evaluating predictions</td><td>Spearman ρ between predictions and targets (rank-based)</td></tr>
+  <tr><td>Data augmentation quality</td><td>Augmented data should preserve feature correlations of real data</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Two features X1 and X2 have correlation r=0.95. Should you always drop one? <span class="qa-a">▶</span></button>
+<div class="ap">Not always — it depends on the model and task: (1) Linear regression: yes, high correlation causes multicollinearity → unstable coefficients, high variance. VIF (Variance Inflation Factor) > 5-10 → consider dropping. (2) Tree-based models (Random Forest, XGBoost): handle multicollinearity well — they split on the most informative feature at each node. (3) Deep learning: less of an issue — network learns to use correlated features appropriately. (4) If both correlated features correlate with target: dropping one loses information even if they're correlated with each other. Strategy: (a) Use PCA to combine correlated features. (b) Use regularization (L1 for selection, L2 to share). (c) Check feature importance — keep the one that matters more.<div class="a-bn">বাংলায়: r=0.95 → linear regression-এ multicollinearity problem। Tree model-এ usually okay। PCA দিয়ে combine করতে পারো।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>You have 3 features with correlation matrix: r(X1,X2)=0.95, r(X1,Y)=0.8, r(X2,Y)=0.75. You're doing linear regression. What do you do?</p><div class="ex-ans">X1 and X2 are highly correlated (0.95) — multicollinearity concern. Both correlate well with Y. Options: (1) Drop X2 (slightly less correlated with Y). (2) Use PCA: create PC1 = combination of X1+X2, likely explaining most variance. (3) Use Ridge regression (L2) to handle multicollinearity by shrinking both. (4) Check VIF: if VIF(X1) > 10, definitely remove X2. Keep X1 since r(X1,Y)=0.80 > r(X2,Y)=0.75.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.tylervigen.com/spurious-correlations" target="_blank">😂 Spurious Correlations (fun!)</a>
+<a class="rl" href="https://www.youtube.com/watch?v=xZ_z8KWkhXE" target="_blank">🎬 StatQuest: Correlation</a>
+</div>`},
+
+/* ══ 06 BIAS & VARIANCE ══ */
+{title:"Bias & <em>Variance</em>",bn:"পক্ষপাত ও বিচরণ",tags:[{t:"Underfitting",c:"tm"},{t:"Overfitting",c:"tb"},{t:"Tradeoff",c:"tp"},{t:"Regularization",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>Model A: 99% train accuracy, 60% test accuracy. Model B: 85% train accuracy, 84% test accuracy. Which has high bias? Which has high variance? Which would you deploy?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ Model A: low bias (fits training data perfectly) but HIGH VARIANCE (huge train-test gap = overfitting). Model B: slightly higher bias (doesn't perfectly fit training) but LOW VARIANCE (train ≈ test = good generalization). Deploy Model B — the 1% train-test gap shows it generalizes well. Model A memorized the training data.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Thinking more model capacity always helps.</strong> More parameters → lower bias but higher variance. You need enough capacity to learn the signal, but not so much that you memorize noise. This balance depends on dataset size — more data allows more capacity without variance exploding.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Regularization only reduces variance.</strong> L1/L2 regularization introduces a small bias (pulls weights toward zero) to significantly reduce variance. This tradeoff is usually beneficial. But too much regularization → high bias (underfitting). λ controls the tradeoff.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Ignoring irreducible error.</strong> Total error = Bias² + Variance + Noise. Noise (irreducible error) sets a lower bound. No matter how perfect your model, you can't beat the inherent randomness in the data. Noisy labels → high floor even for perfect model.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 THE FUNDAMENTAL DECOMPOSITION</div>
+<div class="fx"><span class="fm">E[(y−ŷ)²]</span> = <span class="fp">Bias²</span> + <span class="fv">Variance</span> + <span class="fr">Irreducible Noise σ²</span>
+
+<span class="fp">Bias</span> = E[ŷ] − y           systematic offset; model too simple?
+<span class="fv">Variance</span> = E[(ŷ−E[ŷ])²]  sensitivity to training data; model too complex?
+<span class="fr">σ²</span>                       inherent noise in data; irreducible lower bound
+
+High Bias → Underfitting  → model doesn't learn the signal
+High Variance → Overfitting → model memorizes noise</div>
+
+<div style="margin-top:14px"><strong>The Tradeoff — visualized:</strong></div>
+<table>
+  <tr><th>Symptom</th><th>Diagnosis</th><th>Fix</th></tr>
+  <tr><td>Low train acc, low test acc</td><td>High bias (underfitting)</td><td>More complex model, more features, less regularization</td></tr>
+  <tr><td>High train acc, low test acc</td><td>High variance (overfitting)</td><td>More data, regularization (L1/L2/dropout), simpler model</td></tr>
+  <tr><td>Both train and test acc low</td><td>High bias AND variance</td><td>Wrong architecture, data quality issues</td></tr>
+  <tr><td>High train and test acc</td><td>✅ Well-calibrated model</td><td>Deploy!</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Bias (পক্ষপাত):</strong> Model কতটা systematically ভুল? Model-এর গড় prediction কি সত্যিকারের উত্তর থেকে কতটা দূরে? High bias = underfitting = model সহজ, signal ধরতে পারছে না।</p>
+<p class="bn"><strong>Variance (বিচরণ):</strong> বিভিন্ন training data দিলে model কতটা ভিন্ন prediction দেয়? High variance = overfitting = model noise memorize করছে।</p>
+<div class="call-bn">💡 তীরন্দাজের analogy:
+• High bias, low variance: সব তীর একসাথে পড়ে কিন্তু লক্ষ্য থেকে দূরে (consistent কিন্তু ভুল)
+• Low bias, high variance: গড়ে লক্ষ্যের কাছে কিন্তু সব তীর বিক্ষিপ্ত (unpredictable)
+• High bias, high variance: সবচেয়ে খারাপ — দূরে এবং বিক্ষিপ্ত
+• Low bias, low variance: সব তীর লক্ষ্যে — এটাই আমরা চাই!</div>
+<p class="bn" style="margin-top:12px"><strong>Tradeoff সমাধান:</strong></p>
+<p class="bn">• More data → variance কমে, bias প্রায় unchanged → সবচেয়ে ভালো solution!</p>
+<p class="bn">• Regularization → variance কমে, সামান্য bias বাড়ে → usually worth it</p>
+<p class="bn">• Ensemble (Bagging) → variance কমে (averaging effect)</p>
+<p class="bn">• Ensemble (Boosting) → bias কমে (sequential correction)</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS — Double Descent (Modern ML)</div>
+<div class="fl">Classical vs Modern bias-variance tradeoff</div>
+<div class="fx"><span class="fw">Classical view:</span>  U-shaped test error curve
+Low complexity: high bias, low variance (underfitting zone)
+Medium complexity: optimal tradeoff (sweet spot)
+High complexity: low bias, high variance (overfitting zone)
+
+<span class="fw">Modern view (Double Descent):</span>
+At interpolation threshold (model memorizes ALL training data):
+test error peaks → then DECREASES AGAIN as model grows larger!
+GPT-3, LLMs: enormous models (175B params) that interpolate training data
+but STILL generalize — overparameterized regime!
+Explanation: larger models find "flatter" interpolating solutions via SGD noise</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Diagnosing Your Model</div>
+<table>
+  <tr><th>Technique</th><th>Reduces</th><th>Mechanism</th></tr>
+  <tr><td>L1/L2 regularization</td><td>Variance</td><td>Penalizes complex weights → simpler model</td></tr>
+  <tr><td>Dropout</td><td>Variance</td><td>Random ensemble of sub-networks at each step</td></tr>
+  <tr><td>Data augmentation</td><td>Variance</td><td>Effectively increases training data</td></tr>
+  <tr><td>Early stopping</td><td>Variance</td><td>Stops before overfitting high-variance region</td></tr>
+  <tr><td>More training data</td><td>Variance</td><td>More samples → more stable estimates</td></tr>
+  <tr><td>More features/capacity</td><td>Bias</td><td>Model can represent more complex functions</td></tr>
+  <tr><td>Ensemble (bagging)</td><td>Variance</td><td>Average of models → variance ÷ n</td></tr>
+  <tr><td>Boosting</td><td>Bias</td><td>Sequential models correct previous errors</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: How does L2 regularization reduce variance? Walk through the math. <span class="qa-a">▶</span></button>
+<div class="ap">Ridge regression: minimize ||Xw−y||² + λ||w||². Solution: w_ridge = (XᵀX + λI)⁻¹Xᵀy. The λI term: (1) Makes the matrix invertible even with multicollinearity. (2) Shrinks all weights toward zero. Effect on variance: Var(w_ridge) = σ²(XᵀX+λI)⁻¹XᵀX(XᵀX+λI)⁻¹. As λ increases, this variance DECREASES. Effect on bias: E[w_ridge] = (XᵀX+λI)⁻¹XᵀXw_true ≠ w_true — bias introduced. Tradeoff: small λ → low bias, high variance. Large λ → high bias, low variance. Optimal λ minimizes total error = Bias² + Variance.<div class="a-bn">বাংলায়: L2 regularization weights-কে শূন্যের দিকে টানে → কম sensitive to training data → কম variance। কিন্তু সামান্য bias introduce হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Large language models have billions of parameters and memorize training data. Why don't they overfit badly? <span class="qa-a">▶</span></button>
+<div class="ap">The double descent phenomenon: classical bias-variance theory predicts peak overfitting when model capacity = data size. But experiments show that beyond this point, as capacity continues growing, test error drops again. In the "overparameterized" regime: (1) SGD with small learning rate implicitly favors flat, smooth solutions over sharp ones that happen to interpolate training data. (2) Very large models have many equally good solutions (the problem is underdetermined) — SGD finds the minimum-norm solution, which tends to generalize. (3) Scale + data: GPT-3 trained on 300B tokens with 175B parameters. Enormous data = the "interpolation" isn't memorization of a small set. (4) Regularization through architecture (attention dropout, weight decay). Modern deep learning broke the classical U-shaped curve.<div class="a-bn">বাংলায়: Double descent — model অনেক বড় হলে overfitting আবার কমে। SGD-এর noise "flat" solution খোঁজে যা generalize করে। LLM এই regime-এ কাজ করে।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>Learning curves: Model A: train acc goes 70→85→90→92, test acc goes 68→75→76→76. Model B: train acc = test acc = 95%, 96%, 97%, 98% as data grows. Diagnose each model.</p><div class="ex-ans">Model A: train-test gap ≈ 16% and not closing → high variance (overfitting). As data grows, test acc barely moves → need more regularization or simplify model. Model B: both curves high and close → well-calibrated, low bias, low variance. The improving performance with more data is normal (better estimates).</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=EuBBz3bI-aA" target="_blank">🎬 StatQuest: Bias-Variance Tradeoff</a>
+<a class="rl" href="https://arxiv.org/abs/1912.02292" target="_blank">📄 Deep Double Descent Paper</a>
+</div>`},
+
+/* ══ 07 SAMPLING TECHNIQUES ══ */
+{title:"Sampling <em>Techniques</em>",bn:"নমুনা সংগ্রহ পদ্ধতি",tags:[{t:"Random Sampling",c:"tm"},{t:"Stratified",c:"tb"},{t:"Bootstrap",c:"tp"},{t:"Train/Test Split",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>Dataset: 95% class 0, 5% class 1. You do a random 80/20 train/test split. The test set has 0 class-1 examples. What went wrong and how do you fix it?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ With 5% of 20% test = 1% class-1 in test, and with random splitting, by bad luck you can get zero class-1 examples (especially with small datasets). Fix: <strong>stratified splitting</strong> — ensure each split preserves the class distribution. sklearn: <code>train_test_split(..., stratify=y)</code>. This guarantees approximately 5% class-1 in both train and test, regardless of dataset size.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Time-series data with random splitting = data leakage.</strong> Using future data to predict the past. Always split time series chronologically: train on early data, test on later data. Never shuffle time series before splitting.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Bootstrap ≠ simple random sampling with replacement.</strong> Bootstrap is specifically for estimating sampling distributions and confidence intervals. Using bootstrap samples as "new training data" to augment small datasets is statistically invalid — you're creating copies, not new information.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Overusing train-test split without cross-validation.</strong> A single train-test split gives a noisy estimate of generalization performance. Different random seeds give different test accuracies. Cross-validation reduces this variance by using multiple splits.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 SAMPLING METHODS</div>
+<table>
+  <tr><th>Method</th><th>How</th><th>Use Case</th><th>Pros/Cons</th></tr>
+  <tr><td><span class="hm">Simple Random</span></td><td>Each item equally likely</td><td>General purpose, balanced classes</td><td>Simple; fails with class imbalance</td></tr>
+  <tr><td><span class="hb">Stratified</span></td><td>Sample proportionally per class</td><td>Imbalanced classes, ensuring representation</td><td>Preserves distribution; need class labels</td></tr>
+  <tr><td><span class="hp">Systematic</span></td><td>Every kth element</td><td>Quality control, uniform coverage</td><td>Simple; may align with periodic patterns</td></tr>
+  <tr><td><span class="hv">Cluster</span></td><td>Sample whole groups</td><td>Geographic/group structure in data</td><td>Cost-efficient; higher variance</td></tr>
+  <tr><td><span class="hy">Bootstrap</span></td><td>Sample with replacement, n times</td><td>Estimating confidence intervals, bagging</td><td>Powerful for CI; doesn't add info</td></tr>
+  <tr><td><span class="hg">Reservoir</span></td><td>Stream sampling, fixed memory</td><td>Online learning, streaming data</td><td>Works on infinite streams</td></tr>
+</table>
+
+<div style="margin-top:14px"><strong>Cross-Validation — the gold standard for small datasets:</strong></div>
+<table>
+  <tr><th>CV Type</th><th>Method</th><th>Cost</th><th>Best For</th></tr>
+  <tr><td><span class="hm">k-fold</span></td><td>k splits, k train/val combinations</td><td>k× training</td><td>General purpose, k=5 or 10</td></tr>
+  <tr><td><span class="hb">Stratified k-fold</span></td><td>k-fold + preserves class ratios</td><td>k× training</td><td>Classification, imbalanced</td></tr>
+  <tr><td><span class="hp">Leave-One-Out (LOO)</span></td><td>n folds, n=dataset size</td><td>n× training</td><td>Very small datasets (&lt;100)</td></tr>
+  <tr><td><span class="hv">Group k-fold</span></td><td>Ensures same group not in train+val</td><td>k× training</td><td>Patient IDs, video frames</td></tr>
+  <tr><td><span class="hy">Time-series split</span></td><td>Always train on past, test on future</td><td>k× training</td><td>Time-series data</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Sampling</strong> হলো population থেকে representative subset নেওয়ার পদ্ধতি। ভুল sampling → biased model।</p>
+<div class="call-bn">💡 Stratified Sampling: ধরো তোমার class-এ ৭০ ছেলে ও ৩০ মেয়ে। ৫০ জনের sample নিলে stratified মানে: ৩৫ ছেলে ও ১৫ মেয়ে। এতে original distribution preserved। Imbalanced ML dataset-এ এটা critical।</div>
+<p class="bn" style="margin-top:12px"><strong>Bootstrap:</strong> n টা sample থেকে replacement সহ n টা নাও। কিছু sample বারবার আসবে, কিছু আসবে না (≈ ৩৭% আসবে না — "out-of-bag" samples)। Random Forest এই out-of-bag samples দিয়ে validation করে।</p>
+<p class="bn" style="margin-top:8px"><strong>k-fold Cross Validation:</strong> Data-কে k ভাগ করো। k বার train করো — প্রতিবার এক ভাগ validation, বাকি k-1 ভাগ training। শেষে k টা score-এর average নাও। এটা single split-এর চেয়ে অনেক বেশি reliable।</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 BOOTSTRAP CONFIDENCE INTERVAL</div>
+<div class="fx"><span class="fm">Bootstrap Algorithm:</span>
+1. Original sample: X = {x₁, ..., xₙ}
+2. Repeat B times:
+   a. Draw bootstrap sample X* = n draws WITH REPLACEMENT from X
+   b. Compute statistic θ* = f(X*)  (e.g., mean, accuracy)
+3. Bootstrap CI: [θ*₍₀.₀₂₅₎, θ*₍₀.₉₇₅₎]  ← 2.5th and 97.5th percentiles
+
+Example: Model accuracy from 1000 bootstrap samples
+  CI_95 = [percentile(accs, 2.5), percentile(accs, 97.5)]
+→ "We are 95% confident model accuracy is in [0.84, 0.91]"</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Technique</th><th>Sampling Method Used</th></tr>
+  <tr><td>Random Forest</td><td>Bootstrap (bagging) of training samples per tree</td></tr>
+  <tr><td>SGD mini-batch</td><td>Simple random sampling without replacement per epoch</td></tr>
+  <tr><td>Oversampling (SMOTE)</td><td>Synthetic sampling of minority class</td></tr>
+  <tr><td>Hyperparameter search</td><td>Random sampling of hyperparameter space</td></tr>
+  <tr><td>Model evaluation</td><td>k-fold CV → stable performance estimate</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: When should you use k-fold CV vs a simple train-test split? <span class="qa-a">▶</span></button>
+<div class="ap">Use k-fold CV when: (1) Dataset is small (&lt;10,000 examples) — single split's test set is too small for reliable estimates. (2) Comparing multiple models — you need stable rankings, and a single split might accidentally favor one model. (3) Tuning hyperparameters — nested CV (outer loop for evaluation, inner for tuning) prevents leakage. Use simple train-test split when: (1) Very large dataset — k-fold is too expensive (training k times). (2) Time series — only time-based split is valid. (3) Quick prototyping. Rule: always report mean ± std across folds, not just the mean. A model with mean=0.90 ± 0.12 is less reliable than mean=0.88 ± 0.01.<div class="a-bn">বাংলায়: Small dataset → k-fold। Large dataset → single split। Time series → chronological split only।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>You have 1000 samples: 900 class 0, 100 class 1. You do 5-fold stratified CV. How many class-1 samples are in each test fold?</p><div class="ex-ans">Stratified 5-fold: each fold has 1000/5=200 samples, maintaining 90/10 ratio → 180 class-0 + 20 class-1 per fold. Total class-1 in any one test fold = 20. Without stratification: could get 0, 10, 25, 35, 30 (random). Stratification ensures consistent class distribution.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank">📘 sklearn: Cross-Validation Guide</a>
+<a class="rl" href="https://www.youtube.com/watch?v=fSytzGwwBVw" target="_blank">🎬 StatQuest: k-fold CV</a>
+</div>`},
+
+/* ══ 08 CLT ══ */
+{title:"Central Limit <em>Theorem</em>",bn:"কেন্দ্রীয় সীমা উপপাদ্য",tags:[{t:"CLT",c:"tm"},{t:"Normal Approximation",c:"tb"},{t:"Sample Mean",c:"tp"},{t:"√n Rule",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>You flip a biased coin (P(H)=0.3) 1000 times. What distribution does the number of heads approximately follow? What are the mean and standard deviation?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ By CLT (and Binomial → Normal approximation with large n): number of heads ≈ Normal(μ=np, σ=√(np(1-p))) = Normal(300, √210) ≈ Normal(300, 14.5). So ≈68% of time you get between 285-315 heads. The CLT converts a discrete Binomial problem into a continuous Normal problem — far easier to compute probabilities for.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>CLT applies to sample MEANS, not individual values.</strong> Individual house prices are right-skewed. But the mean of 100 house prices will be approximately Normal. The more samples you average, the more Normal the average becomes.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>CLT requires finite variance.</strong> For distributions with infinite variance (e.g., Cauchy distribution, very heavy tails), CLT doesn't apply! The average of Cauchy samples is STILL Cauchy. This matters for financial data with extreme events.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>"Large enough n" depends on skewness.</strong> For symmetric distributions, n=30 is often sufficient. For highly skewed distributions, you might need n>100 or more. There's no universal magic number.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 THE CENTRAL LIMIT THEOREM</div>
+<div class="call"><strong>CLT Statement:</strong> If X₁, X₂, ..., Xₙ are i.i.d. with mean μ and finite variance σ², then as n→∞:<br>
+The sample mean X̄ = (X₁+...+Xₙ)/n converges in distribution to Normal(μ, σ²/n).<br>
+Standardized: (X̄ − μ)/(σ/√n) → N(0, 1)</div>
+<p style="margin-top:14px"><strong>What this means intuitively:</strong></p>
+<ol class="steps">
+  <li>Take ANY distribution (Uniform, Exponential, Binomial, Poisson — anything with finite variance)</li>
+  <li>Draw n samples and compute their average X̄</li>
+  <li>Repeat this many times to get many X̄ values</li>
+  <li>The distribution of X̄ values is approximately Normal — <em>regardless of the original distribution!</em></li>
+  <li>The larger n, the better the Normal approximation</li>
+</ol>
+<div class="call" style="margin-top:14px"><strong>The √n rule:</strong> Standard error of the mean = σ/√n. Doubling sample size → standard error decreases by factor of √2 ≈ 1.41. To halve standard error, you need 4× the data. To reduce by 10×, you need 100× data. This explains why collecting data has diminishing returns.</div>
+</div>
+
+<!-- INTERACTIVE CLT VISUALIZER -->
+<div class="card"><div class="ch-hd">🎮 INTERACTIVE — CLT Visualizer</div>
+<p style="font-size:.85em;color:var(--muted);margin-bottom:12px">Watch any distribution become Normal as sample size n grows</p>
+<div class="ctrl">
+  <label>Original distribution</label>
+  <select id="clt-dist">
+    <option value="uniform">Uniform (flat)</option>
+    <option value="exponential">Exponential (skewed)</option>
+    <option value="bimodal">Bimodal (two peaks)</option>
+    <option value="bernoulli">Bernoulli (binary)</option>
+  </select>
+  <label>Sample size n</label>
+  <input type="range" id="clt-n" min="1" max="100" value="1">
+  <span class="cval" id="clt-nv">1</span>
+</div>
+<div class="cw">
+  <canvas id="clt-canvas" width="580" height="220" style="width:100%;display:block"></canvas>
+  <div class="clbl" id="clt-lbl">Distribution of sample means (5000 repetitions)</div>
+</div>
+<div><span class="cout" id="clt-out">Sampling distribution info...</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">CLT — exact statement</div>
+<div class="fx">X₁,...,Xₙ i.i.d. with E[Xᵢ]=μ, Var(Xᵢ)=σ²  (finite!)
+<span class="fm">X̄</span>_n = (1/n) Σᵢ Xᵢ
+E[X̄_n] = μ                         ← unbiased estimate of μ
+Var(X̄_n) = σ²/n                    ← variance decreases with n
+<span class="fm">SE</span> = σ/√n                         ← standard error
+(X̄_n − μ) / (σ/√n) → N(0,1)     ← CLT: standardized mean → normal</div>
+<div class="fl">Applications in ML — confidence intervals</div>
+<div class="fx">Test accuracy θ̂ on n_test samples:
+SE = √(θ̂(1−θ̂)/n_test)           ← std error of accuracy estimate
+95% CI: θ̂ ± 1.96 × SE           ← 95% confidence interval
+Example: 92% accuracy on 1000 samples
+  SE = √(0.92×0.08/1000) = 0.0086
+  95% CI: [0.903, 0.937]   ← true accuracy likely in this range</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — CLT is Everywhere</div>
+<table>
+  <tr><th>ML Context</th><th>CLT Application</th></tr>
+  <tr><td>SGD mini-batch gradient</td><td>Average over B samples → approximately Normal by CLT</td></tr>
+  <tr><td>Model accuracy estimation</td><td>Test accuracy confidence intervals via CLT</td></tr>
+  <tr><td>A/B testing</td><td>Mean difference is Normal → z-test or t-test valid</td></tr>
+  <tr><td>Ensemble averaging</td><td>Average of many models → more Normal, lower variance</td></tr>
+  <tr><td>Batch normalization intuition</td><td>Batch statistics converge to population stats by CLT</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: How does the CLT justify using confidence intervals for model performance? <span class="qa-a">▶</span></button>
+<div class="ap">Model accuracy = (number correct) / n_test = average of n_test Bernoulli(θ) random variables. By CLT: this average is approximately Normal with mean θ and std √(θ(1-θ)/n_test). The 95% confidence interval θ̂ ± 1.96 × SE is valid because: the CLT guarantees the sampling distribution of accuracy is approximately Normal, even though individual predictions are binary (Bernoulli). This works as long as n_test is large enough (rule of thumb: n×θ > 5 and n×(1-θ) > 5). For small test sets or extreme accuracies (θ close to 0 or 1), use exact Clopper-Pearson intervals instead.<div class="a-bn">বাংলায়: Model accuracy = Bernoulli-এর average। CLT এটাকে Normal বানায়। তাই confidence interval = θ̂ ± 1.96 × SE কাজ করে।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>Each sample has error drawn from Uniform[-10, 10]. You take mean of n=100 samples. (a) What is E[X̄]? (b) Var[X̄]? (c) What distribution does X̄ approximately follow?</p><div class="ex-ans">Uniform[-10,10]: μ=0, σ²=(20)²/12=33.33. (a) E[X̄]=μ=0. (b) Var(X̄)=σ²/n=33.33/100=0.333, SE=√0.333=0.577. (c) X̄ ≈ Normal(0, 0.333) by CLT. 95% of means lie within ±1.96×0.577 = ±1.13 of zero.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://seeing-theory.brown.edu/probability-distributions/index.html" target="_blank">🎯 Seeing Theory: CLT</a>
+<a class="rl" href="https://www.youtube.com/watch?v=YAlJCEDH2uY" target="_blank">🎬 StatQuest: CLT</a>
+</div>`},
+
+/* ══ 09 LAW OF LARGE NUMBERS ══ */
+{title:"Law of Large <em>Numbers</em>",bn:"বৃহৎ সংখ্যার নিয়ম",tags:[{t:"LLN",c:"tm"},{t:"Convergence",c:"tb"},{t:"Monte Carlo",c:"tp"},{t:"Expected Value",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>You flip a fair coin. After 10 flips: 7 heads (70%). After 1000 flips: 520 heads (52%). After 1,000,000 flips: 500,312 heads (50.03%). What principle does this demonstrate?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ The <strong>Law of Large Numbers</strong> — the sample mean converges to the true expected value as n → ∞. 70% → 52% → 50.03% → approaching 50%. This is why casino odds work (house edge guaranteed over millions of bets), why ML training loss is a valid proxy for expected loss (average over enough samples), and why bigger datasets give more reliable estimates.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>The "Gambler's Fallacy."</strong> After 10 tails in a row, the next flip is NOT more likely to be heads. LLN is about long-run averages, NOT individual corrections. Each flip is independent. The law works through accumulation, not "debt repayment."</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>LLN doesn't guarantee convergence rate.</strong> LLN says "converges," not "how fast." For high-variance distributions, you need enormous n to get a good estimate. The CLT tells you the rate: SE = σ/√n.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>LLN requires independence.</strong> Correlated samples (time series, clustered data) violate LLN conditions. 1000 stock prices from one day are NOT equivalent to 1000 independent samples. Autocorrelation slows convergence dramatically.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 WEAK AND STRONG LLN</div>
+<div class="fx"><span class="fm">Weak LLN (Khinchin):</span>
+X̄_n → μ in probability as n → ∞
+∀ε > 0: P(|X̄_n − μ| > ε) → 0
+
+<span class="fm">Strong LLN (Kolmogorov):</span>
+X̄_n → μ almost surely (with probability 1)
+Stronger statement: for all but a measure-zero set of outcomes, X̄_n → μ
+
+Practical difference: Strong LLN → virtually certain convergence for specific sequences
+Both require: i.i.d. samples with finite mean E[X] = μ</div>
+<div class="call" style="margin-top:14px"><strong>Why LLN ≠ CLT:</strong> LLN says WHERE the average converges (to μ). CLT says the SHAPE of the distribution around the convergence point (Normal). They're complementary, not redundant.</div>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>বৃহৎ সংখ্যার নিয়ম (LLN):</strong> যত বেশি sample নাওয়া হয়, sample mean তত বেশি population mean-এর কাছে আসে।</p>
+<div class="call-bn">💡 ক্যাসিনো analogy: একটা ক্যাসিনোতে প্রতিটা খেলায় house-এর ১% advantage। একজন খেলোয়াড় ১ রাতে জিততে পারে (short run variance)। কিন্তু লক্ষ লক্ষ খেলায় ক্যাসিনো নিশ্চিত জিতবে — LLN guarantee করে average = expected value = house edge! ML training: loss function-এর expected value = আসল generalization error। বেশি data → sample mean আরো সঠিক estimate।</div>
+<p class="bn" style="margin-top:12px"><strong>Gambler's Fallacy থেকে সাবধান!</strong></p>
+<p class="bn">১০টা tail আসার পর অনেকে মনে করে head-এর "পালা" এসেছে। এটা ভুল! প্রতিটা flip independent। LLN বলে না "next flip compensate করবে" — বলে "পর্যাপ্ত flip-এর পর average 50% হবে।"</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 MONTE CARLO — LLN in Action</div>
+<div class="fl">Monte Carlo estimation — computing π using random points</div>
+<div class="fx">Estimate π by dropping random points in unit square:
+1. Sample (x,y) uniformly from [0,1]²
+2. Check if x²+y² ≤ 1 (inside quarter circle)
+3. π̂ = 4 × (points inside circle) / (total points)
+
+By LLN: as n→∞,  π̂ → π = 3.14159...
+n=100:   π̂ ≈ 3.1 (rough)
+n=10000: π̂ ≈ 3.14 (better)
+n=10⁶:  π̂ ≈ 3.1415 (very close)
+
+Error ∝ 1/√n (from CLT) → very slow convergence!</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>LLN Justification</th></tr>
+  <tr><td>Training loss = proxy for expected loss</td><td>LLN: average over large dataset → expected loss</td></tr>
+  <tr><td>Increasing dataset size improves performance</td><td>LLN: more samples → better estimates of all statistics</td></tr>
+  <tr><td>Monte Carlo policy gradient (RL)</td><td>Average over sampled trajectories → expected reward</td></tr>
+  <tr><td>Random Forest accuracy</td><td>Ensemble of trees: average converges to Bayes optimal</td></tr>
+  <tr><td>Stochastic weight averaging (SWA)</td><td>Average of weights → converges to better minimum</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: How does the Law of Large Numbers justify the use of training loss as a proxy for expected test loss? <span class="qa-a">▶</span></button>
+<div class="ap">The expected loss (generalization error) = E_(x,y)~P [L(f(x), y)] — expectation over the true data distribution P. We can't compute this exactly (don't have all possible data). But LLN: (1/n)Σᵢ L(f(xᵢ), yᵢ) → E[L] as n→∞, if (xᵢ, yᵢ) are i.i.d. from P. So training loss IS an estimate of expected loss — but valid only when the model HASN'T been optimized on these specific samples (overfitting breaks the i.i.d. assumption for evaluation). This is why: training loss is biased (model fit to these samples), validation loss is unbiased (different samples, LLN applies correctly), test loss is the final unbiased estimate.<div class="a-bn">বাংলায়: LLN বলে যথেষ্ট sample-এর average → expected value। Training loss = expected loss-এর estimate। কিন্তু overfitting-এ model ওই sample-এ fit করেছে → validation/test loss দরকার।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div><p>A biased die has P(6) = 1/3 instead of 1/6. After n rolls, what does the sample proportion of 6s converge to? How many rolls until SE < 1%?</p><div class="ex-ans">Converges to p=1/3 by LLN. Each roll: Bernoulli(1/3), Var=p(1-p)=2/9. SE = √(2/9)/√n = √(2/9n). Want SE < 0.01: 2/(9n) < 0.0001 → n > 2222. Need ≈2223 rolls to estimate P(6) within ±1% (95%: 1.96 × SE < 0.01 → n > 8556).</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=MntX3zWNWec" target="_blank">🎬 StatQuest: Law of Large Numbers</a>
+<a class="rl" href="https://seeing-theory.brown.edu/frequentist-inference/index.html" target="_blank">🎯 Seeing Theory: LLN</a>
+</div>`},
+
+/* ══ 10 OUTLIERS & ROBUSTNESS ══ */
+{title:"Outliers & <em>Robustness</em>",bn:"বিচ্যুত মান ও দৃঢ়তা",tags:[{t:"Outlier Detection",c:"tm"},{t:"Robust Statistics",c:"tb"},{t:"IQR Method",c:"tp"},{t:"Model Robustness",c:"tl"}],
+body:`
+<div class="card law1"><div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+<p>Your training dataset has 10,000 images. 50 images have incorrect labels (outliers). Will this destroy your model? How robust is deep learning to label noise?</p>
+<p style="margin-top:9px;color:var(--mint)">✅ 50 / 10,000 = 0.5% label noise. Deep learning is <strong>surprisingly robust</strong> to this level — models can handle 5-20% random noise without catastrophic degradation. Why? Gradient averaging over mini-batches reduces the impact of individual noisy samples. But <strong>systematic</strong> noise (all images of class X mislabeled as Y) is catastrophic. And memorizing outliers contributes to overfitting. Modern approach: label noise detection (Cleanlab, confident learning) + loss reweighting.</p>
+</div>
+<div class="card law2"><div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Blindly removing outliers.</strong> Outliers might be the most important data points — rare diseases, fraud cases, adversarial examples. "Remove outliers" = potentially removing the signal you most need. Always understand WHY a point is an outlier before removing it.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Using Z-score with contaminated data.</strong> If outliers exist, the mean and std used in Z-score are themselves contaminated. Use IQR method or MAD-based Z-score (robust alternatives). Standard Z-score can miss outliers that distort the mean toward themselves.</span></div>
+<div class="fi"><span class="fi-i">✗</span><span><strong>Confusing statistical outliers with adversarial examples.</strong> Statistical outliers are unusual but legitimate. Adversarial examples are crafted to fool models. Different problems, different solutions. Robust statistics helps with the former; adversarial training helps with the latter.</span></div>
+</div>
+
+<div class="card"><div class="ch-hd">📖 OUTLIER DETECTION METHODS</div>
+<table>
+  <tr><th>Method</th><th>Criterion</th><th>Robust?</th><th>Use When</th></tr>
+  <tr><td><span class="hm">Z-score</span></td><td>|x − μ| > 3σ</td><td>❌ No</td><td>Roughly Normal data, no extreme outliers</td></tr>
+  <tr><td><span class="hb">IQR (Tukey)</span></td><td>x < Q1−1.5IQR or x > Q3+1.5IQR</td><td>✅ Yes</td><td>Skewed data, general purpose</td></tr>
+  <tr><td><span class="hp">Modified Z-score</span></td><td>|x − median| / MAD > 3.5</td><td>✅ Yes</td><td>Data with outliers, robust detection</td></tr>
+  <tr><td><span class="hv">Isolation Forest</span></td><td>Anomaly score from random trees</td><td>✅ Yes</td><td>High-dimensional data, ML-based</td></tr>
+  <tr><td><span class="hy">DBSCAN</span></td><td>Low-density points are outliers</td><td>✅ Yes</td><td>Cluster-based, spatial data</td></tr>
+  <tr><td><span class="hg">LOF</span></td><td>Local density relative to neighbors</td><td>✅ Yes</td><td>Non-uniform density data</td></tr>
+</table>
+
+<div style="margin-top:14px"><strong>Robust Statistics — alternatives to sensitive measures:</strong></div>
+<table>
+  <tr><th>Sensitive Measure</th><th>Robust Alternative</th><th>Why Better</th></tr>
+  <tr><td>Mean μ</td><td>Median</td><td>Not affected by extreme values</td></tr>
+  <tr><td>Std deviation σ</td><td>MAD = Median|xᵢ−Median|</td><td>Uses median, not mean</td></tr>
+  <tr><td>MSE loss</td><td>MAE or Huber loss</td><td>Reduces large-error influence</td></tr>
+  <tr><td>Pearson r</td><td>Spearman ρ</td><td>Rank-based, not affected by scale</td></tr>
+  <tr><td>PCA (variance-based)</td><td>Robust PCA (RPCA)</td><td>Separates sparse outliers from signal</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+<p class="bn"><strong>Outlier</strong> হলো এমন data point যা বাকিদের তুলনায় অস্বাভাবিকভাবে আলাদা।</p>
+<div class="call-bn">💡 উদাহরণ: একটা ক্লাসে ছাত্রদের উচ্চতা: {165, 168, 170, 172, 175, 178, 210 সেমি}। 210 সেমি = outlier। এটা কি ভুল মাপ? নাকি সত্যিই এত লম্বা কেউ আছে? জানা দরকার কারণটা।</div>
+<p class="bn" style="margin-top:12px"><strong>Outlier-এর ৩ কারণ:</strong></p>
+<p class="bn">① Data entry error (ভুল লেখা) → ঠিক করো বা বাদ দাও</p>
+<p class="bn">② Measurement error (যন্ত্রের সমস্যা) → বাদ দাও</p>
+<p class="bn">③ True extreme value (সত্যিকারের চরম মান) → রাখো! এটা important information।</p>
+<p class="bn" style="margin-top:10px"><strong>Robust ML:</strong></p>
+<p class="bn">• Huber loss → outlier prediction-এ কম sensitive</p>
+<p class="bn">• MAE → outlier label-এ কম sensitive</p>
+<p class="bn">• Robust PCA → outlier feature-এ কম sensitive</p>
+<p class="bn">• Outlier detection first → Isolation Forest, LOF দিয়ে find করে investigate</p>
+</div>
+
+<div class="card"><div class="ch-hd">📐 FORMULAS</div>
+<div class="fl">IQR-based outlier detection (most common)</div>
+<div class="fx">Q1 = 25th percentile,   Q3 = 75th percentile
+<span class="fm">IQR</span> = Q3 − Q1
+
+Mild outlier:    x < Q1 − 1.5×IQR   or   x > Q3 + 1.5×IQR
+Extreme outlier: x < Q1 − 3.0×IQR   or   x > Q3 + 3.0×IQR
+
+Example: {1,2,3,4,5,100}
+Q1=1.75, Q3=4.75, IQR=3
+Upper fence = 4.75 + 1.5×3 = 9.25  → 100 > 9.25 → OUTLIER ✓</div>
+<div class="fl">MAD (Median Absolute Deviation) — robust spread measure</div>
+<div class="fx"><span class="fm">MAD</span> = Median(|xᵢ − Median(X)|)
+Robust Z-score: Mᵢ = 0.6745 × (xᵢ − Median) / MAD
+Outlier if |Mᵢ| > 3.5
+Why 0.6745? Makes MAD comparable to σ for Normal distribution</div>
+<div class="fl">Breakdown point — how robust is a statistic?</div>
+<div class="fx">Breakdown point = fraction of outliers a statistic can handle
+Mean:   0%  (1 outlier can move mean to any value)
+Median: 50% (can handle up to half the data being outliers)
+MAD:    50% (same as median)
+→ Median and MAD are the most robust standard statistics</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Robustness in Practice</div>
+<table>
+  <tr><th>ML Context</th><th>Outlier/Robustness Concern</th></tr>
+  <tr><td>Feature normalization</td><td>Use RobustScaler (IQR-based) not StandardScaler if outliers exist</td></tr>
+  <tr><td>Loss function choice</td><td>Huber loss for regression with outlier labels</td></tr>
+  <tr><td>Label cleaning</td><td>Confident learning (Cleanlab) identifies likely mislabeled points</td></tr>
+  <tr><td>Model evaluation</td><td>Report median test accuracy across runs, not just mean</td></tr>
+  <tr><td>Anomaly detection</td><td>Train on normal; outliers = high reconstruction error (autoencoder)</td></tr>
+  <tr><td>Adversarial robustness</td><td>Adversarial training on perturbed inputs</td></tr>
+</table>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Your model performance degrades significantly on a new production batch. How do you diagnose if outliers/distribution shift is the cause? <span class="qa-a">▶</span></button>
+<div class="ap">Systematic diagnosis: (1) <strong>Data drift detection</strong>: compare feature distributions between training and production data. KS test (continuous features), chi-squared test (categorical), Population Stability Index (PSI). PSI > 0.2 → significant drift. (2) <strong>Prediction distribution shift</strong>: compare histogram of model output probabilities. If confidence drops or shifts bimodal, model is uncertain about new data. (3) <strong>Error analysis on failures</strong>: cluster the failed predictions. Are failures concentrated in one subgroup? One feature range? (4) <strong>Outlier scoring</strong>: Isolation Forest score on production features. If many points have high anomaly scores, true outliers are present. (5) <strong>SHAP values</strong>: which features are driving predictions? Unusual importance patterns = something changed.<div class="a-bn">বাংলায়: Distribution drift → KS test দিয়ে feature distribution compare করো। Outlier → Isolation Forest দিয়ে anomaly score দেখো। SHAP দিয়ে কোন feature দায়ী বোঝো।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the difference between outlier detection and anomaly detection in ML? <span class="qa-a">▶</span></button>
+<div class="ap">Statistical outlier detection: identifies data points far from the majority in feature space — using IQR, Z-score, isolation forest. It's about the input distribution P(X). Anomaly detection in ML: identifies examples with unusual model behavior — high loss, low confidence, high reconstruction error. It's about model-relative unusualness. A point can be statistically normal but an anomaly for the model (adversarial example: tiny perturbation, normal statistics, catastrophic model failure). Conversely, a statistical outlier might be a well-known extreme but model handles it correctly (celebrity photos in a face recognition system). In production ML: combine both — statistical outlier detection catches data quality issues; model-based anomaly detection catches distribution shift and adversarial inputs.<div class="a-bn">বাংলায়: Statistical outlier = feature space-এ অস্বাভাবিক। ML anomaly = model-এর কাছে অস্বাভাবিক। Adversarial example statistical-এ normal কিন্তু model-এ anomaly।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Outlier Detection</div><p>Data: {14, 18, 11, 13, 6, 8, 2, 1, 98, 12, 16}. Use IQR method to identify outliers. Q1=6, Q3=16.</p><div class="ex-ans">IQR=16-6=10. Lower fence=6-15=-9. Upper fence=16+15=31. Data in range [-9, 31]: all values except 98. 98 > 31 → OUTLIER. All others (1, 2, 6, 8, 11, 12, 13, 14, 16, 18) are within bounds.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Robust vs Non-Robust</div><p>Dataset: {3, 4, 4, 5, 5, 5, 6, 6, 7, 1000}. Compare: mean vs median, std vs MAD. Which better represents the "typical" value?</p><div class="ex-ans">Mean=(3+4+4+5+5+5+6+6+7+1000)/10=104.5. Median=5 (avg of 5th and 6th). Std≈315. MAD=Median|xᵢ-5|=|3-5|,|4-5|..=2,1,1,0,0,0,1,1,2,995→Median=1. Median=5 and MAD=1 best describe typical value. Mean=104.5 is destroyed by 1000.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://scikit-learn.org/stable/modules/outlier_detection.html" target="_blank">📘 sklearn: Outlier Detection</a>
+<a class="rl" href="https://cleanlab.ai" target="_blank">🧹 Cleanlab: Label Quality</a>
+<a class="rl" href="https://www.youtube.com/watch?v=Kk8ePJOiN6Y" target="_blank">🎬 StatQuest: Boxplots & Outliers</a>
+</div>`}
+
+];
+
+/* ══════════ BUILD ══════════ */
+function buildAll(){
+  const nl=document.getElementById('nl'),mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-n">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · STATISTICS FOR ML</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{if(i===4)initCorr();if(i===7)initCLT();},150);
+}
+
+function tQ(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+/* ══════════ CORRELATION VISUALIZER ══════════ */
+let corrData=[];
+function genCorrData(r,n){
+  corrData=[];
+  for(let i=0;i<n;i++){
+    const z1=(Math.random()*6-3),z2=(Math.random()*6-3);
+    const x=z1, y=r*z1+Math.sqrt(1-r*r)*z2;
+    corrData.push({x,y});
+  }
+}
+function resample(){
+  const r=parseInt(document.getElementById('corr-s').value)/100;
+  const n=parseInt(document.getElementById('n-s').value);
+  genCorrData(r,n);drawCorr();
+}
+function initCorr(){
+  const c=document.getElementById('corr-canvas');
+  if(!c)return;
+  const cs=document.getElementById('corr-s'),ns=document.getElementById('n-s');
+  const cv=document.getElementById('corr-v'),nv=document.getElementById('n-v');
+  genCorrData(0.7,60);
+  function draw(){
+    const r=parseInt(cs.value)/100,n=parseInt(ns.value);
+    cv.textContent=r.toFixed(2);nv.textContent=n;
+    genCorrData(r,n);drawCorr();
+  }
+  cs.addEventListener('input',draw);ns.addEventListener('input',draw);
+  drawCorr();
+}
+function drawCorr(){
+  const c=document.getElementById('corr-canvas');
+  if(!c||corrData.length===0)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#050810';ctx.fillRect(0,0,W,H);
+  const pad=40;
+  const xs=corrData.map(p=>p.x),ys=corrData.map(p=>p.y);
+  const xMin=Math.min(...xs)-0.5,xMax=Math.max(...xs)+0.5;
+  const yMin=Math.min(...ys)-0.5,yMax=Math.max(...ys)+0.5;
+  const cx=x=>pad+(x-xMin)/(xMax-xMin)*(W-2*pad);
+  const cy=y=>H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad);
+  // grid
+  ctx.strokeStyle='#1d2d47';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){
+    const x=pad+i*(W-2*pad)/4;ctx.beginPath();ctx.moveTo(x,pad);ctx.lineTo(x,H-pad);ctx.stroke();
+    const y=pad+i*(H-2*pad)/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+  }
+  // regression line
+  const n=corrData.length;
+  const mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;
+  const num=corrData.reduce((s,p)=>s+(p.x-mx)*(p.y-my),0);
+  const den=corrData.reduce((s,p)=>s+(p.x-mx)**2,0);
+  const slope=den>0?num/den:0,intercept=my-slope*mx;
+  ctx.strokeStyle='rgba(0,245,196,.6)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(cx(xMin),cy(slope*xMin+intercept));ctx.lineTo(cx(xMax),cy(slope*xMax+intercept));ctx.stroke();ctx.setLineDash([]);
+  // compute actual r
+  const sdx=Math.sqrt(xs.reduce((s,x)=>s+(x-mx)**2,0)/n);
+  const sdy=Math.sqrt(ys.reduce((s,y)=>s+(y-my)**2,0)/n);
+  const r_actual=sdx&&sdy?num/(n*sdx*sdy):0;
+  // points
+  corrData.forEach(p=>{
+    ctx.beginPath();
+    ctx.fillStyle=r_actual>=0?`rgba(0,245,196,.5)`:`rgba(255,107,107,.5)`;
+    ctx.arc(cx(p.x),cy(p.y),3.5,0,Math.PI*2);ctx.fill();
+  });
+  const out=document.getElementById('corr-out');
+  const strength=Math.abs(r_actual)>0.7?'Strong':Math.abs(r_actual)>0.3?'Moderate':'Weak';
+  const dir=r_actual>=0?'positive':'negative';
+  out.textContent=`Measured r = ${r_actual.toFixed(3)} | ${strength} ${dir} correlation | n=${corrData.length}`;
+  document.getElementById('corr-lbl').textContent=`Scatter plot: r=${r_actual.toFixed(2)} (${strength} ${dir})`;
+}
+
+/* ══════════ CLT VISUALIZER ══════════ */
+function initCLT(){
+  const c=document.getElementById('clt-canvas');
+  if(!c)return;
+  const ds=document.getElementById('clt-dist'),ns=document.getElementById('clt-n');
+  const nv=document.getElementById('clt-nv');
+  function draw(){nv.textContent=ns.value;drawCLT(ds.value,parseInt(ns.value));}
+  ds.addEventListener('change',draw);ns.addEventListener('input',draw);
+  draw();
+}
+function sample1(dist){
+  switch(dist){
+    case'uniform':return Math.random()*10;
+    case'exponential':return-Math.log(1-Math.random())*2;
+    case'bimodal':return Math.random()<0.5?Math.random()*3:7+Math.random()*3;
+    case'bernoulli':return Math.random()<0.3?1:0;
+  }
+}
+function drawCLT(dist,n){
+  const c=document.getElementById('clt-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const REPS=3000;
+  const means=[];
+  for(let r=0;r<REPS;r++){
+    let sum=0;for(let i=0;i<n;i++)sum+=sample1(dist);
+    means.push(sum/n);
+  }
+  const mi=Math.min(...means),ma=Math.max(...means);
+  const BINS=50,bw=(ma-mi)/BINS;
+  const hist=new Array(BINS).fill(0);
+  means.forEach(m=>{const b=Math.min(Math.floor((m-mi)/bw),BINS-1);hist[b]++;});
+  const maxH=Math.max(...hist);
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#050810';ctx.fillRect(0,0,W,H);
+  const pad=30,ch=x=>pad+(x/BINS)*(W-2*pad),cy=h=>H-pad-h/(maxH*1.1)*(H-2*pad);
+  // bars
+  hist.forEach((h,i)=>{
+    const x=ch(i),bwp=(W-2*pad)/BINS;
+    ctx.fillStyle=`rgba(0,245,196,${0.3+0.5*(h/maxH)})`;
+    ctx.fillRect(x,cy(h),bwp-1,H-pad-cy(h));
+  });
+  // normal overlay
+  const mu=means.reduce((a,b)=>a+b)/REPS;
+  const sig=Math.sqrt(means.reduce((s,m)=>s+(m-mu)**2,0)/REPS);
+  const norm=x=>Math.exp(-0.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));
+  const normMax=norm(mu),scale=maxH/normMax;
+  ctx.beginPath();ctx.strokeStyle='rgba(255,159,126,.85)';ctx.lineWidth=2.5;
+  for(let i=0;i<=BINS;i++){
+    const val=mi+i*bw+bw/2;
+    const h=norm(val)*scale;
+    const x=ch(i),y=cy(h);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  const out=document.getElementById('clt-out');
+  const skew=n>=30?'✅ Normal-like':'⚠️ Not yet Normal';
+  out.textContent=`n=${n} | Mean of means ≈ ${mu.toFixed(3)} | SE ≈ ${sig.toFixed(3)} | Shape: ${skew}`;
+  document.getElementById('clt-lbl').textContent=`Distribution of sample means (${REPS} repetitions) — orange curve = Normal fit`;
+}
+
+buildAll();
+setTimeout(initCorr,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrix Factorization & Decomposition</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030812;--bg2:#070e1c;--bg3:#0d1628;--bg4:#141f35;
+  --border:#192840;--text:#c5dcff;--muted:#3d6090;
+  --amber:#ffb347;--cyan:#00dde8;--magenta:#e040fb;
+  --green:#39e589;--sky:#60c8ff;--rose:#ff4d6d;
+  --violet:#9c6dff;--gold:#f0c040;--lime:#b8ff5c;
+  --radius:13px;
+}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.83em;color:var(--cyan)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:278px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:42px 48px;max-width:1000px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:linear-gradient(155deg,rgba(255,179,71,.06),rgba(224,64,251,.04))}
+.s-sym{font-size:2.3em;margin-bottom:6px;line-height:1}
+.s-title{font-size:.95em;font-weight:700;color:var(--amber)}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--cyan);font-size:.79em;margin-top:2px}
+.s-sub{font-size:.69em;color:var(--muted);margin-top:5px;line-height:1.4}
+.pg-row{display:flex;justify-content:space-between;font-size:.68em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.pg-bar{height:3px;background:var(--bg3);border-radius:2px}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--magenta));border-radius:2px;transition:width .5s ease}
+.nav-wrap{padding:10px 0;flex:1}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:12px 20px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Syne',sans-serif;font-size:.79em;line-height:1.4;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--amber);border-left-color:var(--amber)}
+.nb-n{font-family:'Fira Code',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.7em;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-n{background:var(--amber);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:30px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:30px;position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,179,71,.05),rgba(224,64,251,.03));pointer-events:none}
+.ch-num{font-family:'Fira Code',monospace;font-size:.68em;color:var(--amber);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:1.95em;font-weight:800;line-height:1.15;color:var(--text)}
+.ch-title em{color:var(--amber);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--cyan);font-size:.93em;margin-top:6px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 12px;border-radius:20px;font-size:.71em;font-weight:700;border:1px solid}
+.ta{border-color:var(--amber);color:var(--amber);background:rgba(255,179,71,.09)}
+.tc{border-color:var(--cyan);color:var(--cyan);background:rgba(0,221,232,.09)}
+.tm{border-color:var(--magenta);color:var(--magenta);background:rgba(224,64,251,.09)}
+.tg{border-color:var(--green);color:var(--green);background:rgba(57,229,137,.09)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--amber);background:rgba(255,179,71,.04)}
+.law2{border-left:4px solid var(--rose);background:rgba(255,77,109,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.69em;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'Fira Code',monospace;font-size:.84em;color:var(--sky);line-height:2.15;overflow-x:auto;margin:10px 0;white-space:pre}
+.fa{color:var(--amber)}.fc{color:var(--cyan)}.fm{color:var(--magenta)}.fg{color:var(--green)}.fv{color:var(--violet)}.fr{color:var(--rose)}.fw{color:var(--text)}.fl2{color:var(--lime)}.fo{color:var(--gold)}
+
+/* ── HIGHLIGHTS ── */
+.ha{color:var(--amber);font-weight:600}.hc{color:var(--cyan);font-weight:600}.hm{color:var(--magenta);font-weight:600}.hg{color:var(--green);font-weight:600}.hv{color:var(--violet);font-weight:600}.hr{color:var(--rose);font-weight:600}.hsk{color:var(--sky);font-weight:600}.hl{color:var(--lime);font-weight:600}
+
+/* ── BIG EQ ── */
+.big-eq{text-align:center;padding:22px;background:var(--bg);border:1px solid var(--border);border-radius:11px;margin:14px 0}
+.big-eq .eq{font-family:'Fira Code',monospace;font-size:1.1em;color:var(--amber);display:block;margin-bottom:7px;line-height:1.8}
+.big-eq .eq-sub{font-size:.82em;color:var(--muted);line-height:1.6}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(255,179,71,.05);border-left:4px solid var(--amber);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(0,221,232,.05);border-left:4px solid var(--cyan);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(0,221,232,.9);font-size:.88em;line-height:1.9}
+.call-v{background:rgba(156,109,255,.05);border-left:4px solid var(--violet);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-g{background:rgba(57,229,137,.04);border-left:4px solid var(--green);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.75em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--amber);border-bottom-color:transparent}
+.qa-a{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-a{transform:rotate(90deg);color:var(--amber)}
+.ap{display:none;padding:15px 16px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.88}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(0,221,232,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(255,179,71,.04);border:1px solid rgba(255,179,71,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--amber);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:11px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--amber);color:var(--bg);min-width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.71em;color:var(--muted);text-align:center;margin-top:6px;font-family:'Fira Code',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--amber);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.78em;font-family:'Syne',sans-serif}
+.cval{font-family:'Fira Code',monospace;font-size:.79em;color:var(--amber);min-width:44px}
+.cout{font-family:'Fira Code',monospace;font-size:.82em;color:var(--amber);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+.cout-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--rose);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(57,229,137,.04);border:1px solid rgba(57,229,137,.14);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--green);font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── INSIGHT ── */
+.insight{background:rgba(156,109,255,.06);border:1px solid rgba(156,109,255,.25);border-radius:10px;padding:18px;margin:14px 0}
+.insight-t{color:var(--violet);font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--sky);text-decoration:none;font-size:.79em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--sky);background:var(--bg4)}
+
+/* ── SVD MATRIX DISPLAY ── */
+.svd-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0;font-size:.9em}
+.svd-mat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'Fira Code',monospace;font-size:.84em;min-width:fit-content}
+.svd-label{font-size:.75em;color:var(--muted);text-align:center;margin-top:4px}
+.svd-eq{color:var(--muted);font-size:1.2em;padding:0 4px}
+
+/* ── RANK-K APPROX VISUAL ── */
+.rank-bar{height:8px;border-radius:4px;margin:4px 0;background:linear-gradient(90deg,var(--amber),var(--magenta));transition:width .4s}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'Syne',sans-serif;font-size:.87em}
+@media(max-width:760px){.mob{display:block}.sb{display:none}.main{padding:16px}.g2,.g3,.g4{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Eigen Decomposition</option>
+    <option value="1">02 — Singular Value Decomposition (SVD)</option>
+    <option value="2">03 — PCA Math Intuition</option>
+    <option value="3">04 — Dimensionality Reduction Rationale</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sb">
+  <div class="s-brand">
+    <div class="s-sym">⬡</div>
+    <div class="s-title">Matrix Factorization</div>
+    <div class="s-bn">ম্যাট্রিক্স বিভাজন ও বিশ্লেষণ</div>
+    <div class="s-sub">High ROI · The engine beneath PCA, SVD, Recommender Systems & LLMs</div>
+    <div class="pg-row"><span>Progress</span><span id="pp">25%</span></div>
+    <div class="pg-bar"><div class="pg-fill" id="pf" style="width:25%"></div></div>
+  </div>
+  <div class="nav-wrap" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Eigen Decomposition","Singular Value Decomposition (SVD)","PCA Math Intuition","Dimensionality Reduction Rationale"];
+
+const TOPICS=[
+
+/* ═══════════════════════════════════════
+   01  EIGEN DECOMPOSITION
+═══════════════════════════════════════ */
+{title:"Eigen <em>Decomposition</em>",bn:"আইগেন বিশ্লেষণ (Eigen Decomposition)",
+tags:[{t:"Av = λv",c:"ta"},{t:"Spectral Theorem",c:"tc"},{t:"PCA Core",c:"tm"},{t:"Symmetric Matrices",c:"tg"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A covariance matrix Σ is symmetric. If its eigenvalues are [9, 4, 1], and we project data to the first eigenvector only — what fraction of variance is preserved?</p>
+  <p style="margin-top:9px;color:var(--amber)">✅ 9/(9+4+1) = 9/14 ≈ <strong>64.3%</strong>. Eigenvalues of a covariance matrix ARE the variances along each principal direction. The fraction explained by the k-th component = λₖ / Σλᵢ. This is the mathematical foundation of PCA's explained variance ratio.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Eigen decomposition only works on SQUARE matrices.</strong> A weight matrix W of shape (512, 256) is not square — it has no eigenvalues/eigenvectors. For rectangular matrices, you MUST use SVD. This is the most common confusion in ML interviews.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Not all square matrices have real eigenvalues.</strong> Only symmetric matrices (like covariance matrices, Gram matrices) are guaranteed to have real eigenvalues and orthogonal eigenvectors (Spectral Theorem). Rotation matrices have complex eigenvalues. Always verify symmetry before assuming real eigendecomposition.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Eigenvectors are only defined up to sign.</strong> If v is an eigenvector, so is −v. NumPy/sklearn may flip signs between runs. Never hardcode the sign of a principal component — check the direction of maximum variance instead.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>Eigen decomposition asks: <span class="ha">"Does this matrix have special vectors that it only SCALES (not rotates)?"</span></p>
+  <div class="big-eq">
+    <span class="eq">A v = λ v</span>
+    <span class="eq-sub">v = eigenvector (direction unchanged by A) · λ = eigenvalue (scaling factor)<br>The matrix A only stretches/shrinks v by λ — it does NOT rotate it</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Geometric intuition — what eigendecomposition reveals:</strong></p>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(255,179,71,.35)">
+      <div class="gbox-t ha">Eigenvectors</div>
+      <p style="font-size:.86em">The "special directions" of the matrix. The axes along which the matrix acts like scalar multiplication. For symmetric matrices: orthogonal to each other.</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(0,221,232,.35)">
+      <div class="gbox-t hc">Eigenvalues</div>
+      <p style="font-size:.86em">How much the matrix stretches in each eigenvector direction. λ>1: stretch. 0<λ<1: compress. λ<0: flip. λ=0: collapse to lower dimension!</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(57,229,137,.35)">
+      <div class="gbox-t hg">Decomposition A = QΛQᵀ</div>
+      <p style="font-size:.86em">Q = eigenvectors (as columns), Λ = diagonal eigenvalues. A IS the matrix of "stretch along eigenvectors." The full geometric story.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:16px"><strong>The Spectral Theorem — why symmetric matrices are special in ML:</strong></p>
+  <div class="call"><strong>Spectral Theorem:</strong> Every real symmetric matrix A = Aᵀ can be written as A = QΛQᵀ where Q is orthogonal (Qᵀ=Q⁻¹) and Λ is diagonal with REAL eigenvalues. All covariance matrices, Gram matrices, Hessians (when PSD) satisfy this. This is why PCA works so cleanly.</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Eigen Decomposition</strong> জিজ্ঞেস করে: "কোন বিশেষ দিক আছে যেদিকে এই matrix শুধু লম্বা-ছোট করে, কিন্তু ঘোরায় না?"</p>
+  <div class="call-bn">💡 রাবারের শিট analogy: একটা ম্যাট্রিক্স কল্পনা করো একটা rubber sheet-কে stretch করার মতো।
+• বেশিরভাগ দিক: stretch হয় এবং rotate হয় — কোণ পরিবর্তন হয়।
+• Eigenvectors: এই বিশেষ দিকগুলো শুধু লম্বা বা ছোট হয় (λ দিয়ে), কিন্তু কোণ পরিবর্তন হয় না।
+• Eigenvalue λ = কতটুকু stretch বা compress হবে।
+সহজভাবে: Av = λv মানে A এবং v একই দিক দেখাচ্ছে, শুধু মাত্রা বদলেছে।</div>
+  <p class="bn" style="margin-top:12px"><strong>Symmetric Matrix কেন বিশেষ?</strong></p>
+  <p class="bn">Covariance matrix সবসময় symmetric (Σ = Σᵀ)। Spectral theorem বলে এর eigenvalues সবসময় real এবং eigenvectors পরস্পর orthogonal। এটাই PCA-কে সম্ভব করে — আমরা data-র principal directions খুঁজতে পারি যারা পরস্পর uncorrelated।</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 STEP-BY-STEP: FINDING EIGENVALUES & EIGENVECTORS</div>
+  <div class="fl">Complete worked example: A = [[3, 1], [1, 3]]</div>
+  <div class="fx"><span class="fw">Step 1:</span> Characteristic equation: det(A − λI) = 0
+det⎡3−λ  1 ⎤ = (3−λ)² − 1 = λ² − 6λ + 8 = (λ−4)(λ−2) = 0
+   ⎣1   3−λ⎦
+→ <span class="fa">λ₁ = 4,   λ₂ = 2</span>
+
+<span class="fw">Step 2:</span> Eigenvectors for λ₁ = 4:
+(A − 4I)v = 0  →  ⎡-1  1⎤⎡v₁⎤ = 0  →  v₁ = v₂
+                   ⎣ 1 -1⎦⎣v₂⎦
+→ <span class="fa">v₁ = [1, 1]ᵀ/√2</span>  (normalised)
+
+<span class="fw">Step 3:</span> Eigenvectors for λ₂ = 2:
+(A − 2I)v = 0  →  ⎡1  1⎤v = 0  →  v₁ = −v₂
+→ <span class="fa">v₂ = [1, -1]ᵀ/√2</span>  (normalised, orthogonal to v₁ ✓)
+
+<span class="fw">Step 4:</span> Reconstruct:  A = QΛQᵀ
+Q = ⎡1/√2  1/√2⎤,  Λ = ⎡4 0⎤
+    ⎣1/√2 -1/√2⎦        ⎣0 2⎦
+Verify: sum(λᵢ) = 6 = trace(A) ✓,   prod(λᵢ) = 8 = det(A) ✓</div>
+  <div class="fl">Key identities — always memorise these</div>
+  <div class="fx">trace(A) = Σ λᵢ          (sum of eigenvalues = sum of diagonal entries)
+det(A)   = Π λᵢ          (product of eigenvalues = determinant)
+rank(A)  = # non-zero λᵢ (rank = number of non-zero eigenvalues)
+A is invertible ⟺ all λᵢ ≠ 0</div>
+  <div class="fl">Powers and functions via eigen decomposition</div>
+  <div class="fx">A = QΛQᵀ  →  Aⁿ = QΛⁿQᵀ  (diagonal power: just raise each λᵢ to n)
+A⁻¹ = QΛ⁻¹Qᵀ  (diagonal inverse: just invert each λᵢ)
+Aˢ = QΛˢQᵀ    (matrix square root: s=0.5, raises each λᵢ to 0.5)
+This makes computations with symmetric matrices EXTREMELY efficient!</div>
+</div>
+
+<!-- INTERACTIVE EIGEN VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Eigen Decomposition Visualizer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Adjust the symmetric 2×2 matrix. Watch eigenvectors (stretch directions) and eigenvalues (stretch amounts) update live.</p>
+  <div class="ctrl">
+    <label>A[0,0] = a</label>
+    <input type="range" id="ea" min="1" max="60" value="30">
+    <span class="cval" id="eav">3.0</span>
+    <label>A[0,1] = b (off-diag)</label>
+    <input type="range" id="eb" min="-40" max="40" value="10">
+    <span class="cval" id="ebv">1.0</span>
+    <label>A[1,1] = d</label>
+    <input type="range" id="ed" min="1" max="60" value="30">
+    <span class="cval" id="edv">3.0</span>
+  </div>
+  <div class="cw">
+    <canvas id="eigen-canvas" width="580" height="300" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="eigen-lbl">Blue/cyan arrows = eigenvectors · length ∝ eigenvalue</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="e-lam">λ₁, λ₂ = ...</span>
+    <span class="cout" id="e-trace" style="color:var(--cyan)">trace = ...</span>
+    <span class="cout" id="e-det" style="color:var(--magenta)">det = ...</span>
+  </div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Eigen Decomposition Role</th></tr>
+  <tr><td>PCA</td><td>Eigendecompose covariance Σ → principal components & explained variance</td></tr>
+  <tr><td>Spectral Clustering</td><td>Eigendecompose graph Laplacian → cluster assignments from eigenvectors</td></tr>
+  <tr><td>PageRank</td><td>Dominant eigenvector of the web's link matrix = page importance</td></tr>
+  <tr><td>Markov chains (RL)</td><td>Stationary distribution = eigenvector of transition matrix for λ=1</td></tr>
+  <tr><td>Power iteration in LLMs</td><td>Find dominant eigenvector without full decomposition — scalable</td></tr>
+  <tr><td>Hessian analysis</td><td>Eigenvalues of H at a minimum: all >0 (PD) confirms local minimum</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: What does it mean geometrically when a matrix has a zero eigenvalue? <span class="qa-a">▶</span></button>
+<div class="ap">A zero eigenvalue means Av = 0·v = 0 for some non-zero v. That direction v gets mapped to the zero vector — the matrix COLLAPSES data in that direction. Geometric consequences: (1) The matrix is not invertible (det = Πλᵢ = 0). (2) The column space (image) has fewer dimensions than the input space. (3) Information is permanently lost — the transform is not reversible. ML consequences: (1) The covariance matrix has a zero eigenvalue → some feature is a perfect linear combination of others (multicollinearity). (2) The matrix (XᵀX) is singular → normal equation has no unique solution. (3) For PCA: zero eigenvalue directions contribute nothing and should be dropped. Fix: regularise with εI to make all eigenvalues positive (positive definite).<div class="a-bn">বাংলায়: Zero eigenvalue মানে সেই দিকে matrix সব কিছু শূন্যতে পাঠায় — information হারায়। Matrix invertible নয়। PCA-তে এই direction বাদ দাও।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Why does the Hessian matrix determine whether a critical point is a minimum, maximum, or saddle? <span class="qa-a">▶</span></button>
+<div class="ap">At a critical point (∇f = 0), the second-order Taylor expansion is f(x+δ) ≈ f(x) + ½δᵀHδ. The Hessian H is symmetric, so H = QΛQᵀ. In the eigenvector basis: ½δᵀHδ = ½Σᵢλᵢ(δᵢ')² where δᵢ' are components in eigenvector directions. All λᵢ > 0: every perturbation δ increases f → local MINIMUM (positive definite H). All λᵢ < 0: every perturbation decreases f → local MAXIMUM. Mixed signs: some directions go up, some down → SADDLE POINT. In deep learning: most critical points are saddle points (eigenvalues of H have mixed signs in high-dimensional non-convex loss landscapes). The "sharpness" of a minimum = largest eigenvalue of H at that point — sharp minima (large λ_max) generalise poorly.<div class="a-bn">বাংলায়: Hessian eigenvalues বলে critical point কোন ধরনের। সব > 0 = minimum। সব < 0 = maximum। Mixed = saddle। Deep learning-এ বেশিরভাগ critical point saddle।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: What is power iteration and how does it find the dominant eigenvector without full decomposition? <span class="qa-a">▶</span></button>
+<div class="ap">Power iteration computes the eigenvector corresponding to the LARGEST eigenvalue without decomposing the full matrix. Algorithm: start with random v₀; repeatedly compute vₖ₊₁ = Avₖ / ||Avₖ||. Convergence: each multiplication by A amplifies the largest-eigenvalue component. After k iterations: vₖ ≈ q₁ (dominant eigenvector) with error O((λ₂/λ₁)^k). Faster when the eigengap (λ₁−λ₂) is large. Why it matters for ML: (1) PageRank uses power iteration on billion-node web graphs (full eigendecomposition impossible). (2) Randomised SVD (used in sklearn's TruncatedSVD, LSA) uses randomised power iteration. (3) Spectral clustering on large graphs. Deflation: after finding q₁, subtract its contribution (A ← A − λ₁q₁q₁ᵀ) and repeat to find q₂, q₃, ...<div class="a-bn">বাংলায়: Power iteration = বারবার Av normalize করো। Dominant eigenvector-এর দিকে converge হয়। Billion-scale graph-এ full decomposition সম্ভব না, তাই power iteration ব্যবহার করা হয়।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Full Eigendecomposition</div>
+<p>A = [[5, 2],[2, 2]]. Find all eigenvalues and eigenvectors. Then verify: (a) λ₁+λ₂ = trace(A) (b) λ₁·λ₂ = det(A)</p>
+<div class="ex-ans">Char. eq: (5-λ)(2-λ)-4=0 → λ²-7λ+6=0 → (λ-6)(λ-1)=0. λ₁=6, λ₂=1. For λ₁=6: (A-6I)v=0 → [[-1,2],[2,-4]]v=0 → v₁=[2,1]ᵀ/√5. For λ₂=1: [[4,2],[2,1]]v=0 → v₂=[1,-2]ᵀ/√5. (a) 6+1=7=5+2=trace ✓ (b) 6×1=6=10-4=det ✓</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — ML Application</div>
+<p>Covariance matrix Σ has eigenvalues [12.5, 4.2, 2.1, 0.9, 0.3]. How many PCA components explain at least 90% of variance? Compute the threshold.</p>
+<div class="ex-ans">Total variance = 12.5+4.2+2.1+0.9+0.3 = 20.0. Cumulative: 1PC=12.5/20=62.5%. 2PC=(12.5+4.2)/20=83.5%. 3PC=(12.5+4.2+2.1)/20=94.0% > 90% ✓. Need 3 components to explain ≥ 90%. Reducing from 5D to 3D preserves 94% of variance.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=PFDu9oVAE-g" target="_blank">🎬 3Blue1Brown: Eigenvalues & Eigenvectors</a>
+<a class="rl" href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.eig.html" target="_blank">🐍 NumPy: np.linalg.eig</a>
+</div>`},
+
+/* ═══════════════════════════════════════
+   02  SVD
+═══════════════════════════════════════ */
+{title:"Singular Value <em>Decomposition (SVD)</em>",bn:"সিঙ্গুলার ভ্যালু বিভাজন (SVD)",
+tags:[{t:"A = UΣVᵀ",c:"ta"},{t:"Any Matrix",c:"tc"},{t:"Low-Rank Approx",c:"tm"},{t:"Recommender Systems",c:"tg"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A 1000×500 user-movie rating matrix has SVD with singular values [200, 150, 80, 40, 15, 3, 1, ...]. How many components capture ~95% of the "information," and what does this tell you about movie preferences?</p>
+  <p style="margin-top:9px;color:var(--amber)">✅ Singular values squared ∝ variance captured. σ₁²=40000, σ₂²=22500, σ₃²=6400, σ₄²=1600... total≈70000. 3 components: (40000+22500+6400)/70000≈98.4%. Just <strong>3 dimensions</strong> explain 98% of all movie preferences! This is the mathematical explanation of why Netflix/Spotify work: human tastes are low-rank — a few genre/mood axes explain almost everything.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>SVD and Eigen decomposition are NOT the same.</strong> Eigen decomposition (A=QΛQᵀ) requires square symmetric matrices and gives one set of vectors. SVD (A=UΣVᵀ) works on ANY m×n matrix and gives TWO sets of vectors (U and V). For square symmetric positive definite A: SVD and eigen decomposition coincide (U=V=Q, Σ=Λ). Otherwise they differ fundamentally.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Truncated SVD ≠ PCA in general.</strong> PCA centres the data first (subtract mean), then does SVD. Truncated SVD on raw data ≠ PCA because it does NOT centre. sklearn's TruncatedSVD is used for sparse matrices where centering is expensive (breaks sparsity). sklearn's PCA centres by default.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Singular values are non-negative but eigenvalues can be negative.</strong> Singular values σᵢ ≥ 0 always. Eigenvalues can be negative, complex, zero. The "rank" from SVD counts non-zero σᵢ. Don't confuse them when diagnosing matrix properties.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 SVD — The Most Important Matrix Factorization in ML</div>
+  <p>SVD is the generalization of eigen decomposition to <span class="ha">ANY matrix of any shape</span>. It decomposes any m×n matrix into three interpretable parts:</p>
+  <div class="big-eq">
+    <span class="eq">A = U · Σ · Vᵀ</span>
+    <span class="eq-sub">U (m×m): left singular vectors — "output space basis"<br>Σ (m×n): diagonal with singular values σ₁ ≥ σ₂ ≥ ... ≥ 0<br>Vᵀ (n×n): right singular vectors — "input space basis"</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Geometric interpretation — three operations:</strong></p>
+  <ol class="steps">
+    <li><strong>Vᵀ rotates</strong> the input (in ℝⁿ) to align with the singular value directions</li>
+    <li><strong>Σ scales</strong> each dimension by its singular value (and changes dimensionality m→n)</li>
+    <li><strong>U rotates</strong> back into the output space (in ℝᵐ)</li>
+  </ol>
+
+  <p style="margin-top:14px"><strong>Rank-k approximation — the most powerful use of SVD:</strong></p>
+  <div class="insight">
+    <div class="insight-t">🔑 Eckart–Young Theorem</div>
+    <p>The best rank-k approximation of A (in Frobenius or spectral norm) is:</p>
+    <div class="fx" style="margin-top:8px">Aₖ = <span class="fa">U[:, :k] · Σ[:k,:k] · Vᵀ[:k, :]</span>  = Σᵢ₌₁ᵏ σᵢ uᵢ vᵢᵀ
+No other rank-k matrix is closer to A than Aₖ.
+This is OPTIMAL compression — SVD gives the provably best low-rank approximation!
+
+Approximation error: ||A − Aₖ||_F² = Σᵢ>ₖ σᵢ²   (sum of remaining singular values squared)</div>
+  </div>
+
+  <p style="margin-top:16px"><strong>SVD as a sum of rank-1 matrices:</strong></p>
+  <div class="fx">A = σ₁·u₁v₁ᵀ + σ₂·u₂v₂ᵀ + σ₃·u₃v₃ᵀ + ...
+Each σᵢ·uᵢvᵢᵀ is a rank-1 matrix (outer product)
+σᵁ is large → this component is important (high energy)
+Keep only the top-k → low-rank approximation Aₖ
+This is the EXACT same idea as: "movies are combinations of genres"</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>SVD</strong> যেকোনো ম্যাট্রিক্সকে তিনটি অংশে ভাঙে: A = U · Σ · Vᵀ</p>
+  <div class="call-bn">💡 Netflix/Recommender System analogy:
+User-Movie rating matrix A (১০০০ user × ৫০০ movie):
+• V = movie-এর "genre axes" (action, romance, comedy...)  
+• U = user-এর "genre preferences" (user কতটা action/romance পছন্দ করে)
+• Σ = প্রতিটা genre কতটা important (singular values)
+SVD বলে: মানুষের পছন্দ মূলত ৫-১০টা "latent factor"-এ ব্যাখ্যা করা যায়!
+তাই আমরা ১০০০×৫০০ matrix-এর পরিবর্তে মাত্র ১০টা component দিয়ে কাজ চালাতে পারি।</div>
+  <p class="bn" style="margin-top:12px"><strong>SVD vs Eigen Decomposition:</strong></p>
+  <p class="bn">• Eigen: শুধু square symmetric matrix। একটা set of vectors (Q)।</p>
+  <p class="bn">• SVD: যেকোনো m×n matrix। দুটো set of vectors (U এবং V)।</p>
+  <p class="bn">• Singular values σᵢ ≥ 0 সবসময়। Eigenvalues negative হতে পারে।</p>
+  <p class="bn">• Connection: σᵢ = √λᵢ(AᵀA) — SVD-র singular values হলো AᵀA-এর eigenvalues-এর বর্গমূল!</p>
+</div>
+
+<!-- INTERACTIVE SVD / RANK-K APPROXIMATION -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — SVD Rank-k Image Approximation</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Watch how a matrix (simulated as an image pattern) is reconstructed from k singular value components. The approximation quality vs compression tradeoff is the core of SVD's power.</p>
+  <div class="ctrl">
+    <label>Rank k (components kept)</label>
+    <input type="range" id="svd-k" min="1" max="40" value="5">
+    <span class="cval" id="svd-kv">5</span>
+    <label>Pattern</label>
+    <select id="svd-pat">
+      <option value="faces">Face-like</option>
+      <option value="stripes">Stripes</option>
+      <option value="gradient">Gradient</option>
+    </select>
+  </div>
+  <div class="cw">
+    <canvas id="svd-canvas" width="580" height="280" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="svd-lbl">Left: original · Right: rank-k SVD approximation</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="svd-energy">Energy captured: ...</span>
+    <span class="cout" id="svd-compression" style="color:var(--cyan)">Compression ratio: ...</span>
+    <span class="cout" id="svd-error" style="color:var(--rose)">Error: ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Computing SVD in Python</div>
+  <div class="fx">import numpy as np
+
+A = np.random.randn(100, 50)          # any m×n matrix
+U, s, Vt = np.linalg.svd(A, full_matrices=False)  # economy SVD
+# U: (100, 50), s: (50,), Vt: (50, 50)
+# s contains singular values in descending order
+
+# Rank-k approximation:
+k = 10
+Ak = U[:, :k] @ np.diag(s[:k]) @ Vt[:k, :]  # (100, 50)
+
+# Or equivalently (memory-efficient):
+Ak = (U[:,:k] * s[:k]) @ Vt[:k,:]
+
+# Explained variance ratio:
+explained = (s**2).cumsum() / (s**2).sum()
+print(f"Top-{k} components explain {100*explained[k-1]:.1f}% of variance")</div>
+  <div class="fl">Relationship to eigen decomposition</div>
+  <div class="fx">If A = UΣVᵀ, then:
+AᵀA = VΣᵀUᵀ · UΣVᵀ = V(ΣᵀΣ)Vᵀ   ← eigen decomp of AᵀA
+AAᵀ = UΣVᵀ · VΣᵀUᵀ = U(ΣΣᵀ)Uᵀ   ← eigen decomp of AAᵀ
+→ V columns = eigenvectors of AᵀA (the "Gram matrix")
+→ U columns = eigenvectors of AAᵀ
+→ σᵢ = √λᵢ(AᵀA) = √λᵢ(AAᵀ)   (singular values = sqrt of eigenvalues)</div>
+  <div class="fl">SVD in different ML frameworks</div>
+  <div class="fx"><span class="fa">Full SVD:</span>   U(m×m), Σ(m×n), Vᵀ(n×n) — complete but expensive
+<span class="fa">Economy SVD:</span>  U(m×r), Σ(r×r), Vᵀ(r×n) where r=min(m,n) — standard
+<span class="fa">Truncated SVD:</span> U(m×k), Σ(k×k), Vᵀ(k×n) — only top-k, very efficient
+             sklearn.decomposition.TruncatedSVD → O(mnk) vs O(mn²) full
+             Uses randomised algorithms (Halko et al.) for large matrices</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — SVD is Everywhere in Modern AI</div>
+<table>
+  <tr><th>ML System</th><th>SVD Role</th></tr>
+  <tr><td>LSA / Latent Semantic Analysis</td><td>TF-IDF matrix → SVD → latent topic vectors for NLP</td></tr>
+  <tr><td>Recommender Systems</td><td>User-item matrix → SVD → latent factors. Netflix Prize winner used SVD++</td></tr>
+  <tr><td>Image compression</td><td>Pixel matrix → rank-k SVD. k=50 often gives visually good results at 10× compression</td></tr>
+  <tr><td>LoRA (Low-Rank Adaptation)</td><td>ΔW = AB (A·B ≈ rank-k SVD of weight update). Reduces 175B params to 0.1%</td></tr>
+  <tr><td>Word2Vec / GloVe analysis</td><td>PMI matrix SVD → word vectors (theoretically equivalent)</td></tr>
+  <tr><td>Pseudo-inverse</td><td>A⁺ = VΣ⁺Uᵀ (replace σᵢ with 1/σᵢ for non-zero) → least-squares solutions</td></tr>
+  <tr><td>Numerical stability</td><td>Condition number = σ_max/σ_min → large = ill-conditioned matrix (training instability)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: LoRA uses low-rank matrices. How does SVD justify why this works for fine-tuning LLMs? <span class="qa-a">▶</span></button>
+<div class="ap">LoRA insight: during fine-tuning, the weight change ΔW = W_finetuned − W_pretrained has intrinsically low rank. Empirically, when ΔW is computed for tasks like sentiment analysis or code generation, applying SVD shows that most singular values are near-zero — the update lives in a low-dimensional subspace. LoRA parameterises: ΔW = BA where B∈ℝᵐˣʳ, A∈ℝʳˣⁿ (r≪min(m,n)). This is equivalent to constraining ΔW to be rank-r. Why it works: the pretrained model already captures general language understanding. Fine-tuning on a specific task only needs to adjust a few "directions" in weight space (the low-rank subspace relevant to that task). SVD of observed ΔW empirically confirms r=8 to r=64 captures most task adaptation information. This is the Eckart–Young theorem in practice: the best rank-r approximation to ΔW is exactly what LoRA parameterises.<div class="a-bn">বাংলায়: Fine-tuning-এ weight change ΔW inherently low-rank — SVD করলে দেখা যায় বেশিরভাগ singular value ≈ 0। LoRA এই insight use করে BA (low-rank) দিয়ে ΔW approximate করে।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the condition number of a matrix and why does it matter for ML training stability? <span class="qa-a">▶</span></button>
+<div class="ap">Condition number κ(A) = σ_max / σ_min (ratio of largest to smallest singular value). Geometric meaning: how much does A distort distances? A circle (isotropic) → low condition number. A very elongated ellipse → high condition number. For ML: (1) In linear regression: large condition number of (XᵀX) means the normal equation (XᵀX)⁻¹Xᵀy is numerically unstable — small noise in y causes large changes in θ. (2) For gradient descent: the loss landscape's curvature ratio ≈ condition number of Hessian. High condition number → very different learning rates needed in different directions → slow convergence (why we use Adam: it adaptively adjusts lr per parameter direction). (3) Batch normalisation, layer normalisation, and weight initialisation all aim to keep condition numbers well-behaved. Rule of thumb: κ > 10⁶ → numerically dangerous without regularisation.<div class="a-bn">বাংলায়: Condition number = σ_max/σ_min। বড় মানে = ill-conditioned = training unstable। BatchNorm, weight init, Adam সব এটা control করতে সাহায্য করে।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: How is SVD used to compute the pseudo-inverse, and when is this needed in ML? <span class="qa-a">▶</span></button>
+<div class="ap">Moore-Penrose pseudo-inverse A⁺: given A = UΣVᵀ, define A⁺ = VΣ⁺Uᵀ where Σ⁺ replaces each non-zero σᵢ with 1/σᵢ (zero singular values stay zero). Properties: A⁺ gives the minimum-norm least-squares solution to Ax=b: x = A⁺b. When needed in ML: (1) Underdetermined systems (more parameters than equations): the pseudo-inverse gives the minimum-norm solution among all solutions. (2) Overdetermined systems (more equations than unknowns): gives least-squares solution even without unique solution. (3) Rank-deficient feature matrices: normal equation (XᵀX)⁻¹ doesn't exist → use np.linalg.lstsq which internally uses SVD-based pseudo-inverse. (4) Neural tangent kernel computations, optimal linear probing of features.<div class="a-bn">বাংলায়: Pseudo-inverse A⁺ = VΣ⁺Uᵀ। Non-invertible matrix-এর জন্য least-squares solution দেয়। sklearn.linear_model.Ridge এবং np.linalg.lstsq internally এটা ব্যবহার করে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — SVD Energy</div>
+<p>A matrix has singular values [10, 6, 3, 1, 0.5]. (a) What rank-k approximation captures ≥95% of the Frobenius norm energy? (b) What is the compression ratio if A is 100×50?</p>
+<div class="ex-ans">(a) σᵢ² = [100, 36, 9, 1, 0.25]. Total = 146.25. k=1: 68.4%. k=2: 93.1%. k=3: (100+36+9)/146.25 = 99.2% > 95%. Need rank-3 approximation. (b) Original: 100×50 = 5000 values. Rank-3: U[:,3] + diag(3) + Vt[3,:] = 100×3 + 3 + 3×50 = 300+3+150 = 453 values. Compression: 5000/453 ≈ 11× compression.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — LoRA Calculation</div>
+<p>A weight matrix W has shape (4096, 4096) = 16.7M parameters. LoRA uses rank r=8. How many parameters does LoRA add (B and A matrices)? What is the parameter reduction ratio?</p>
+<div class="ex-ans">B: 4096×8 = 32,768. A: 8×4096 = 32,768. Total LoRA params = 65,536. Reduction: 65,536 / 16,777,216 = 0.39% of original. LoRA fine-tunes with <0.4% of weight parameters! Typical LLM: ~1% LoRA params total across all layers.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=nbBvuuNVfco" target="_blank">🎬 3Blue1Brown: SVD Visualized</a>
+<a class="rl" href="https://arxiv.org/abs/2106.09685" target="_blank">📄 LoRA Paper (Hu et al. 2021)</a>
+<a class="rl" href="https://scikit-learn.org/stable/modules/decomposition.html" target="_blank">📘 sklearn: Matrix Decomposition</a>
+</div>`},
+
+/* ═══════════════════════════════════════
+   03  PCA MATH INTUITION
+═══════════════════════════════════════ */
+{title:"PCA Math <em>Intuition</em>",bn:"PCA-এর গাণিতিক অন্তর্দৃষ্টি",
+tags:[{t:"Maximum Variance",c:"ta"},{t:"Covariance → Eigen",c:"tc"},{t:"Projection",c:"tm"},{t:"Reconstruction",c:"tg"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You run PCA on a dataset. The first principal component explains 85% of variance. A colleague suggests: "Just use the original feature with the highest variance instead." Will that always give the same result? Why or why not?</p>
+  <p style="margin-top:9px;color:var(--amber)">✅ <strong>No — almost never the same.</strong> The first PC is a LINEAR COMBINATION of ALL features, chosen to maximise variance WHILE being a unit vector. A single feature might explain 40% of total variance, but the PC1 that combines multiple correlated features can explain 85%. PCA finds the direction in feature space with maximum projected variance — this direction crosses multiple feature axes when features are correlated. Single features cannot capture cross-feature variance patterns.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Not centering data before PCA.</strong> PCA must operate on zero-mean data. Without centering, the first PC points toward the data cloud's mean, not the direction of maximum variance. Always subtract the mean first. This is the difference between PCA and Truncated SVD.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Not scaling features before PCA.</strong> PCA maximises variance. Features with large scales (e.g., income in dollars vs age in years) dominate. Always StandardScaler before PCA unless your features are already on the same scale and you specifically want to weight by variance magnitude.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>PCA components are not interpretable.</strong> PC1, PC2 are linear combinations of original features — they have no natural meaning. "Patients with high PC1" doesn't tell you what's clinically different about them. For interpretable dimensionality reduction, use techniques like sparse PCA, NMF, or just select original features.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 PCA — THE COMPLETE MATHEMATICAL STORY</div>
+  <p>PCA finds the <span class="ha">orthogonal directions of maximum variance</span> in data. Here is the full derivation from first principles:</p>
+
+  <div class="insight">
+    <div class="insight-t">🔑 Derivation: Why PC1 = eigenvector of covariance matrix?</div>
+    <ol class="steps">
+      <li><strong>Goal:</strong> Find unit vector w that maximises Var(wᵀX) = wᵀΣw, subject to ||w||=1</li>
+      <li><strong>Lagrangian:</strong> L = wᵀΣw − λ(wᵀw − 1). Set ∂L/∂w = 0</li>
+      <li><strong>Result:</strong> 2Σw − 2λw = 0 → <span style="color:var(--amber)">Σw = λw</span> — this IS the eigenvalue equation!</li>
+      <li><strong>Conclusion:</strong> PC1 = eigenvector of Σ with largest eigenvalue λ₁. The variance captured = λ₁.</li>
+      <li><strong>PC2, PC3, ...:</strong> Repeat after removing PC1's contribution. Each subsequent PC = next eigenvector (orthogonal to previous).</li>
+    </ol>
+  </div>
+
+  <p style="margin-top:16px"><strong>PCA = Eigendecomposition = SVD — three equivalent views:</strong></p>
+  <div class="fx"><span class="fa">Method 1 (Covariance):</span>
+  Σ = (1/(n-1)) X̃ᵀX̃   (X̃ = centred data)
+  PCs = eigenvectors of Σ,  variances = eigenvalues
+
+<span class="fa">Method 2 (SVD of centred data):</span>
+  X̃ = UΣVᵀ
+  PCs = columns of V (right singular vectors of X̃)
+  Projected data = U·Σ = X̃·V
+  Singular values σᵢ related to eigenvalues: λᵢ = σᵢ²/(n-1)
+
+<span class="fa">Method 3 (Gram matrix):</span>
+  K = X̃X̃ᵀ/(n-1)    (n×n kernel matrix)
+  PCA scores = eigenvectors of K scaled by √λ
+  Kernel PCA generalises this!</div>
+
+  <p style="margin-top:14px"><strong>The full PCA algorithm:</strong></p>
+  <div class="fx">1. Centre: X̃ = X − mean(X, axis=0)        [required!]
+2. [Optional] Scale: X̃ /= std(X̃, axis=0)   [if features on different scales]
+3. Covariance: Σ = X̃ᵀX̃ / (n−1)
+4. Eigendecomp: Σ = QΛQᵀ  (sort by λ descending)
+5. Choose k: Σᵢ₌₁ᵏ λᵢ / Σᵢ λᵢ ≥ threshold (e.g., 95%)
+6. Project: Z = X̃ · Q[:, :k]               [n × k matrix of scores]
+7. Reconstruct: X̃_approx = Z · Q[:, :k]ᵀ  [n × d, low-rank reconstruction]</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা — Step by Step</div>
+  <p class="bn"><strong>PCA কী করে?</strong> Data-র মধ্যে সর্বোচ্চ variance-এর orthogonal দিকগুলো খুঁজে বের করে।</p>
+  <div class="call-bn">💡 সহজ analogy: তোমার সামনে একটা ছায়া আছে। তুমি বিভিন্ন কোণ থেকে আলো ফেললে ছায়ার আকার পরিবর্তন হয়। PCA সেই কোণ খোঁজে যেখানে ছায়া সবচেয়ে বড় (সর্বোচ্চ variance)। এই কোণের দিকটাই PC1। তারপর PC1-এর লম্ব দিকে সবচেয়ে বড় ছায়া = PC2। এভাবে চলতে থাকে।</div>
+  <p class="bn" style="margin-top:12px"><strong>কেন eigenvector?</strong></p>
+  <p class="bn">আমরা একটা unit vector w খুঁজি যেদিকে projected data-র variance সর্বোচ্চ। গাণিতিকভাবে solve করলে পাওয়া যায়: Σw = λw — এটাই covariance matrix-এর eigenvalue equation! সুতরাং PC1 = largest eigenvalue-এর eigenvector।</p>
+  <p class="bn" style="margin-top:8px"><strong>Variance Explained = Eigenvalue:</strong></p>
+  <p class="bn">PC1-এর explained variance = λ₁। Total variance = Σλᵢ = trace(Σ)। তাই PC1 explains λ₁/Σλᵢ × ১০০% variance।</p>
+</div>
+
+<!-- INTERACTIVE PCA VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — PCA Live Explorer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Adjust data correlation and see PC directions, explained variance, and projection onto PC1.</p>
+  <div class="ctrl">
+    <label>Data correlation ρ</label>
+    <input type="range" id="pca-rho" min="-95" max="95" value="75">
+    <span class="cval" id="pca-rhov">0.75</span>
+    <label>σ₁ (x-spread)</label>
+    <input type="range" id="pca-s1" min="5" max="40" value="20">
+    <span class="cval" id="pca-s1v">2.0</span>
+    <label>σ₂ (y-spread)</label>
+    <input type="range" id="pca-s2" min="5" max="40" value="12">
+    <span class="cval" id="pca-s2v">1.2</span>
+  </div>
+  <div class="cw">
+    <canvas id="pca-canvas" width="580" height="300" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="pca-lbl">Points with PC1 projection lines · Amber = PC1 (max variance) · Cyan = PC2</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="pca-ev1">PC1 explains: ...</span>
+    <span class="cout" id="pca-ev2" style="color:var(--cyan)">PC2 explains: ...</span>
+    <span class="cout" id="pca-total" style="color:var(--green)">Total variance: ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 RECONSTRUCTION & COMPRESSION</div>
+  <div class="fl">Projection and reconstruction</div>
+  <div class="fx">Projection (d-dim → k-dim): Z = X̃ · W       (W = top-k eigenvectors, d×k)
+Reconstruction (k-dim → d-dim): X̃_rec = Z · Wᵀ
+
+Reconstruction error = ||X̃ − X̃_rec||²_F = Σᵢ>ₖ λᵢ  (sum of dropped eigenvalues)
+→ Choosing k to minimize this error is equivalent to choosing k by explained variance!</div>
+  <div class="fl">Information loss when projecting to k dimensions</div>
+  <div class="fx">Information preserved = Σᵢ₌₁ᵏ λᵢ / Σᵢ λᵢ  (explained variance ratio)
+Information lost = 1 - explained_variance_ratio
+
+sklearn:
+pca = PCA(n_components=k)
+Z = pca.fit_transform(X)                    # project to k-dim
+X_reconstructed = pca.inverse_transform(Z)  # back to d-dim (with loss)
+print(pca.explained_variance_ratio_)         # per-component variance
+print(pca.explained_variance_ratio_.cumsum())# cumulative</div>
+  <div class="fl">Kernel PCA — nonlinear extension</div>
+  <div class="fx">Standard PCA: linear projection only (can't capture nonlinear structure)
+Kernel PCA: replace X̃X̃ᵀ with kernel matrix K where K[i,j] = k(xᵢ,xⱼ)
+  k(x,y) = xᵀy           → equivalent to linear PCA
+  k(x,y) = (1+xᵀy)ᵈ      → polynomial PCA
+  k(x,y) = exp(-||x-y||²/2σ²)  → RBF/Gaussian PCA (captures circular clusters)
+→ Eigendecompose K instead of Σ → nonlinear principal directions!</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — When to Use PCA</div>
+<table>
+  <tr><th>Situation</th><th>Use PCA?</th><th>Why</th></tr>
+  <tr><td>KNN on 500 features</td><td>✅ Yes</td><td>Curse of dimensionality — reduce to ~30D first</td></tr>
+  <tr><td>Neural network with 10K features</td><td>❌ Usually no</td><td>Network learns its own feature combination (more powerful)</td></tr>
+  <tr><td>Visualisation (t-SNE input)</td><td>✅ Yes (to ~50D)</td><td>t-SNE is slow at high-D; PCA→50D first is standard</td></tr>
+  <tr><td>Correlated features in linear model</td><td>✅ Yes</td><td>PCA removes multicollinearity → stable coefficients</td></tr>
+  <tr><td>Sparse data (text, TF-IDF)</td><td>TruncatedSVD</td><td>Centering breaks sparsity — use TruncatedSVD instead</td></tr>
+  <tr><td>Anomaly detection</td><td>✅ Yes</td><td>Reconstruct via PCA → high reconstruction error = anomaly</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Can PCA be used as a denoising technique? How and when? <span class="qa-a">▶</span></button>
+<div class="ap">Yes — PCA denoising: (1) Project data to top-k PC subspace. (2) Reconstruct back to original space. Assumption: true signal lies in the high-variance (high-eigenvalue) subspace; noise is spread uniformly across all dimensions. The reconstruction discards the low-variance PCs which are noise-dominated. Effectiveness: works well when signal-to-noise ratio is high and signal has low intrinsic dimensionality (e.g., images of objects against uniform backgrounds). Limitations: if signal and noise have overlapping directions (both high-variance), PCA can't separate them. Better alternatives: autoencoders (learn nonlinear signal manifold), denoising diffusion. Classic application: "eigenfaces" — reconstruct face images in top-50 PC space to remove noise and lighting variations.<div class="a-bn">বাংলায়: PCA denoising = top-k PC-তে project করো, reconstruct করো। Low-variance direction-এ থাকা noise বাদ পড়ে। Image denoising-এ eigenfaces এই পদ্ধতি ব্যবহার করে।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What happens to PCA when features are perfectly correlated? What does this imply mathematically? <span class="qa-a">▶</span></button>
+<div class="ap">If feature X₂ = c·X₁ (perfect correlation), the covariance matrix Σ is rank-deficient — it has a zero eigenvalue. Geometrically: the data lies on a 1D line (or lower-dimensional hyperplane) in the 2D feature space. The zero eigenvalue tells us the second PC direction has zero variance — the data has zero spread in that direction. PCA will find: PC1 = the line direction (high variance), PC2 = perpendicular direction (zero variance). Implications: (1) The covariance matrix is singular (not invertible). (2) Only 1 PC is needed to represent all data with zero reconstruction error. (3) Multicollinearity in linear regression is exactly this problem — add regularisation or use PCA to remove the zero-eigenvalue dimension. In deep learning: perfectly redundant features are automatically handled by the network (it can set one weight to zero), but cause issues for classical ML.<div class="a-bn">বাংলায়: Perfect correlation → covariance matrix singular (zero eigenvalue) → data 1D subspace-এ → 1টা PC-ই যথেষ্ট। Multicollinearity এই exact problem।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise — PCA by Hand</div>
+<p>Data (centred): X = [[-1,-1],[0,0],[1,1],[2,2],[-2,-2]]. (a) Compute covariance matrix Σ. (b) Find eigenvalues. (c) What does this tell you about the dimensionality of this data?</p>
+<div class="ex-ans">(a) n=5. Σ = XᵀX/(n-1) = [[-1,0,1,2,-2]·[-1,0,1,2,-2]]/4 = [[1+0+1+4+4]/4, same]/4... X[:,0]=X[:,1]=[-1,0,1,2,-2]. Σ[0,0]=Σ[1,1]=(1+0+1+4+4)/4=2.5. Σ[0,1]=(1+0+1+4+4)/4=2.5. Σ=[[2.5,2.5],[2.5,2.5]]. (b) det(Σ-λI)=0: (2.5-λ)²-6.25=0. λ²-5λ=0. λ(λ-5)=0. λ₁=5, λ₂=0. (c) Zero eigenvalue → data is perfectly 1-dimensional! All points lie on the line x₁=x₂. One PC captures 100% of variance. This is a rank-1 dataset.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=FgakZw6K1QQ" target="_blank">🎬 StatQuest: PCA Step-by-Step</a>
+<a class="rl" href="https://setosa.io/ev/principal-component-analysis/" target="_blank">🎯 Setosa: Interactive PCA</a>
+</div>`},
+
+/* ═══════════════════════════════════════
+   04  DIMENSIONALITY REDUCTION
+═══════════════════════════════════════ */
+{title:"Dimensionality Reduction <em>Rationale</em>",bn:"মাত্রা হ্রাসের যৌক্তিকতা",
+tags:[{t:"Manifold Hypothesis",c:"ta"},{t:"PCA vs t-SNE vs UMAP",c:"tc"},{t:"Intrinsic Dim",c:"tm"},{t:"When to Reduce",c:"tg"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You have images of faces (128×128 = 16,384 pixels per image). PCA reveals that 95% of variance is explained by the top 150 components. What does this tell you about the intrinsic structure of face space — and why can a GAN generate realistic faces from just 100-200 dimensional latent vectors?</p>
+  <p style="margin-top:9px;color:var(--amber)">✅ The intrinsic dimensionality of face space is ~100-200, not 16,384. All "natural face images" lie on a low-dimensional manifold within pixel space — tiny changes in identity, expression, lighting, pose span this manifold. The 16,384−150 = 16,234 remaining PCA directions are mostly noise/background variation. A GAN learns to model this manifold directly, generating all face images by traversing the 100-200D latent space. This is the <strong>Manifold Hypothesis</strong> — the foundation of all deep generative modelling.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using t-SNE for anything other than visualisation.</strong> t-SNE is NOT a preprocessing step for ML models. t-SNE coordinates are NOT preserved between runs (different initialisations), are NOT linear, and do NOT preserve global structure. Never train classifiers on t-SNE output. Use PCA/UMAP for actual dimensionality reduction.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Thinking dimensionality reduction always improves model performance.</strong> Neural networks with regularisation can handle high-D input directly — dimensionality reduction may discard discriminative information. PCA for NN preprocessing is often counterproductive. Use for traditional ML (KNN, k-means, SVM), not for deep learning (usually).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using PCA when the manifold is non-linear.</strong> PCA finds linear subspaces only. If data lies on a curved manifold (Swiss roll, face space), PCA may need hundreds of components while UMAP/t-SNE needs 2. When the explained variance curve (scree plot) is flat, PCA is failing — the variance is spread across many linear directions because the true structure is non-linear.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 WHY DIMENSIONALITY REDUCTION WORKS — The Theory</div>
+  <p>High-dimensional data in ML almost always exhibits <span class="ha">intrinsic low dimensionality</span>. This is not an accident — it is a consequence of the physical world.</p>
+
+  <div class="call"><strong>The Manifold Hypothesis:</strong> High-dimensional real-world data (images, text, audio) concentrates near a low-dimensional smooth manifold embedded in the high-dimensional space. The ambient dimension (e.g., 16,384 pixels) is irrelevant; the intrinsic dimension (e.g., 150 face factors) is what matters.</div>
+
+  <p style="margin-top:16px"><strong>Why high-D data is low-rank — a thought experiment:</strong></p>
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(255,179,71,.35)">
+      <div class="gbox-t ha">Images of Faces</div>
+      <p style="font-size:.86em">Degrees of freedom: identity (≈50D), expression (≈20D), pose (3D), lighting (≈10D), age (1D)... Total: ~100D actual variation. Ambient: 16,384D (128² pixels). PCA top-150 covers 95% variance.</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(0,221,232,.35)">
+      <div class="gbox-t hc">Natural Language</div>
+      <p style="font-size:.86em">All valid English sentences occupy a tiny corner of the space of all possible token sequences. BERT 768D embeddings actually use ~30-100 intrinsic dimensions (evidenced by LoRA r=8 working). Language has deep low-rank structure.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:16px"><strong>The complete comparison of dimensionality reduction methods:</strong></p>
+  <table>
+    <tr><th>Method</th><th>Type</th><th>Preserves</th><th>Scalable</th><th>Use For</th></tr>
+    <tr><td><span class="ha">PCA</span></td><td>Linear</td><td>Global variance (covariance)</td><td>✅ Yes</td><td>ML preprocessing, denoising, visualisation</td></tr>
+    <tr><td><span class="hc">Truncated SVD</span></td><td>Linear</td><td>Global variance (sparse-friendly)</td><td>✅ Yes</td><td>Sparse data (text), LSA</td></tr>
+    <tr><td><span class="hm">t-SNE</span></td><td>Non-linear</td><td>Local neighbourhood</td><td>❌ O(n²)</td><td>Visualisation ONLY</td></tr>
+    <tr><td><span class="hg">UMAP</span></td><td>Non-linear</td><td>Local + some global</td><td>✅ O(n)</td><td>Visualisation & preprocessing</td></tr>
+    <tr><td><span class="hv">Autoencoder</span></td><td>Non-linear</td><td>Task-relevant structure</td><td>✅ Yes</td><td>Representation learning, generation</td></tr>
+    <tr><td><span class="hsk">Kernel PCA</span></td><td>Non-linear</td><td>Kernel-defined structure</td><td>❌ O(n²)</td><td>Small datasets, nonlinear PCA</td></tr>
+    <tr><td><span class="hl">NMF</span></td><td>Linear+</td><td>Non-negative parts</td><td>✅ Yes</td><td>Topic models, image decomposition</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Dimensionality Reduction কেন কাজ করে?</strong> কারণ বাস্তব data সবসময় high-dimensional space-এর ক্ষুদ্র একটা corner-এ থাকে।</p>
+  <div class="call-bn">💡 Manifold Hypothesis:
+১৬,৩৮৪ pixel-এর ছবি theoretically যেকোনো random pixel pattern হতে পারে।
+কিন্তু "face image" হতে হলে সেই random space-এর অতি ক্ষুদ্র অংশে থাকতে হবে।
+এই ক্ষুদ্র অংশটাই হলো face manifold — মাত্র ~১৫০ dimension-এর।
+Face-এর: expression (খুশি-দুখী), pose (বাম-ডান), lighting (উজ্জ্বল-অন্ধকার) ইত্যাদি।
+GAN এই manifold শেখে → ১০০D noise থেকে realistic face generate করে!</div>
+  <p class="bn" style="margin-top:12px"><strong>কোন পদ্ধতি কখন?</strong></p>
+  <p class="bn">• <strong>PCA:</strong> Linear data। Quick preprocessing। KNN-এর আগে। Feature correlation আছে।</p>
+  <p class="bn">• <strong>UMAP:</strong> Non-linear structure। Visualisation + preprocessing। Large dataset।</p>
+  <p class="bn">• <strong>t-SNE:</strong> শুধু visualisation! ML model training-এ ব্যবহার করো না।</p>
+  <p class="bn">• <strong>Autoencoder:</strong> Task-specific representation। Neural network bottleneck। Generation।</p>
+  <p class="bn">• <strong>LoRA/Low-rank:</strong> LLM fine-tuning। Weight matrix-এর low-rank structure exploit।</p>
+</div>
+
+<!-- INTERACTIVE DIMENSIONALITY REDUCTION RATIONALE -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Explained Variance (Scree Plot)</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Explore how singular values decay — the "elbow" in the scree plot tells you the intrinsic dimensionality of data.</p>
+  <div class="ctrl">
+    <label>Intrinsic dimension d*</label>
+    <input type="range" id="scree-d" min="1" max="20" value="5">
+    <span class="cval" id="scree-dv">5</span>
+    <label>Noise level ε</label>
+    <input type="range" id="scree-e" min="1" max="50" value="15">
+    <span class="cval" id="scree-ev">0.15</span>
+    <label>Total components D</label>
+    <input type="range" id="scree-D" min="5" max="40" value="20">
+    <span class="cval" id="scree-Dv">20</span>
+  </div>
+  <div class="cw">
+    <canvas id="scree-canvas" width="580" height="280" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="scree-lbl">Scree plot (singular values) and cumulative explained variance</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="scree-90">k for 90%: ...</span>
+    <span class="cout" id="scree-95" style="color:var(--cyan)">k for 95%: ...</span>
+    <span class="cout" id="scree-elbow" style="color:var(--magenta)">Elbow at: ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 CHOOSING THE RIGHT NUMBER OF COMPONENTS</div>
+  <div class="fl">Methods for choosing k</div>
+  <div class="fx"><span class="fa">Method 1: Explained variance threshold</span>
+k = min{k : Σᵢ₌₁ᵏ λᵢ / Σᵢ λᵢ ≥ 0.95}  (keep 95% of variance)
+
+<span class="fa">Method 2: Elbow / scree plot</span>
+Plot singular values vs index; find the "elbow" where drop slows
+Visual: sharp drop then flat → elbow = intrinsic dimensionality
+
+<span class="fa">Method 3: Cross-validation on downstream task</span>
+Try k ∈ {5, 10, 20, 50, ...}, evaluate accuracy on validation set
+Choose k that maximises validation performance
+
+<span class="fa">Method 4: Minimum Description Length (MDL)</span>
+Penalise model complexity: choose k to minimise MDL
+Theoretically principled but computationally intensive
+
+<span class="fa">Method 5: Reconstruction error threshold</span>
+||A − Aₖ||_F² / ||A||_F² ≤ ε   (e.g., 5% reconstruction error)
+Equivalent to explained variance ≥ 95%</div>
+  <div class="fl">When NOT to use dimensionality reduction</div>
+  <div class="fx">❌ Deep neural networks — learn their own compression (better than PCA)
+❌ When n ≪ d with powerful regularisation (LASSO selects better)
+❌ After normalisation if features are already meaningful/independent
+❌ For interpretability (PCA components lose original feature meaning)
+❌ t-SNE coordinates for any downstream model training</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — The Big Picture</div>
+<table>
+  <tr><th>System</th><th>Dimensionality Reduction Method</th><th>Why</th></tr>
+  <tr><td>Netflix Recommender</td><td>SVD / Matrix Factorization</td><td>User-movie matrix has ~10-50 latent factors</td></tr>
+  <tr><td>LLM (BERT, GPT)</td><td>Implicit (learned)</td><td>Self-attention learns low-rank representations</td></tr>
+  <tr><td>LoRA fine-tuning</td><td>Explicit low-rank (SVD inspired)</td><td>ΔW is low-rank → BA parameterisation</td></tr>
+  <tr><td>Face recognition</td><td>ArcFace/FaceNet embeddings</td><td>512D embedding for ~∞ identities</td></tr>
+  <tr><td>Genomics (scRNA-seq)</td><td>PCA → UMAP</td><td>Gene expression: 20K genes → 50 PCs → 2D UMAP</td></tr>
+  <tr><td>Anomaly detection</td><td>PCA reconstruction error</td><td>Normal data → low error; anomalies → high error</td></tr>
+  <tr><td>Search engines</td><td>LSA (SVD on TF-IDF)</td><td>Latent semantic space captures synonyms/topics</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Compare PCA, t-SNE, and UMAP. When would you use each in a real ML project? <span class="qa-a">▶</span></button>
+<div class="ap">PCA: Use for (1) Preprocessing before traditional ML (KNN, SVM, k-means) to avoid curse of dimensionality. (2) Removing noise/multicollinearity. (3) Quick visualisation (PC1 vs PC2). (4) Computational efficiency. Limitation: linear only. t-SNE: Use ONLY for 2D/3D visualisation of clusters in embedding spaces. Not reproducible, not good for ML preprocessing, not scalable (O(n²)). t-SNE is famous for visually beautiful cluster plots of MNIST, BERT embeddings. UMAP: Use for (1) Better visualisation than t-SNE (preserves more global structure). (2) Scalable to large datasets (O(n)). (3) Can be used for preprocessing (unlike t-SNE). (4) Faster than t-SNE. In practice: Genomics pipeline: PCA→50D (linear, fast), then UMAP→2D (nonlinear viz). NLP: BERT embeddings → UMAP for class visualisation. Classic ML: standardize → PCA→30D → SVM/RF.<div class="a-bn">বাংলায়: PCA = linear, fast, ML preprocessing। t-SNE = শুধু visualization। UMAP = nonlinear, fast, visualization + preprocessing। Real pipeline: PCA → UMAP সাধারণ pattern।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the intrinsic dimensionality of a dataset and how can you estimate it? <span class="qa-a">▶</span></button>
+<div class="ap">Intrinsic dimensionality = the minimum number of parameters needed to describe the data, regardless of ambient dimension. Estimation methods: (1) PCA scree plot: count eigenvalues before the "elbow" — this gives the linear intrinsic dimension. (2) Two-NN estimator (Facco 2017): based on nearest-neighbour ratios. Provably consistent even for curved manifolds. (3) Correlation dimension: count how many points fall within radius r as r varies — slope of log-log plot estimates dimension. (4) Minimum description length (MDL): finds d that best compresses the data. Results: ImageNet patches ≈ 14D intrinsic. Face images ≈ 30-150D. Language models (BERT) ≈ 30-100D (evidenced by LoRA r=8 working). Random data has intrinsic dim ≈ ambient dim (no compression possible).<div class="a-bn">বাংলায়: Intrinsic dimension = data describe করতে actually কত dimension দরকার। PCA scree plot, two-NN estimator, correlation dimension দিয়ে estimate করা যায়। BERT ≈ 30-100D intrinsically।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: In the Netflix Prize, SVD was central to the winning solution. Explain what SVD reveals about movie preferences. <span class="qa-a">▶</span></button>
+<div class="ap">The Netflix Prize (2009) winning team (BellKor's Pragmatic Chaos) used SVD++ and collaborative filtering. Key insight: the 480,189 user × 17,770 movie rating matrix has very low rank — only a handful of latent factors explain almost all variance in ratings. SVD A = UΣVᵀ reveals: (1) V matrix: each column is a "movie factor" — directions in movie space that correspond to latent genres (action, romance, indie, award-bait...). (2) U matrix: each row is a "user factor" — how strongly each user weights each latent factor (their preferences for action, romance...). (3) Σ: how much each factor explains. (4) Recommendation: predict A[user, movie] = Uᵢ · Σ · Vⱼᵀ for unseen (user, movie) pairs. The discovery that ~50-100 latent factors explain most movie preference variance is the mathematical explanation for why collaborative filtering works: human taste is low-dimensional.<div class="a-bn">বাংলায়: Netflix Prize-এ SVD দেখায় যে মানুষের movie পছন্দ মাত্র ৫০-১০০টা latent factor দিয়ে explain করা যায়। U = user preference, V = movie genres, Σ = factor importance।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Method Selection</div>
+<p>For each scenario, choose the best dimensionality reduction method and justify: (a) 50,000 single-cell RNA sequences with 20,000 genes, for cluster visualisation (b) 1M text documents (TF-IDF sparse matrix) for topic modelling (c) Preprocessing 100D features for a random forest</div>
+<div class="ex-ans">(a) PCA → 50 components (fast linear reduction for dense matrix), then UMAP → 2D (captures nonlinear cluster structure in gene expression). Standard bioinformatics pipeline. (b) TruncatedSVD (LSA) — centering 1M sparse docs breaks sparsity. TruncatedSVD extracts ~100-500 latent topic dimensions efficiently. (c) Probably don't need DR! Random forests handle high-D and select features implicitly. If applied anyway: PCA to remove correlated features. But tree models are resistant to curse of dimensionality unlike distance-based methods.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — LoRA Insight</div>
+<p>If ΔW (weight update during fine-tuning) has SVD with singular values [5.2, 3.1, 1.8, 0.4, 0.1, 0.03, ...], what rank-r approximation captures 90% of the "update energy"? What does this tell you about LoRA?</p>
+<div class="ex-ans">σᵢ² = [27.04, 9.61, 3.24, 0.16, 0.01...]. Total ≈ 40.1. k=1: 67.4%. k=2: 91.4% > 90%! Just rank-2 captures the task adaptation. This validates LoRA: even rank 4-8 in practice is more than enough, as ΔW is genuinely low-rank. The fine-tuning direction in weight space is concentrated in a 2-8D subspace — LLMs need very few "new directions" to learn a specific task.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://umap-learn.readthedocs.io/en/latest/" target="_blank">📘 UMAP Documentation</a>
+<a class="rl" href="https://distill.pub/2016/misread-tsne/" target="_blank">🎯 Distill: How to Use t-SNE Effectively</a>
+<a class="rl" href="https://arxiv.org/abs/2106.09685" target="_blank">📄 LoRA: Intrinsic Dimensionality of LLM Adaptation</a>
+<a class="rl" href="https://www.youtube.com/watch?v=9iol3Lk6kyU" target="_blank">🎬 StatQuest: Dimensionality Reduction</a>
+</div>`}
+
+];
+
+/* ═══════════════════════════════════
+   BUILD & ROUTE
+═══════════════════════════════════ */
+function buildAll(){
+  const nl=document.getElementById('nl'),mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-n">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · MATRIX FACTORIZATION & DECOMPOSITION</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===0) initEigen();
+    if(i===1) initSVD();
+    if(i===2) initPCA();
+    if(i===3) initScree();
+  },150);
+}
+
+function tQ(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+/* ═══════════ CANVAS HELPERS ═══════════ */
+function prep(id){
+  const c=document.getElementById(id);if(!c)return null;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.fillStyle='#030812';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#192840';ctx.lineWidth=0.5;
+  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(W*i/8,0);ctx.lineTo(W*i/8,H);ctx.stroke();}
+  for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(0,H*i/6);ctx.lineTo(W,H*i/6);ctx.stroke();}
+  return{ctx,W,H};
+}
+function arrow(ctx,x1,y1,x2,y2,col,w=2.5){
+  ctx.strokeStyle=col;ctx.lineWidth=w;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  const ang=Math.atan2(y2-y1,x2-x1),sz=10;
+  ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-sz*Math.cos(ang-0.4),y2-sz*Math.sin(ang-0.4));
+  ctx.lineTo(x2-sz*Math.cos(ang+0.4),y2-sz*Math.sin(ang+0.4));
+  ctx.closePath();ctx.fill();
+}
+function eig2x2(a,b,d){
+  const t=a+d,det=a*d-b*b,disc=Math.sqrt(Math.max(0,(t/2)**2-det));
+  const l1=t/2+disc,l2=t/2-disc;
+  const v1=Math.abs(b)<1e-10?[1,0]:(()=>{const r=[b,l1-a];const n=Math.hypot(...r);return[r[0]/n,r[1]/n];})();
+  const v2=[-v1[1],v1[0]];
+  return{l1,l2,v1,v2};
+}
+
+/* ═══════════ EIGEN CANVAS ═══════════ */
+function initEigen(){
+  const r=prep('eigen-canvas');if(!r)return;
+  const{W,H}=r;
+  const [as,bs,ds]=['ea','eb','ed'].map(id=>document.getElementById(id));
+  function draw(){
+    const a=parseInt(as.value)/10,b=parseInt(bs.value)/10,d=parseInt(ds.value)/10;
+    document.getElementById('eav').textContent=a.toFixed(1);
+    document.getElementById('ebv').textContent=b.toFixed(1);
+    document.getElementById('edv').textContent=d.toFixed(1);
+    const {l1,l2,v1,v2}=eig2x2(a,b,d);
+    const ctx=document.getElementById('eigen-canvas').getContext('2d');
+    prep('eigen-canvas');
+    const ox=W/2,oy=H/2,sc=25;
+    // Unit circle in grey
+    ctx.strokeStyle='rgba(25,40,64,.7)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(ox,oy,sc,0,Math.PI*2);ctx.stroke();
+    // Transformed circle (ellipse showing A's action)
+    ctx.save();ctx.translate(ox,oy);
+    const ang=Math.atan2(v1[1],v1[0]);ctx.rotate(ang);
+    ctx.strokeStyle='rgba(255,179,71,.25)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.ellipse(0,0,Math.abs(l1)*sc,Math.abs(l2)*sc,0,0,Math.PI*2);
+    ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    // Eigenvectors scaled by eigenvalues
+    [[v1,l1,'#ffb347'],[v2,l2,'#00dde8']].forEach(([v,lam,col])=>{
+      if(lam===0)return;
+      const len=Math.abs(lam)*sc;
+      arrow(ctx,ox,oy,ox+v[0]*len,oy+v[1]*len,col,3);
+      arrow(ctx,ox,oy,ox-v[0]*len,oy-v[1]*len,col,3);
+      ctx.fillStyle=col;ctx.font='bold 12px Fira Code';ctx.textAlign='center';
+      ctx.fillText(`λ=${lam.toFixed(2)}`,ox+v[0]*len*1.15,oy+v[1]*len*1.15);
+    });
+    // Center
+    ctx.beginPath();ctx.fillStyle='#ffb347';ctx.arc(ox,oy,5,0,Math.PI*2);ctx.fill();
+    // Original x and y axes faint
+    ctx.strokeStyle='rgba(61,96,144,.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(40,oy);ctx.lineTo(W-40,oy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ox,20);ctx.lineTo(ox,H-20);ctx.stroke();
+    document.getElementById('e-lam').textContent=`λ₁=${l1.toFixed(3)}, λ₂=${l2.toFixed(3)}`;
+    document.getElementById('e-trace').textContent=`trace = ${(l1+l2).toFixed(3)} (= a+d = ${(a+d).toFixed(1)})`;
+    document.getElementById('e-det').textContent=`det = ${(l1*l2).toFixed(3)} (= ad-b² = ${(a*d-b*b).toFixed(2)})`;
+    document.getElementById('eigen-lbl').textContent=`Amber = eigenvector 1 (λ=${l1.toFixed(2)}) | Cyan = eigenvector 2 (λ=${l2.toFixed(2)}) | Ellipse = transformed unit circle`;
+  }
+  [as,bs,ds].forEach(s=>s.addEventListener('input',draw));draw();
+}
+
+/* ═══════════ SVD CANVAS ═══════════ */
+function initSVD(){
+  const r=prep('svd-canvas');if(!r)return;
+  const{W,H,ctx}=r;
+  const ks=document.getElementById('svd-k'),pat=document.getElementById('svd-pat');
+  const SZ=40;
+  function makeMatrix(type){
+    const M=[];
+    for(let i=0;i<SZ;i++){M.push([]);for(let j=0;j<SZ;j++){
+      let v=0;
+      if(type==='faces'){
+        // Low-rank face-like (a few smooth modes)
+        v=0.4*Math.sin(Math.PI*i/SZ*3)*Math.cos(Math.PI*j/SZ*2)+
+          0.3*Math.cos(Math.PI*i/SZ)*Math.sin(Math.PI*j/SZ*4)+
+          0.2*Math.sin(Math.PI*i/SZ*5)*Math.cos(Math.PI*j/SZ)+
+          0.1*Math.cos(Math.PI*i/SZ*7)*Math.sin(Math.PI*j/SZ*3)+
+          0.05*(Math.random()-0.5);
+      } else if(type==='stripes'){
+        v=Math.sin(Math.PI*j/SZ*8)*0.6+Math.cos(Math.PI*i/SZ*3)*0.4+0.05*(Math.random()-0.5);
+      } else {
+        v=(i+j)/(2*SZ)+(i*j)/(SZ*SZ)*0.5+0.05*(Math.random()-0.5);
+      }
+      M[i].push(v);
+    }}
+    return M;
+  }
+  function svdApprox(M,k){
+    // Use power-iteration based rank-k approx for demo
+    const n=M.length;
+    const result=Array.from({length:n},()=>new Array(n).fill(0));
+    const components=[];
+    let R=M.map(row=>[...row]);
+    for(let c=0;c<Math.min(k,n);c++){
+      let u=Array.from({length:n},(_,i)=>Math.sin((i+c*2.7)*1.3));
+      const un=Math.sqrt(u.reduce((s,x)=>s+x*x,0));u=u.map(x=>x/un);
+      for(let iter=0;iter<8;iter++){
+        let v=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u[i],0));
+        const sig=Math.sqrt(v.reduce((s,x)=>s+x*x,0));if(sig<1e-10)break;
+        v=v.map(x=>x/sig);
+        u=R.map(row=>row.reduce((s,x,j)=>s+x*v[j],0));
+        const un2=Math.sqrt(u.reduce((s,x)=>s+x*x,0));if(un2<1e-10)break;
+        u=u.map(x=>x/un2);
+        components.push({u:[...u],v:[...v],sig:un2});
+      }
+      // Deflate
+      const sig2=components[components.length-1]?.sig||1;
+      const u2=u,v2=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u2[i],0));
+      R=R.map((row,i)=>row.map((x,j)=>x-sig2*u2[i]*v2[j]/sig2));
+    }
+    // Reconstruct using first k components
+    components.slice(0,k).forEach(({u,v,sig})=>{
+      for(let i=0;i<n;i++)for(let j=0;j<n;j++)result[i][j]+=sig*u[i]*v[j];
+    });
+    return result;
+  }
+  function draw(){
+    const k=parseInt(ks.value),type=pat.value;
+    document.getElementById('svd-kv').textContent=k;
+    const M=makeMatrix(type);
+    const Mk=svdApprox(M,k);
+    // Find range
+    let mn=Infinity,mx=-Infinity;
+    M.forEach(row=>row.forEach(v=>{mn=Math.min(mn,v);mx=Math.max(mx,v);}));
+    function toGray(v){return Math.round(255*(v-mn)/(mx-mn||1));}
+    const p=H/SZ,w2=W/2;
+    const ctx2=document.getElementById('svd-canvas').getContext('2d');
+    ctx2.fillStyle='#030812';ctx2.fillRect(0,0,W,H);
+    // Draw original left half
+    for(let i=0;i<SZ;i++)for(let j=0;j<SZ;j++){
+      const g=toGray(M[i][j]);
+      ctx2.fillStyle=`rgb(${Math.round(g*0.3)},${Math.round(g*0.6)},${g})`;
+      ctx2.fillRect(j*(w2-4)/SZ,i*H/SZ,(w2-4)/SZ,H/SZ);
+    }
+    // Divider
+    ctx2.strokeStyle='rgba(255,179,71,.4)';ctx2.lineWidth=2;
+    ctx2.beginPath();ctx2.moveTo(w2,0);ctx2.lineTo(w2,H);ctx2.stroke();
+    // Draw rank-k right half
+    let mn2=Infinity,mx2=-Infinity;
+    Mk.forEach(row=>row.forEach(v=>{mn2=Math.min(mn2,v);mx2=Math.max(mx2,v);}));
+    for(let i=0;i<SZ;i++)for(let j=0;j<SZ;j++){
+      const g=Math.round(255*(Mk[i][j]-mn2)/(mx2-mn2||1));
+      ctx2.fillStyle=`rgb(${Math.round(g*0.3)},${Math.round(g*0.6)},${g})`;
+      ctx2.fillRect(w2+4+j*(w2-8)/SZ,i*H/SZ,(w2-8)/SZ,H/SZ);
+    }
+    // Labels
+    ctx2.font='bold 13px Fira Code';ctx2.textAlign='center';
+    ctx2.fillStyle='rgba(255,179,71,.8)';ctx2.fillText('Original',w2/2,15);
+    ctx2.fillStyle='rgba(0,221,232,.8)';ctx2.fillText(`Rank-${k} SVD`,w2*1.5,15);
+    // Energy estimate
+    const totalSV=Array.from({length:SZ},(_,i)=>Math.max(0.01,SZ-i*SZ/k)*Math.exp(-i*0.3));
+    const sumTotal=totalSV.reduce((a,b)=>a+b,0);
+    const sumK=totalSV.slice(0,k).reduce((a,b)=>a+b,0);
+    const energy=Math.min(99.9,(sumK/sumTotal*100)).toFixed(1);
+    const compress=((SZ*SZ)/(2*SZ*k+k)).toFixed(1);
+    const err=(100-parseFloat(energy)).toFixed(1);
+    document.getElementById('svd-energy').textContent=`Energy captured: ~${energy}%`;
+    document.getElementById('svd-compression').textContent=`Compression ratio: ~${compress}×`;
+    document.getElementById('svd-error').textContent=`Reconstruction error: ~${err}%`;
+    document.getElementById('svd-lbl').textContent=`Left: original (${SZ}×${SZ}=${SZ*SZ} values) | Right: rank-${k} SVD (~${2*SZ*k} values)`;
+  }
+  ks.addEventListener('input',draw);pat.addEventListener('change',draw);draw();
+}
+
+/* ═══════════ PCA CANVAS ═══════════ */
+function initPCA(){
+  const r=prep('pca-canvas');if(!r)return;
+  const{W,H}=r;
+  const rhos=document.getElementById('pca-rho'),s1s=document.getElementById('pca-s1'),s2s=document.getElementById('pca-s2');
+  const NPTS=120;
+  function draw(){
+    const rho=parseInt(rhos.value)/100,s1=parseInt(s1s.value)/10,s2=parseInt(s2s.value)/10;
+    document.getElementById('pca-rhov').textContent=rho.toFixed(2);
+    document.getElementById('pca-s1v').textContent=s1.toFixed(1);
+    document.getElementById('pca-s2v').textContent=s2.toFixed(1);
+    prep('pca-canvas');
+    const ctx=document.getElementById('pca-canvas').getContext('2d');
+    const v1=s1*s1,v2=s2*s2,cv=rho*s1*s2;
+    // PD check
+    if(v1*v2-cv*cv<=0)return;
+    const L11=s1,L21=cv/L11,L22=Math.sqrt(Math.max(0,v2-L21*L21));
+    // Sample
+    const pts=[];
+    const randn=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+    for(let i=0;i<NPTS;i++){const z1=randn(),z2=randn();pts.push([L11*z1,L21*z1+L22*z2]);}
+    const ox=W/2,oy=H/2,sc=20;
+    // Get PC directions
+    const {l1,l2,v1:pc1,v2:pc2}=eig2x2(v1,cv,v2);
+    // Draw projection lines to PC1
+    pts.forEach(([x,y])=>{
+      const proj=(x*pc1[0]+y*pc1[1]);
+      const px=proj*pc1[0],py=proj*pc1[1];
+      ctx.strokeStyle='rgba(255,179,71,.15)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(ox+x*sc,oy+y*sc);ctx.lineTo(ox+px*sc,oy+py*sc);ctx.stroke();
+    });
+    // Data points
+    pts.forEach(([x,y])=>{
+      ctx.beginPath();ctx.fillStyle='rgba(96,200,255,.55)';
+      ctx.arc(ox+x*sc,oy+y*sc,3.5,0,Math.PI*2);ctx.fill();
+    });
+    // PC arrows
+    [[pc1,l1,'#ffb347','PC1'],[pc2,l2,'#00dde8','PC2']].forEach(([v,lam,col,lbl])=>{
+      const len=Math.sqrt(Math.abs(lam))*sc*1.5;
+      arrow(ctx,ox,oy,ox+v[0]*len,oy+v[1]*len,col,3.5);
+      arrow(ctx,ox,oy,ox-v[0]*len,oy-v[1]*len,col,1.5);
+      ctx.fillStyle=col;ctx.font='bold 12px Fira Code';ctx.textAlign='center';
+      const lx=ox+v[0]*len*1.2,ly=oy+v[1]*len*1.2;
+      ctx.fillText(`${lbl} (λ=${lam.toFixed(2)})`,lx+(lx>W-80?-30:10),ly+(ly>H-20?-8:12));
+    });
+    ctx.beginPath();ctx.fillStyle='#ffb347';ctx.arc(ox,oy,5,0,Math.PI*2);ctx.fill();
+    const total=l1+l2;
+    document.getElementById('pca-ev1').textContent=`PC1 explains: ${(100*l1/total).toFixed(1)}%`;
+    document.getElementById('pca-ev2').textContent=`PC2 explains: ${(100*l2/total).toFixed(1)}%`;
+    document.getElementById('pca-total').textContent=`Total variance: ${total.toFixed(3)} (λ₁+λ₂)`;
+    document.getElementById('pca-lbl').textContent=`ρ=${rho}: PC1 (amber) explains ${(100*l1/total).toFixed(0)}% of variance | Thin lines = projection onto PC1`;
+  }
+  [rhos,s1s,s2s].forEach(s=>s.addEventListener('input',draw));draw();
+}
+
+/* ═══════════ SCREE CANVAS ═══════════ */
+function initScree(){
+  const r=prep('scree-canvas');if(!r)return;
+  const{W,H}=r;
+  const ds=document.getElementById('scree-d'),es=document.getElementById('scree-e'),Ds=document.getElementById('scree-D');
+  function draw(){
+    const dstar=parseInt(ds.value),noise=parseInt(es.value)/100,D=parseInt(Ds.value);
+    document.getElementById('scree-dv').textContent=dstar;
+    document.getElementById('scree-ev').textContent=noise.toFixed(2);
+    document.getElementById('scree-Dv').textContent=D;
+    // Generate "ideal" singular values with clear elbow at dstar
+    const svs=Array.from({length:D},(_,i)=>{
+      if(i<dstar)return Math.pow(0.7,i)*(1-noise)+noise*Math.random()*0.3;
+      return noise*(0.5+Math.random()*0.5)*Math.pow(0.8,i-dstar);
+    });
+    const total=svs.reduce((a,b)=>a+b,0);
+    const cumvar=svs.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v/total);return acc;},[]);
+    const k90=cumvar.findIndex(v=>v>=0.9)+1||D;
+    const k95=cumvar.findIndex(v=>v>=0.95)+1||D;
+    const elbow=Math.max(1,...svs.map((v,i)=>i>0?svs[i-1]-v:0).map((d,i)=>({d,i})).sort((a,b)=>b.d-a.d).slice(0,1).map(o=>o.i));
+    prep('scree-canvas');
+    const ctx=document.getElementById('scree-canvas').getContext('2d');
+    const pad={l:50,r:20,t:30,b:40};
+    const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    const bw=Math.min(22,pw/D-2);
+    // Bar chart of singular values
+    const maxSV=Math.max(...svs);
+    svs.forEach((v,i)=>{
+      const x=pad.l+i*(pw/D)+(pw/D-bw)/2;
+      const barH=(v/maxSV)*ph*0.55;
+      const hue=i<dstar?40:200;
+      ctx.fillStyle=`hsla(${hue},80%,60%,${0.35+0.55*(v/maxSV)})`;
+      ctx.fillRect(x,pad.t+ph*0.55-barH,bw,barH);
+      ctx.fillStyle=`hsla(${hue},80%,60%,0.8)`;
+      ctx.fillRect(x,pad.t+ph*0.55-barH,bw,2);
+    });
+    // Cumulative variance line (bottom half)
+    ctx.beginPath();ctx.strokeStyle='rgba(0,221,232,.8)';ctx.lineWidth=2.5;
+    cumvar.forEach((v,i)=>{
+      const x=pad.l+i*(pw/D)+pw/(2*D);
+      const y=pad.t+ph-(v*ph*0.42);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // 90%, 95% lines
+    [[0.9,'rgba(255,179,71,.6)','90%'],[0.95,'rgba(224,64,251,.6)','95%']].forEach(([thresh,col,lbl])=>{
+      const y=pad.t+ph-(thresh*ph*0.42);
+      ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=col;ctx.font='10px Fira Code';ctx.textAlign='right';ctx.fillText(lbl,W-pad.r-2,y-3);
+    });
+    // Elbow marker
+    const ex=pad.l+(elbow)*(pw/D)+pw/(2*D);
+    ctx.strokeStyle='rgba(57,229,137,.6)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(ex,pad.t);ctx.lineTo(ex,H-pad.b);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(57,229,137,.7)';ctx.font='10px Fira Code';ctx.textAlign='center';ctx.fillText('elbow',ex,pad.t+10);
+    // Labels
+    ctx.fillStyle='rgba(255,179,71,.7)';ctx.font='10px Fira Code';ctx.fillText('Signal (amber)',pad.l+5,pad.t+14);
+    ctx.fillStyle='rgba(61,96,144,.7)';ctx.fillText('Noise (blue)',pad.l+80,pad.t+14);
+    ctx.fillStyle='rgba(0,221,232,.7)';ctx.fillText('Cumul. variance →',W-pad.r,H-pad.b+14);
+    document.getElementById('scree-90').textContent=`k for 90%: ${k90}`;
+    document.getElementById('scree-95').textContent=`k for 95%: ${k95}`;
+    document.getElementById('scree-elbow').textContent=`Elbow at: ~${elbow} (intrinsic d*)`;
+    document.getElementById('scree-lbl').textContent=`Amber = signal components (d*=${dstar}) | Blue = noise | Cyan line = cumulative variance`;
+  }
+  [ds,es,Ds].forEach(s=>s.addEventListener('input',draw));draw();
+}
+
+buildAll();
+setTimeout(initEigen,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

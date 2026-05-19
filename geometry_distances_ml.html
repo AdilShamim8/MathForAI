@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry & Distance Measures for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04080f;--bg2:#08101e;--bg3:#0e1928;--bg4:#162236;
+  --border:#1a2d45;--text:#c8deff;--muted:#4d6e99;
+  --teal:#00e5c8;--gold:#ffcd3c;--pink:#ff4d8f;
+  --violet:#9b72ff;--sky:#48c5ff;--lime:#8aff6e;
+  --orange:#ff8c42;--red:#ff4560;--green:#4dffb4;
+  --radius:12px;
+}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.83em;color:var(--teal)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:275px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:40px 46px;max-width:980px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:22px 18px 16px;border-bottom:1px solid var(--border);background:linear-gradient(150deg,rgba(0,229,200,.06),rgba(155,114,255,.04))}
+.s-sym{font-size:2.3em;margin-bottom:5px;line-height:1}
+.s-title{font-size:.96em;font-weight:700;color:var(--teal)}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.79em;margin-top:2px}
+.s-sub{font-size:.69em;color:var(--muted);margin-top:5px;line-height:1.4}
+.pg-row{display:flex;justify-content:space-between;font-size:.68em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.pg-bar{height:3px;background:var(--bg3);border-radius:2px}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:2px;transition:width .5s ease}
+.nav-wrap{padding:10px 0;flex:1}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:11px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Manrope',sans-serif;font-size:.79em;line-height:1.35;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--teal);border-left-color:var(--teal)}
+.nb-n{font-family:'Fira Code',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.7em;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-n{background:var(--teal);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:28px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:28px;position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,200,.05),rgba(155,114,255,.03));pointer-events:none}
+.ch-num{font-family:'Fira Code',monospace;font-size:.68em;color:var(--teal);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:1.9em;font-weight:800;line-height:1.15;color:var(--text)}
+.ch-title em{color:var(--teal);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.92em;margin-top:6px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 12px;border-radius:20px;font-size:.7em;font-weight:700;border:1px solid;letter-spacing:.03em}
+.tt{border-color:var(--teal);color:var(--teal);background:rgba(0,229,200,.08)}
+.tg{border-color:var(--gold);color:var(--gold);background:rgba(255,205,60,.08)}
+.tv{border-color:var(--violet);color:var(--violet);background:rgba(155,114,255,.08)}
+.tp{border-color:var(--pink);color:var(--pink);background:rgba(255,77,143,.08)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--teal);background:rgba(0,229,200,.04)}
+.law2{border-left:4px solid var(--red);background:rgba(255,69,96,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.69em;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'Fira Code',monospace;font-size:.84em;color:var(--sky);line-height:2.1;overflow-x:auto;margin:10px 0;white-space:pre}
+.ft{color:var(--teal)}.fg{color:var(--lime)}.fv{color:var(--violet)}.fp{color:var(--pink)}.fy{color:var(--gold)}.fr{color:var(--red)}.fw{color:var(--text)}.fo{color:var(--orange)}
+
+/* ── HIGHLIGHTS ── */
+.ht{color:var(--teal);font-weight:600}.hg{color:var(--lime);font-weight:600}.hv{color:var(--violet);font-weight:600}.hp{color:var(--pink);font-weight:600}.hy{color:var(--gold);font-weight:600}.hr{color:var(--red);font-weight:600}.hsk{color:var(--sky);font-weight:600}.ho{color:var(--orange);font-weight:600}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(0,229,200,.05);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(255,205,60,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,205,60,.9);font-size:.88em;line-height:1.9}
+.call-r{background:rgba(255,69,96,.05);border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-v{background:rgba(155,114,255,.05);border-left:4px solid var(--violet);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── BIG EQ ── */
+.big-eq{text-align:center;padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin:14px 0}
+.big-eq .eq{font-family:'Fira Code',monospace;font-size:1.15em;color:var(--teal);display:block;margin-bottom:6px}
+.big-eq .eq-sub{font-size:.82em;color:var(--muted)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.75em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 15px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:500;cursor:pointer;font-family:'Manrope',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--teal);border-bottom-color:transparent}
+.qa-a{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-a{transform:rotate(90deg);color:var(--teal)}
+.ap{display:none;padding:14px 15px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.85}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,205,60,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(255,205,60,.04);border:1px solid rgba(255,205,60,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--gold);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--teal);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.71em;color:var(--muted);text-align:center;margin-top:6px;font-family:'Fira Code',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--teal);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.78em;font-family:'Manrope',sans-serif}
+.cval{font-family:'Fira Code',monospace;font-size:.79em;color:var(--teal);min-width:44px}
+.cout{font-family:'Fira Code',monospace;font-size:.82em;color:var(--teal);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+.cout-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--red);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(138,255,110,.04);border:1px solid rgba(138,255,110,.14);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--lime);font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── ANALOGY ── */
+.analogy{background:linear-gradient(135deg,rgba(0,229,200,.05),rgba(155,114,255,.04));border:1px solid rgba(0,229,200,.18);border-radius:10px;padding:18px;margin:13px 0}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--sky);text-decoration:none;font-size:.79em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--sky);background:var(--bg4)}
+
+/* ── CURSE BOX ── */
+.curse-box{background:rgba(255,69,96,.05);border:1px solid rgba(255,69,96,.2);border-radius:10px;padding:18px;margin:13px 0}
+.curse-title{color:var(--red);font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'Manrope',sans-serif;font-size:.87em}
+@media(max-width:760px){.mob{display:block}.sb{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* ── METRIC COMPARISON ROW ── */
+.mc-row{display:flex;gap:10px;margin:14px 0;flex-wrap:wrap}
+.mc-card{flex:1;min-width:160px;background:var(--bg3);border-radius:9px;padding:14px;border:1px solid var(--border)}
+.mc-name{font-size:.8em;font-weight:700;margin-bottom:6px}
+.mc-val{font-family:'Fira Code',monospace;font-size:1.1em;color:var(--teal);font-weight:600}
+.mc-sub{font-size:.73em;color:var(--muted);margin-top:3px}
+
+/* ── GEOMETRY VIS SPECIFIC ── */
+.path-dot{cursor:pointer}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Euclidean Distance</option>
+    <option value="1">02 — Manhattan Distance</option>
+    <option value="2">03 — Cosine Similarity</option>
+    <option value="3">04 — Angle Between Vectors</option>
+    <option value="4">05 — Curse of Dimensionality</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sb">
+  <div class="s-brand">
+    <div class="s-sym">📐</div>
+    <div class="s-title">Geometry & Distances</div>
+    <div class="s-bn">জ্যামিতি ও দূরত্ব পরিমাপ</div>
+    <div class="s-sub">Modern ML Geometry · AI Engineer's Spatial Intuition</div>
+    <div class="pg-row"><span>Progress</span><span id="pp">20%</span></div>
+    <div class="pg-bar"><div class="pg-fill" id="pf" style="width:20%"></div></div>
+  </div>
+  <div class="nav-wrap" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Euclidean Distance","Manhattan Distance","Cosine Similarity","Angle Between Vectors","Curse of Dimensionality"];
+
+const TOPICS=[
+
+/* ══ 01 EUCLIDEAN ══ */
+{title:"Euclidean <em>Distance</em>",bn:"ইউক্লিডীয় দূরত্ব",
+tags:[{t:"L2 Norm",c:"tt"},{t:"Pythagorean",c:"tg"},{t:"KNN / Clustering",c:"tv"},{t:"Embedding Space",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Two word embeddings: "king" = [1.2, 0.8, -0.5] and "queen" = [1.1, 0.9, -0.4]. Before computing — will Euclidean distance correctly tell you these words are semantically close? What's a potential problem?</p>
+  <p style="margin-top:9px;color:var(--teal)">✅ Euclidean distance works here (small → similar). But the <strong>critical limitation</strong>: it's magnitude-sensitive. A document with "king" mentioned 100 times has a MUCH larger embedding magnitude than one mentioning it once. Euclidean would say they're "far apart" even though the meaning is identical. This is why NLP uses <strong>cosine similarity</strong> instead — it normalizes by magnitude. Euclidean distance works best when vectors are unit-normalized or you explicitly care about magnitude differences.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Euclidean distance is not scale-invariant.</strong> Feature with range [0,1000] dominates over feature with range [0,1]. Always normalize features before using Euclidean distance (KNN, k-means, SVM with RBF kernel).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Euclidean distance breaks in high dimensions.</strong> In 1000D space, all points are roughly equidistant from any query point. KNN becomes meaningless. This is the Curse of Dimensionality — covered in Chapter 05.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Squared Euclidean vs Euclidean.</strong> Many algorithms use squared Euclidean (avoids sqrt, same rankings). k-means uses squared Euclidean internally. But for threshold comparisons ("closer than ε"), use actual Euclidean to maintain interpretability.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>Euclidean distance is the <span class="ht">"straight-line" or "as-the-crow-flies" distance</span> between two points — what you'd measure with a ruler. It's the most natural geometric distance, derived from the Pythagorean theorem.</p>
+  <div class="big-eq">
+    <span class="eq">d(a, b) = ||a − b||₂ = √(Σᵢ (aᵢ − bᵢ)²)</span>
+    <span class="eq-sub">= L2 norm of the difference vector · Minimum distance between two points in Euclidean space</span>
+  </div>
+  <p style="margin-top:14px"><strong>Building intuition from low dimensions:</strong></p>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(0,229,200,.3)">
+      <div class="gbox-t ht">1D (number line)</div>
+      <p style="font-size:.86em">d(a, b) = |a − b|<br>Simple absolute difference.<br>Example: d(3, 7) = 4</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(155,114,255,.3)">
+      <div class="gbox-t hv">2D (flat plane)</div>
+      <p style="font-size:.86em">d = √((x₂−x₁)²+(y₂−y₁)²)<br>Pythagorean theorem!<br>Example: (0,0)→(3,4) = 5</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(255,205,60,.3)">
+      <div class="gbox-t hy">n-D (ML space)</div>
+      <p style="font-size:.86em">d = √(Σᵢ (aᵢ−bᵢ)²)<br>Same formula, more dims.<br>768D (BERT embeddings)</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Euclidean Distance</strong> হলো দুটো বিন্দুর মধ্যে সরলরেখা দূরত্ব — যেভাবে শাসক দিয়ে মাপা হয়।</p>
+  <div class="call-bn">💡 সহজ উদাহরণ: তুমি Dhaka-তে আছ (x=0, y=0) এবং বন্ধু আছে (x=3, y=4) কিমি দূরে। Euclidean distance = √(3²+4²) = √(9+16) = √25 = 5 কিমি। এটাই সরাসরি "পাখি উড়ে যাওয়ার" দূরত্ব।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ ব্যবহার:</strong></p>
+  <p class="bn">• <strong>KNN (K-Nearest Neighbors):</strong> নতুন sample-এর সবচেয়ে কাছের training example খুঁজতে Euclidean distance ব্যবহার হয়।</p>
+  <p class="bn">• <strong>K-means Clustering:</strong> প্রতিটা data point সবচেয়ে কাছের cluster center-এ assign হয় Euclidean distance-এ।</p>
+  <p class="bn">• <strong>SVM (RBF Kernel):</strong> Support vector-এর থেকে distance measure করে।</p>
+  <p class="bn">• <strong>L2 Loss (MSE):</strong> Prediction ও true value-এর Euclidean distance minimize করা।</p>
+  <p class="bn" style="margin-top:8px"><strong>সতর্কতা:</strong> Feature scale ভিন্ন হলে Euclidean distance misleading হয়। সবসময় normalize করো!</p>
+</div>
+
+<!-- INTERACTIVE EUCLIDEAN VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Drag Points to Explore Distances</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Drag the colored dots to move points. All three distance metrics update in real time.</p>
+  <div class="cw">
+    <canvas id="dist-canvas" width="580" height="300" style="width:100%;display:block;cursor:crosshair"></canvas>
+    <div class="clbl">Click and drag the <span style="color:var(--teal)">teal (A)</span> or <span style="color:var(--pink)">pink (B)</span> point</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="euc-out" style="border-color:rgba(0,229,200,.4)">Euclidean: —</span>
+    <span class="cout" id="man-out" style="border-color:rgba(255,77,143,.4);color:var(--pink)">Manhattan: —</span>
+    <span class="cout" id="cos-out" style="border-color:rgba(155,114,255,.4);color:var(--violet)">Cosine sim: —</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS & PROPERTIES</div>
+  <div class="fl">General Minkowski family (parent of Euclidean & Manhattan)</div>
+  <div class="fx"><span class="ft">Lp distance:</span> d(a,b) = (Σᵢ |aᵢ−bᵢ|ᵖ)^(1/p)
+p=1 → Manhattan distance  (taxicab)
+p=2 → <span class="ft">Euclidean distance</span>  (straight line)  ← most common
+p=∞ → Chebyshev distance  (chess king moves)
+
+Squared Euclidean: d²(a,b) = Σᵢ (aᵢ−bᵢ)²  [no sqrt, same rank order]</div>
+  <div class="fl">Euclidean distance properties (true metric)</div>
+  <div class="fx">1. d(a,b) ≥ 0              [non-negativity]
+2. d(a,b) = 0 ⟺ a = b     [identity of indiscernibles]
+3. d(a,b) = d(b,a)         [symmetry]
+4. d(a,c) ≤ d(a,b)+d(b,c)  [triangle inequality]</div>
+  <div class="fl">Python implementation</div>
+  <div class="fx">import numpy as np
+a, b = np.array([1,2,3]), np.array([4,5,6])
+euclidean = np.linalg.norm(a - b)          # √(9+9+9) = 5.196
+euclidean = np.sqrt(np.sum((a-b)**2))      # same
+squared   = np.sum((a-b)**2)               # 27 (no sqrt, faster)
+
+# For many pairs at once (e.g., KNN):
+from sklearn.metrics.pairwise import euclidean_distances
+D = euclidean_distances(X_train, X_test)   # (n_train × n_test) matrix</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>Algorithm</th><th>How Euclidean Distance Is Used</th><th>Normalization Needed?</th></tr>
+  <tr><td>KNN Classifier</td><td>Find k nearest training points by L2 distance</td><td>✅ Yes — StandardScaler</td></tr>
+  <tr><td>K-means Clustering</td><td>Assign points to nearest centroid (squared L2)</td><td>✅ Yes — features dominate</td></tr>
+  <tr><td>MSE Loss</td><td>||y − ŷ||₂² — squared Euclidean in output space</td><td>N/A — same scale</td></tr>
+  <tr><td>Gaussian RBF Kernel</td><td>k(a,b) = exp(−||a−b||₂²/2σ²) — similarity via distance</td><td>✅ Yes</td></tr>
+  <tr><td>Nearest-neighbor retrieval</td><td>FAISS, ScaNN — approximate nearest neighbor search</td><td>Often</td></tr>
+  <tr><td>t-SNE / UMAP</td><td>Preserve pairwise distances in high-dim → 2D</td><td>✅ Yes</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why must you normalize features before using KNN with Euclidean distance? Give a concrete example. <span class="qa-a">▶</span></button>
+<div class="ap">Feature 1: income ∈ [20,000 – 200,000]. Feature 2: age ∈ [18 – 80]. Euclidean distance = √((income_diff)² + (age_diff)²). If income differs by 50,000 and age by 5: d = √(50000² + 5²) ≈ 50,000. The income term completely dominates — age is irrelevant! After StandardScaler (zero mean, unit variance): both features contribute equally. A $50,000 income difference might be 1 standard deviation, as is a 5-year age difference. Rule: always StandardScaler before Euclidean-based algorithms (KNN, k-means, SVM). MinMaxScaler is another option but StandardScaler is preferred for Gaussian-distributed features.<div class="a-bn">বাংলায়: বড় range-এর feature Euclidean distance-এ dominate করে। StandardScaler দিয়ে সব feature-কে same scale-এ আনো — তারপর Euclidean distance meaningful হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: FAISS achieves billion-scale nearest-neighbor search in milliseconds. How? <span class="qa-a">▶</span></button>
+<div class="ap">Exact nearest-neighbor search requires computing distance to all n points → O(n·d). At n=1B, d=768: impossible in real-time. FAISS uses Approximate Nearest Neighbors (ANN): (1) Product Quantization (PQ): compress 768D vectors to shorter codes (lossy compression). (2) IVF (Inverted File): cluster the database into k clusters (k-means), search only nearby clusters. (3) HNSW (Hierarchical Navigable Small World): graph-based index — traverse hierarchy, skip most points. Trade-off: small accuracy loss (ANN not NN) for 1000× speedup. Used in: Facebook's image search, recommender systems, semantic search (FAISS + BERT embeddings).<div class="a-bn">বাংলায়: Exact search O(n·d) = too slow। FAISS = approximate search with PQ, IVF, HNSW = 1000× faster, small accuracy loss। Billion-scale search মিলিসেকেন্ডে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute</div>
+<p>a=[1,2,3,4], b=[5,4,3,2]. Compute: (a) Euclidean d(a,b) (b) Squared Euclidean (c) Which has changed more: feature 1 or feature 4?</p>
+<div class="ex-ans">(a) √((5-1)²+(4-2)²+(3-3)²+(2-4)²)=√(16+4+0+4)=√24≈4.899 (b) 24 (c) Feature 1 changed by 4, feature 4 changed by 2. Feature 1 contributes 16 to squared distance vs feature 4's 4 — feature 1 dominates!</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — When to normalize?</div>
+<p>You're building a fraud detector with features: transaction_amount ($10–$10,000), hour_of_day (0–23), num_transactions_today (1–50). Which feature would dominate Euclidean distance without normalization? What do you do?</p>
+<div class="ex-ans">transaction_amount dominates (max difference 9990 vs 23 vs 49). Without normalization, hour_of_day and num_transactions_today are completely irrelevant. Fix: StandardScaler or MinMaxScaler before KNN/k-means. After scaling, all three features contribute meaningfully to distance.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=OTGzIPcO8JM" target="_blank">🎬 StatQuest: Euclidean Distance & KNN</a>
+<a class="rl" href="https://github.com/facebookresearch/faiss" target="_blank">🔍 FAISS: Billion-Scale Similarity Search</a>
+</div>`},
+
+/* ══ 02 MANHATTAN ══ */
+{title:"Manhattan <em>Distance</em>",bn:"ম্যানহাটন দূরত্ব",
+tags:[{t:"L1 Norm",c:"tt"},{t:"Taxicab",c:"tg"},{t:"Sparse Features",c:"tv"},{t:"Lasso Reg",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You're building a recommendation system for movies. Users are represented by sparse rating vectors (mostly zeros — they've only rated a few movies). Should you use Manhattan or Euclidean distance for nearest-neighbor user similarity?</p>
+  <p style="margin-top:9px;color:var(--teal)">✅ <strong>Manhattan distance</strong> performs better with sparse, high-dimensional data. Why? Manhattan distance sums absolute differences — if two users both rate 0 for an unrated movie, they contribute nothing. Euclidean distance squares the differences — even small deviations get amplified. Manhattan is also more robust to outlier ratings (one extreme rating has less impact squared vs absolute). Many recommender systems use Manhattan or cosine similarity for sparse user-item matrices.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Manhattan distance is not rotation-invariant.</strong> If you rotate your coordinate axes, Manhattan distance changes but Euclidean stays the same. This matters when the orientation of your feature space is meaningful (e.g., PCA components). Euclidean distance is preferred for isotropic data.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Not all L1 uses are distance.</strong> L1 regularization (Lasso) uses the L1 norm of the weight vector — NOT a distance between two points. L1 loss (MAE) = Manhattan distance between predictions and labels. Keep these separate in your mind.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p><span class="ht">Manhattan distance</span> (also called taxicab, L1, or city-block distance) measures the distance you'd travel on a grid — like a taxi navigating city blocks. You can only move horizontally or vertically, never diagonally.</p>
+  <div class="big-eq">
+    <span class="eq">d_Manhattan(a, b) = Σᵢ |aᵢ − bᵢ| = ||a − b||₁</span>
+    <span class="eq-sub">Sum of absolute coordinate differences · L1 norm of the difference vector</span>
+  </div>
+  <div class="g2" style="margin-top:14px">
+    <div class="gbox" style="border-color:rgba(0,229,200,.3)">
+      <div class="gbox-t ht">Euclidean (L2)</div>
+      <p style="font-size:.86em">Goes through walls — straight diagonal line. Sensitive to outlier dimensions. Rotation invariant.</p>
+      <div class="fx" style="font-size:.78em;margin-top:8px">d = √((4-1)²+(3-1)²)
+  = √(9+4) = √13 ≈ 3.61</div>
+    </div>
+    <div class="gbox" style="border-color:rgba(255,77,143,.3)">
+      <div class="gbox-t hp">Manhattan (L1)</div>
+      <p style="font-size:.86em">Follows streets — only horizontal/vertical moves. Robust to outliers. Not rotation invariant.</p>
+      <div class="fx" style="font-size:.78em;margin-top:8px">d = |4-1|+|3-1|
+  = 3 + 2 = 5</div>
+    </div>
+  </div>
+  <p style="margin-top:14px"><strong>Key comparison: Euclidean vs Manhattan unit "balls":</strong></p>
+  <div class="call">In 2D: All points at Euclidean distance ≤ 1 from origin form a <strong>circle</strong>. All points at Manhattan distance ≤ 1 from origin form a <strong>diamond (rotated square)</strong>. This geometric difference explains why L1 regularization (Lasso) promotes sparsity — the optimal solution hits a corner of the L1 diamond where some coordinates are exactly 0.</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Manhattan Distance</strong> হলো শহরের রাস্তায় দূরত্ব — শুধু সোজা ও বাম-ডান যাওয়া যায়, তির্যকভাবে নয়।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি Dhaka-র পুরান ঢাকায় ট্যাক্সিতে যাচ্ছ। Grid-এর মতো রাস্তায় তুমি ৩ block পূর্বে + ২ block উত্তরে যেতে হবে। Manhattan distance = ৩+২ = ৫ block। কিন্তু পাখি হলে সরাসরি √(3²+2²) = √13 ≈ 3.6 block যেতে পারত।</div>
+  <p class="bn" style="margin-top:12px"><strong>কখন Manhattan Euclidean-এর চেয়ে ভালো?</strong></p>
+  <p class="bn">① <strong>Sparse data:</strong> বেশিরভাগ feature = 0 (e.g., word count vectors, movie ratings)। L1 শূন্যগুলোকে সঠিকভাবে handle করে।</p>
+  <p class="bn">② <strong>Outlier robustness:</strong> একটা dimension-এ বড় পার্থক্য থাকলে L1 কম penalize করে (square নেই)।</p>
+  <p class="bn">③ <strong>Grid-like data:</strong> Pixel coordinates, chess moves, city navigation।</p>
+  <p class="bn" style="margin-top:8px"><strong>Lasso regularization connection:</strong> L1 norm minimize করা weight vector-এ sparsity আনে — অনেক weight ঠিক ০ হয়ে যায়। এটাই Manhattan distance-এর diamond shape-এর কারণ।</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Manhattan distance and L1 norm</div>
+  <div class="fx">d_L1(a,b) = |a₁−b₁| + |a₂−b₂| + ... + |aₙ−bₙ| = Σᵢ |aᵢ−bᵢ|
+||a||₁ = |a₁| + |a₂| + ... + |aₙ|    (L1 norm of a vector)
+d_L1(a,b) = ||a−b||₁                  (distance = L1 norm of diff)
+
+Example: a=[1,5,3,0], b=[4,2,3,6]
+d_L1 = |1-4|+|5-2|+|3-3|+|0-6| = 3+3+0+6 = 12
+d_L2 = √(9+9+0+36) = √54 ≈ 7.35</div>
+  <div class="fl">Why L1 norm creates sparse solutions (Lasso)</div>
+  <div class="fx">Lasso: minimize ||Xw−y||₂² + λ||w||₁
+Geometric: L1 ball = diamond shape with corners at axes
+Optimal solution tends to land at a CORNER (where some wᵢ = 0 exactly)
+→ Automatic feature selection!
+
+L2 (Ridge): ball = sphere → optimal lands on smooth surface
+→ Weights shrink but stay non-zero</div>
+</div>
+
+<div class="analogy">
+  <div class="ch-hd">🎯 ANALOGY — Chess King vs Rook</div>
+  <p><strong>Chebyshev distance</strong> (L∞): the chess <strong>king</strong> — can move diagonally, reaches any square in max(Δx, Δy) moves.</p>
+  <p style="margin-top:8px"><strong>Manhattan distance</strong>: the chess <strong>rook</strong> — can only move horizontally or vertically, needs Δx + Δy moves (if no intermediate moves).</p>
+  <p style="margin-top:8px"><strong>Euclidean distance</strong>: a <strong>laser beam</strong> — goes in a straight line regardless of grid constraints.</p>
+  <p class="bn call-bn" style="margin-top:10px;padding:10px">বাংলায়: Chebyshev = দাবার রাজা (তির্যকও যায়)। Manhattan = দাবার কিস্তি (শুধু সোজা)। Euclidean = লেজার beam (সরলরেখা)।</p>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Manhattan / L1 Role</th></tr>
+  <tr><td>Lasso (L1) Regularization</td><td>λ·||w||₁ penalty → sparse weights → feature selection</td></tr>
+  <tr><td>MAE / L1 Loss</td><td>Manhattan distance between predictions and targets → robust regression</td></tr>
+  <tr><td>Sparse recommender systems</td><td>L1 distance in user-item space, robust to missing ratings</td></tr>
+  <tr><td>Median regression</td><td>Minimizing L1 loss = estimating conditional median (not mean)</td></tr>
+  <tr><td>Feature importance (L1 SVM)</td><td>L1 SVM finds sparse support vectors → feature selection</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Geometrically, why does L1 regularization produce sparse weights while L2 does not? <span class="qa-a">▶</span></button>
+<div class="ap">Visualize in 2D weight space (w₁, w₂). The constraint regions: L1 = {||w||₁ ≤ t} is a diamond with corners at (t,0), (-t,0), (0,t), (0,-t). L2 = {||w||₂ ≤ t} is a circle. The loss function contours are ellipses centered at the unconstrained minimum. When these ellipses "touch" the constraint region at the optimal point: Diamond (L1): the ellipse most likely hits a CORNER (corners are on the axes where one weight is zero). This makes one weight exactly 0. Circle (L2): smooth boundary — almost never on an axis. Both weights stay non-zero. Key intuition: the corners of the L1 diamond are "attractors" for the optimization. In high dimensions, the L1 ball has many corners (axis-aligned) — the optimal solution tends to land near one, zeroing out most weights.<div class="a-bn">বাংলায়: L1 ball = diamond। Corner-এ optimal solution land করে যেখানে কিছু weight = 0। L2 ball = smooth circle → কোনো corner নেই → সব weight non-zero।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise</div>
+<p>Two users: Alice=[5,0,4,0,0,1,3,0] (movie ratings 0=unrated), Bob=[4,0,0,3,0,1,0,2]. Compute Manhattan distance. Then explain: is this a good similarity measure for recommender systems?</p>
+<div class="ex-ans">d_L1=|5-4|+|0-0|+|4-0|+|0-3|+|0-0|+|1-1|+|3-0|+|0-2|=1+0+4+3+0+0+3+2=13. Problem: Movies rated by one but not the other create large distances even if the user simply hasn't seen the movie. Better: use only movies both have rated, or use cosine similarity which handles sparsity better. For recommender systems: cosine similarity or Pearson correlation on rated movies only is often preferred.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=OTGzIPcO8JM" target="_blank">🎬 StatQuest: Distance Metrics</a>
+<a class="rl" href="https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.DistanceMetric.html" target="_blank">📘 sklearn: Distance Metrics</a>
+</div>`},
+
+/* ══ 03 COSINE SIMILARITY ══ */
+{title:"Cosine <em>Similarity</em>",bn:"কোসাইন সাদৃশ্য",
+tags:[{t:"Direction-Based",c:"tt"},{t:"NLP / Embeddings",c:"tg"},{t:"[-1, +1]",c:"tv"},{t:"Magnitude-Free",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Document A has 1000 words and uses "AI" 50 times. Document B has 100 words and uses "AI" 5 times. Which distance metric correctly identifies these as similar documents?</p>
+  <p style="margin-top:9px;color:var(--teal)">✅ <strong>Cosine similarity</strong>. Both documents use "AI" at the same rate (5%), so their TF-IDF vectors point in the same direction. Cosine similarity = 1 (identical direction = same topic). Euclidean distance would say they're "far apart" because Document A's word count vector has much larger magnitude. This is the fundamental insight: <strong>cosine similarity measures DIRECTION (topic), not MAGNITUDE (length).</strong></p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Cosine similarity ignores magnitude entirely.</strong> A document about "cats" mentioned 1 time and 1000 times have cosine similarity = 1. If magnitude matters (e.g., frequency of a symptom for medical diagnosis), don't use cosine. Use Euclidean on normalized vectors instead.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Cosine similarity ≠ cosine distance.</strong> Cosine similarity ∈ [-1, 1]. Cosine distance = 1 − cosine_similarity ∈ [0, 2]. Cosine distance is NOT a proper metric (violates triangle inequality). For true clustering that requires metric properties, transform to angular distance = arccos(cosine_sim)/π ∈ [0, 1].</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Undefined for zero vectors.</strong> If a document has no words (zero vector), cosine similarity is undefined (division by zero). Handle with a small ε added to the norm or special-case zero vectors in your code.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p><span class="ht">Cosine similarity</span> measures the <strong>cosine of the angle</strong> between two vectors — only their direction matters, not their magnitude. It asks: "Are these vectors pointing in the same direction?"</p>
+  <div class="big-eq">
+    <span class="eq">cos_sim(a, b) = (a · b) / (||a||₂ · ||b||₂) = Σᵢaᵢbᵢ / (√Σaᵢ² · √Σbᵢ²)</span>
+    <span class="eq-sub">Range: [−1, 1] · +1 = identical direction · 0 = orthogonal (unrelated) · −1 = opposite</span>
+  </div>
+  <p style="margin-top:14px"><strong>Geometric interpretation:</strong></p>
+  <table>
+    <tr><th>Cosine Similarity</th><th>Angle θ</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td style="color:var(--teal)">+1.0</td><td>0°</td><td>Identical direction</td><td>"king" and a scaled "king" embedding</td></tr>
+    <tr><td style="color:var(--lime)">+0.8</td><td>≈37°</td><td>Very similar</td><td>"king" and "queen" embeddings</td></tr>
+    <tr><td style="color:var(--muted)">0.0</td><td>90°</td><td>Orthogonal / unrelated</td><td>"bank" (financial) and "tree" embedding</td></tr>
+    <tr><td style="color:var(--pink)">-0.5</td><td>120°</td><td>Somewhat opposite</td><td>"hot" and "cold" embeddings</td></tr>
+    <tr><td style="color:var(--red)">-1.0</td><td>180°</td><td>Exactly opposite</td><td>Antonym pair (rare in practice)</td></tr>
+  </table>
+  <div class="call" style="margin-top:14px"><strong>Key insight:</strong> Cosine similarity on unit vectors = dot product. If you L2-normalize all your vectors before storing them (as most embedding systems do), then cosine similarity = simple dot product — very fast to compute!</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Cosine Similarity</strong> দুটো vector-এর মধ্যে কোণের cosine মাপে। এটা দেখে দুটো vector কোন দিকে আছে — দৈর্ঘ্য দেখে না।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি Dhaka থেকে উত্তরে যাচ্ছ। তোমার বন্ধু Chittagong থেকেও উত্তরে যাচ্ছে। তোমরা ভিন্ন জায়গায় আছ (magnitude আলাদা), কিন্তু একই দিকে যাচ্ছ (direction এক)। Cosine similarity = 1 (same direction)! Euclidean distance অনেক বেশি হত কারণ তোমরা দূরে আছ।</div>
+  <p class="bn" style="margin-top:12px"><strong>NLP-এ কেন Cosine?</strong></p>
+  <p class="bn">• Word embedding "cat" = [0.5, 0.3, -0.2, ...] (short doc হলে) বনাম [5.0, 3.0, -2.0, ...] (long doc হলে) — same topic কিন্তু magnitude আলাদা।</p>
+  <p class="bn">• Cosine similarity = 1 দুটোর জন্যই — কারণ direction এক!</p>
+  <p class="bn">• TF-IDF vectors, Word2Vec, BERT embeddings → সবখানে cosine similarity।</p>
+  <p class="bn" style="margin-top:8px"><strong>Unit normalized vector-এ special property:</strong></p>
+  <p class="bn">যদি ||a|| = ||b|| = 1 (unit vectors), তাহলে cosine_sim(a,b) = a·b (dot product)!</p>
+  <p class="bn">এজন্য embedding model সবসময় output normalize করে — তারপর just dot product দিয়ে similarity হিসাব করা যায়।</p>
+</div>
+
+<!-- INTERACTIVE COSINE VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Cosine Similarity Visualizer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Adjust the angle between vectors and observe cosine similarity. Watch how magnitude changes don't affect cosine.</p>
+  <div class="ctrl">
+    <label>Angle θ between vectors</label>
+    <input type="range" id="cos-angle" min="0" max="180" value="45">
+    <span class="cval" id="cos-angle-v">45°</span>
+    <label>|b| magnitude</label>
+    <input type="range" id="cos-mag" min="2" max="10" value="6">
+    <span class="cval" id="cos-mag-v">2.0</span>
+  </div>
+  <div class="cw">
+    <canvas id="cos-canvas" width="580" height="280" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="cos-lbl">Cosine similarity only changes with angle, NOT magnitude</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="cos-val">cos_sim = ...</span>
+    <span class="cout" id="cos-dot" style="color:var(--violet)">dot product = ...</span>
+    <span class="cout" id="cos-euc" style="color:var(--pink)">euclidean = ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Cosine similarity — step by step</div>
+  <div class="fx">a = [1, 2, 3],   b = [2, 4, 6]   (b = 2a, same direction!)
+Step 1: dot product  a·b = 1×2+2×4+3×6 = 2+8+18 = 28
+Step 2: magnitudes   ||a|| = √(1+4+9)=√14,  ||b|| = √(4+16+36)=√56
+Step 3: cosine_sim = 28 / (√14 × √56) = 28/√784 = 28/28 = <span class="ft">1.0</span>
+→ Perfectly similar! Even though b = 2a (double the magnitude)
+
+Unit-vector shortcut:
+â = a/||a||  (normalize a)
+b̂ = b/||b||  (normalize b)
+cosine_sim(a,b) = â · b̂           (just a dot product!)</div>
+  <div class="fl">Python implementation</div>
+  <div class="fx">import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
+a, b = np.array([[1,2,3]]), np.array([[4,0,3]])
+sim = cosine_similarity(a, b)[0][0]  # = 0.8018
+
+# Manual:
+def cosine_sim(a, b):
+    return np.dot(a,b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+# For pre-normalized embeddings (fast!):
+a_norm = a / np.linalg.norm(a, axis=1, keepdims=True)
+b_norm = b / np.linalg.norm(b, axis=1, keepdims=True)
+sim_fast = np.dot(a_norm, b_norm.T)  # just matrix multiply</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Cosine Similarity Powers Modern AI</div>
+<table>
+  <tr><th>Application</th><th>How Cosine Similarity Is Used</th></tr>
+  <tr><td>Semantic search (RAG)</td><td>Query embedding cosine similarity to document embeddings → retrieve top-k</td></tr>
+  <tr><td>Recommendation systems</td><td>User preference vectors — similar users have high cosine similarity</td></tr>
+  <tr><td>Word2Vec / GloVe</td><td>"king" − "man" + "woman" ≈ "queen" measured by cosine similarity</td></tr>
+  <tr><td>Transformer self-attention</td><td>Q·Kᵀ = scaled dot product = cosine (after normalization)</td></tr>
+  <tr><td>Face recognition</td><td>ArcFace: maximize cosine similarity between same-person embeddings</td></tr>
+  <tr><td>Contrastive learning (CLIP, SimCLR)</td><td>InfoNCE loss maximizes cosine similarity of positive pairs</td></tr>
+  <tr><td>Duplicate detection</td><td>High cosine similarity → near-duplicate documents or images</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: In CLIP (Contrastive Language-Image Pretraining), how is cosine similarity used? Why is it better than Euclidean here? <span class="qa-a">▶</span></button>
+<div class="ap">CLIP maps images and text to a shared embedding space. Training objective: maximize cosine similarity between matched (image, text) pairs, minimize for non-matched pairs (InfoNCE/NT-Xent loss). Why cosine: (1) Images and text embeddings have different natural magnitudes (image encoders and text encoders have different scales). Cosine normalizes this. (2) The semantic content (what the image shows, what the text describes) is encoded in the DIRECTION, not magnitude. (3) Cosine similarity computation on L2-normalized embeddings = fast dot products — scalable to millions of pairs. At inference: rank images by cosine similarity to a text query → zero-shot image retrieval/classification.<div class="a-bn">বাংলায়: CLIP image ও text embedding-এর cosine similarity maximize করে train করে। Image ও text-এর magnitude different, কিন্তু cosine শুধু direction দেখে → topic-based similarity।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Why does the Transformer's attention use dot product (scaled) rather than Euclidean distance? <span class="qa-a">▶</span></button>
+<div class="ap">Attention score = Q·Kᵀ/√d_k. This is a scaled dot product. For unit-normalized Q and K, this equals scaled cosine similarity. Three reasons dot product wins over Euclidean: (1) Efficiency: dot product = O(n²·d) which is matrix multiply (GPU-optimized). Euclidean distance requires computing ||q−k||² = ||q||²+||k||²−2q·k, more complex. (2) Gradient: dot product has cleaner gradients through softmax — Euclidean distance terms would create training instability. (3) Semantics: in embedding space, direction represents meaning. Q and K are linearly transformed X — the linear transform already handles scale differences. The dot product captures "how aligned" Q and K are.<div class="a-bn">বাংলায়: Attention-এ dot product = scaled cosine (unit vector-এ)। GPU-তে matrix multiply হিসেবে efficient। Euclidean distance-এ ||q-k||² হিসাব বেশি জটিল।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute</div>
+<p>Document vectors: A=[3,0,2,1], B=[1,0,4,2], C=[0,5,0,0]. Compute cosine_sim(A,B) and cosine_sim(A,C). Which documents are most similar to A?</p>
+<div class="ex-ans">A·B=3+0+8+2=13. ||A||=√(9+0+4+1)=√14≈3.742. ||B||=√(1+0+16+4)=√21≈4.583. cos(A,B)=13/(3.742×4.583)=13/17.15≈0.758. A·C=0. cos(A,C)=0. A is most similar to B (0.758). A and C are completely unrelated (0). C is about completely different topics (feature 2 only).</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Unit Normalization</div>
+<p>Normalize a=[3,4,0] to a unit vector. Then compute cosine_sim using only dot products (no division needed).</p>
+<div class="ex-ans">||a||=√(9+16+0)=5. â=[3/5,4/5,0]=[0.6,0.8,0]. For any unit vector b̂, cos_sim(â,b̂)=â·b̂. Example: b=[0,3,4], b̂=[0,0.6,0.8]. cos_sim=0.6×0+0.8×0.6+0×0.8=0.48. Cosine ≠ 0 → somewhat related.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://openai.com/blog/introducing-text-and-code-embeddings" target="_blank">📘 OpenAI Embeddings & Cosine Similarity</a>
+<a class="rl" href="https://www.youtube.com/watch?v=_n3PQNZC_6k" target="_blank">🎬 3B1B: Dot Products</a>
+</div>`},
+
+/* ══ 04 ANGLE BETWEEN VECTORS ══ */
+{title:"Angle Between <em>Vectors</em>",bn:"ভেক্টরের মধ্যবর্তী কোণ",
+tags:[{t:"θ = arccos(a·b/|a||b|)",c:"tt"},{t:"Orthogonality",c:"tg"},{t:"Attention",c:"tv"},{t:"Geometric Meaning",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>In a 768-dimensional BERT embedding space, two word vectors have cosine similarity = 0.02. What is the approximate angle between them? Are these words related?</p>
+  <p style="margin-top:9px;color:var(--teal)">✅ θ = arccos(0.02) ≈ <strong>88.9°</strong> — nearly orthogonal (90°). These words are almost completely unrelated semantically. But here's the high-dimensional surprise: in 768D, <strong>most random pairs of vectors are nearly orthogonal</strong> by default! The concentration of measure means 88° is actually typical even for mildly related concepts. A cosine similarity of 0.5 (θ≈60°) already indicates strong semantic similarity in high dimensions.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>arccos is slow and numerically unstable near ±1.</strong> arccos(1.0000001) → NaN due to floating-point errors. Always clip: <code>np.clip(cosine_sim, -1, 1)</code> before computing arccos. For speed, work with cosine similarity directly instead of converting to degrees.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Angles don't add linearly in high dimensions.</strong> In 2D, if A is 30° from B and B is 30° from C, then A might be 0°–60° from C. In 1000D, angles between random vectors concentrate tightly around 90°. Intuition from 2D/3D angles badly misleads in high dimensions.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Orthogonality ≠ independence in ML.</strong> Orthogonal eigenvectors of a covariance matrix are uncorrelated — this is important. But two weight vectors being orthogonal doesn't necessarily mean they "do different things" in a neural network context.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>The <span class="ht">angle θ between two vectors</span> is derived from cosine similarity and gives a pure geometric measure of their relationship, independent of magnitude.</p>
+  <div class="big-eq">
+    <span class="eq">θ = arccos(cos_sim(a, b)) = arccos(a·b / (||a||·||b||))</span>
+    <span class="eq-sub">θ ∈ [0°, 180°] · 0° = same direction · 90° = orthogonal · 180° = opposite</span>
+  </div>
+  <p style="margin-top:14px"><strong>Angle → Cosine → Dot product chain:</strong></p>
+  <div class="fx">a·b = ||a||·||b||·cos(θ)       [definition of dot product]
+cos(θ) = a·b / (||a||·||b||)   [cosine similarity]
+θ = arccos(cosine_sim(a,b))    [angle in radians or degrees]
+
+Special angles:
+θ=0°:   cos=+1, vectors parallel, maximum similarity
+θ=90°:  cos=0,  vectors orthogonal, zero similarity  (perpendicular)
+θ=180°: cos=-1, vectors anti-parallel, maximum dissimilarity</div>
+  <p style="margin-top:14px"><strong>Orthogonality in ML — why it matters:</strong></p>
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(0,229,200,.3)">
+      <div class="gbox-t ht">Mathematical orthogonality</div>
+      <p style="font-size:.86em">a · b = 0 → θ = 90°<br>No linear relationship between vectors.<br>PCA components are orthogonal → uncorrelated features.<br>Gram-Schmidt creates orthonormal bases.</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(155,114,255,.3)">
+      <div class="gbox-t hv">ML orthogonality benefits</div>
+      <p style="font-size:.86em">Weight matrices: orthogonal init preserves norms.<br>Attention heads: ideally attend to orthogonal features.<br>PCA: orthogonal principal components → independent directions of variation.</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>দুটো ভেক্টরের মধ্যবর্তী কোণ</strong> তাদের geometric সম্পর্ক পরিমাপ করে — magnitude ছাড়াই।</p>
+  <div class="call-bn">💡 কম্পাসের উদাহরণ: দুটো দিকনির্দেশনা vector ভাবো।
+• উত্তর [0,1] এবং পূর্ব [1,0]: এরা লম্ব (90°) → cosine = 0 → orthogonal → সম্পূর্ণ ভিন্ন দিক
+• উত্তর [0,1] এবং উত্তর-পূর্ব [1,1]/√2: 45° → cosine ≈ 0.707 → কিছুটা সম্পর্কিত
+• উত্তর [0,1] এবং দক্ষিণ [0,-1]: 180° → cosine = -1 → সম্পূর্ণ বিপরীত দিক</div>
+  <p class="bn" style="margin-top:12px"><strong>Orthogonality ML-এ কেন গুরুত্বপূর্ণ:</strong></p>
+  <p class="bn">• <strong>PCA:</strong> Principal components পরস্পর orthogonal → uncorrelated feature। প্রতিটা component স্বাধীনভাবে variance ধরে।</p>
+  <p class="bn">• <strong>Weight initialization:</strong> Orthogonal init → activation-এর norm preserve → vanishing gradient কম হয়।</p>
+  <p class="bn">• <strong>Attention heads:</strong> ভিন্ন attention head আদর্শভাবে ভিন্ন (orthogonal) feature দেখে।</p>
+  <p class="bn">• <strong>Gram-Schmidt:</strong> যেকোনো vector set-কে orthonormal বানানোর algorithm — QR decomposition-এর ভিত্তি।</p>
+</div>
+
+<!-- INTERACTIVE ANGLE VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Vector Angle Explorer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Rotate vector B and observe how angle, cosine, and dot product change</p>
+  <div class="ctrl">
+    <label>Angle of vector B (°)</label>
+    <input type="range" id="ang-theta" min="0" max="360" value="45">
+    <span class="cval" id="ang-theta-v">45°</span>
+    <label>|A| magnitude</label>
+    <input type="range" id="ang-magA" min="2" max="8" value="5">
+    <span class="cval" id="ang-magA-v">5</span>
+  </div>
+  <div class="cw">
+    <canvas id="ang-canvas" width="580" height="280" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="ang-lbl">Angle, cosine similarity, and dot product relationship</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="ang-theta-out">θ = 45.0°</span>
+    <span class="cout" id="ang-cos-out" style="color:var(--violet)">cos(θ) = 0.707</span>
+    <span class="cout" id="ang-dot-out" style="color:var(--gold)">a·b = ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 KEY RESULTS</div>
+  <div class="fl">High-dimensional angle concentration (key insight!)</div>
+  <div class="fx">In d-dimensional space, angle between two RANDOM unit vectors:
+E[cos(θ)] = 0        (expected cosine ≈ 0 → near-orthogonal)
+Var[cos(θ)] = 1/d    (variance shrinks as d increases!)
+→ As d → ∞: almost all pairs of random vectors are near-orthogonal (≈90°)!
+
+In 768D: cos(θ) ∈ [−0.11, 0.11] for 95% of random vector pairs
+→ Cosine similarity of 0.3 in 768D is VERY significant (far from random)!
+→ Do NOT compare cosine thresholds across dimensions without adjustment.</div>
+  <div class="fl">Angular distance (proper metric)</div>
+  <div class="fx">Angular distance = arccos(cosine_sim) / π ∈ [0, 1]
+Unlike raw cosine similarity: satisfies triangle inequality → true metric!
+Used in: spherical k-means, directional statistics</div>
+  <div class="fl">Projection and component decomposition</div>
+  <div class="fx">Projection of a onto b:
+  proj_b(a) = (a·b / ||b||²) × b       [vector projection]
+  scalar component = a·b / ||b|| = ||a||cos(θ)  [scalar projection]
+
+In ML: attention weight = softmax(q·kᵀ/√d) = how much does q "point toward" k?</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Angles in Modern ML</div>
+<table>
+  <tr><th>ML Concept</th><th>Geometric Interpretation</th></tr>
+  <tr><td>Transformer attention</td><td>Score = Q·Kᵀ/√d ∝ cos(θ) × |Q||K|. High score = small angle between query and key</td></tr>
+  <tr><td>ArcFace (face recognition)</td><td>Explicitly optimizes the angle between class embeddings; margin applied in angle space</td></tr>
+  <tr><td>PCA orthogonality</td><td>All principal components are perpendicular (θ=90°) → uncorrelated variance directions</td></tr>
+  <tr><td>Orthogonal weight init</td><td>Weight matrices initialized as orthogonal → preserve norms → stable backprop</td></tr>
+  <tr><td>Mutual information vs angle</td><td>Zero cosine ≠ zero MI — two vectors can be orthogonal but statistically dependent (e.g., X²+Y²=1)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: ArcFace introduces an angular margin for face recognition. What does this mean geometrically? <span class="qa-a">▶</span></button>
+<div class="ap">Standard softmax: decision boundary based on cosine similarity (dot product of normalized embeddings). ArcFace modifies the angle between the embedding and its class center: instead of cos(θᵧ), use cos(θᵧ + m) where m is an angular margin (typically 0.5 radians). Geometrically: the correct class center must be at least m radians closer (in angle) than any other class center. This creates wider angular gaps between classes. Effect: face embeddings are more spread out in the hypersphere, with clear separation between identity clusters. This forces the model to learn more discriminative features — faces of the same person cluster more tightly, different persons are more angular separated.<div class="a-bn">বাংলায়: ArcFace correct class-এর angle-এ margin m যোগ করে। Same person = tighter cluster। Different persons = larger angular gap। Geometrically: hypersphere-এ ভালো separation।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise — Full Computation</div>
+<p>a=[1,0,0], b=[0,1,0], c=[1,1,0]/√2. (a) Find all pairwise angles. (b) Which pairs are orthogonal? (c) What does this tell us about 3D space?</p>
+<div class="ex-ans">(a) a·b=0→θ=90°. a·c=(1×1+0+0)/√2=1/√2→θ=45°. b·c=(0+1+0)/√2=1/√2→θ=45°. (b) a and b are orthogonal (standard basis vectors). (c) 3D space has 3 mutually orthogonal directions (x,y,z axes). You can have at most 3 mutually perpendicular vectors in 3D, but n vectors in n-D space! In 768D BERT, there are 768 mutually orthogonal directions — each can encode independent information.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://arxiv.org/abs/1801.07698" target="_blank">📄 ArcFace Paper</a>
+<a class="rl" href="https://www.youtube.com/watch?v=LyGKycYT2v0" target="_blank">🎬 3B1B: Dot Product & Duality</a>
+</div>`},
+
+/* ══ 05 CURSE OF DIMENSIONALITY ══ */
+{title:"Curse of <em>Dimensionality</em>",bn:"মাত্রার অভিশাপ",
+tags:[{t:"High-Dim Geometry",c:"tt"},{t:"Data Sparsity",c:"tg"},{t:"Distance Collapse",c:"tv"},{t:"Deep Learning Fix",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You have 100 training samples and 10 features (10D space). Should you be worried about the curse of dimensionality? What about 100 samples and 1000 features?</p>
+  <p style="margin-top:9px;color:var(--teal)">✅ 100 samples / 10 features: <strong>manageable</strong>. Rule of thumb: need ~5-10 samples per feature dimension for basic coverage. 100/10 = 10 — borderline but workable. 100 samples / 1000 features: <strong>severely cursed</strong>! 100/1000 = 0.1 samples per feature — your data is extremely sparse. Any distance-based method (KNN, k-means, SVM) will fail. Data seems "far apart" even when related. This is why deep learning with regularization, feature selection, or dimensionality reduction is essential at high feature counts.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Thinking more features = always better.</strong> Adding irrelevant features dilutes distance measures. KNN accuracy peaks at some optimal feature count and then DECREASES. Feature selection and dimensionality reduction (PCA, autoencoders) can improve KNN performance.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>The curse hits distance-based algorithms hardest.</strong> Neural networks partially escape the curse — they learn to project high-D data to a lower-D manifold where distances are meaningful. This is one reason deep learning outperforms KNN at scale: it learns to work in the intrinsic low-dimensional structure of the data.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Thinking 1000D BERT embeddings are "cursed."</strong> BERT embeddings are NOT random — they encode a rich low-dimensional manifold (language semantics ≈ a few hundred intrinsic dimensions). The curse applies to random or unstructured high-D data, not learned representations that live on low-D manifolds.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THREE FACES OF THE CURSE — English</div>
+  <p>The <span class="ht">Curse of Dimensionality</span> refers to several related phenomena that make ML progressively harder as the number of dimensions grows:</p>
+  <div class="curse-box">
+    <div class="curse-title">⚠️ CURSE 1 — Exponential Data Requirement</div>
+    <p style="font-size:.9em">To maintain the same sampling density, data requirements grow EXPONENTIALLY with dimensions.</p>
+    <div class="fx" style="margin-top:10px">1D: 10 samples to cover [0,1] with 10% density
+2D: 10² = 100 samples for same density in unit square
+3D: 10³ = 1000 samples
+d-D: 10ᵈ samples needed for same density!
+
+d=10: 10¹⁰ = 10 billion samples needed for 10% coverage!
+→ In high-D, you ALWAYS have too little data</div>
+  </div>
+  <div class="curse-box" style="margin-top:14px">
+    <div class="curse-title">⚠️ CURSE 2 — Distance Concentration (Most Critical for ML)</div>
+    <p style="font-size:.9em">In high dimensions, distances between all pairs of points concentrate — max and min distances become nearly equal.</p>
+    <div class="fx" style="margin-top:10px">For n random points in d-dimensional unit cube:
+d_max / d_min → 1   as d → ∞ (ratio approaches 1!)
+Contrast ratio = (d_max - d_min) / d_min → 0
+
+Intuition: In 1D, two random points: one near 0, one near 1 → very different distances
+In 1000D: law of large numbers makes all pairwise distances converge ≈ √(d/3)
+→ KNN: "nearest" neighbor is barely closer than "farthest" neighbor!
+→ Similarity search becomes meaningless</div>
+  </div>
+  <div class="curse-box" style="margin-top:14px">
+    <div class="curse-title">⚠️ CURSE 3 — Volume Concentrates on the Surface</div>
+    <p style="font-size:.9em">In high dimensions, almost all volume of a hypersphere concentrates near the surface (thin shell), not the center.</p>
+    <div class="fx" style="margin-top:10px">Fraction of volume within ε of the surface of a d-dim hypersphere of radius r:
+1 - (1-ε)ᵈ → 1 as d → ∞
+
+Example: d=1000, ε=0.01 (within 1% of surface):
+Fraction = 1-(0.99)¹⁰⁰⁰ = 1-0.000043 ≈ 99.996% of volume is near the surface!
+→ Random samples in high-D all appear to be at the same distance from the center
+→ "Close" and "far" lose their meaning</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>মাত্রার অভিশাপ (Curse of Dimensionality):</strong> Feature-এর সংখ্যা বাড়ার সাথে সাথে ML algorithm-এর কার্যকারিতা কমে যাওয়ার তিনটি প্রধান ঘটনা।</p>
+  <div class="call-bn">💡 অভিশাপ ১ — Data Hunger: 
+1D-তে [0,1] interval-কে ভালো cover করতে ১০ টা sample লাগে।
+2D-তে [0,1]² square-কে same density-তে cover করতে ১০² = ১০০ টা লাগে।
+১০ মাত্রায়: ১০¹⁰ = ১০ billion sample লাগে! অসম্ভব!</div>
+  <div class="call-bn">💡 অভিশাপ ২ — দূরত্ব একসাথে হয়ে যায়:
+১০০০D-তে সব random point থেকে সব অন্য point-এর দূরত্ব প্রায় একই হয়ে যায়!
+KNN-এ "সবচেয়ে কাছের" এবং "সবচেয়ে দূরের" neighbor প্রায় same distance-এ।
+→ KNN, K-means সব ব্যর্থ!</div>
+  <div class="call-bn">💡 অভিশাপ ৩ — সব কিছু surface-এ:
+উচ্চ মাত্রায় sphere-এর প্রায় সব volume surface-এর কাছে থাকে।
+১০০০D-তে ৯৯.৯৯৬% volume হলো পাতলা surface shell-এ।
+→ "কাছে" এবং "দূরে" মানে হারিয়ে যায়।</div>
+  <p class="bn" style="margin-top:12px"><strong>Solutions (অভিশাপের সমাধান):</strong></p>
+  <p class="bn">① <strong>Feature Selection:</strong> শুধু relevant feature রাখো</p>
+  <p class="bn">② <strong>PCA / Autoencoder:</strong> High-D → Low-D with information preservation</p>
+  <p class="bn">③ <strong>Deep Learning:</strong> Low-dimensional manifold শেখে implicitly</p>
+  <p class="bn">④ <strong>More Data:</strong> Exponentially বেশি data দিয়ে compensate করো</p>
+  <p class="bn">⑤ <strong>Regularization:</strong> Model complexity নিয়ন্ত্রণ করো</p>
+</div>
+
+<!-- INTERACTIVE CURSE VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Curse of Dimensionality Visualizer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Watch how distance concentration grows with dimensions — the ratio of max to min distance approaches 1</p>
+  <div class="ctrl">
+    <label>Number of dimensions d</label>
+    <input type="range" id="dim-s" min="1" max="500" value="2">
+    <span class="cval" id="dim-v">2</span>
+    <label>Sample points n</label>
+    <input type="range" id="pts-s" min="10" max="200" value="50">
+    <span class="cval" id="pts-v">50</span>
+  </div>
+  <div class="cw">
+    <canvas id="curse-canvas" width="580" height="260" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="curse-lbl">Distance distribution in d-dimensional unit hypercube</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="curse-min" style="color:var(--teal)">min dist: —</span>
+    <span class="cout" id="curse-max" style="color:var(--pink)">max dist: —</span>
+    <span class="cout" id="curse-ratio" style="color:var(--gold)">max/min ratio: —</span>
+    <span class="cout" id="curse-useful" style="color:var(--lime)">KNN useful? —</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 QUANTITATIVE ANALYSIS</div>
+  <div class="fl">Distance concentration theorem</div>
+  <div class="fx">For n random points uniformly in [0,1]ᵈ:
+Expected nearest-neighbor distance ≈ √(d/12·n^(-2/d))
+As d → ∞ with fixed n: distances → √(d/6)  (all become equal!)
+
+Relative contrast = (d_max − d_min) / d_min:
+d=1:    contrast ≈ 1.0  (meaningful distances)
+d=10:   contrast ≈ 0.3
+d=100:  contrast ≈ 0.09
+d=1000: contrast ≈ 0.03  (almost meaningless!)
+→ K-NN breaks down: "nearest" barely closer than "farthest"</div>
+  <div class="fl">Hughes phenomenon — optimal feature count for classifiers</div>
+  <div class="fx">For fixed training set size n and fixed true class separability:
+Classifier accuracy peaks at some optimal d* features
+Adding more features DECREASES accuracy (curse dominates)
+d* ≈ O(n^(1/2)) to O(n) depending on model complexity
+
+Solution: use at most ~log₂(n) to √n features, or use deep learning
+which learns the low-D manifold structure implicitly</div>
+  <div class="fl">Volume of hypersphere shell</div>
+  <div class="fx">Hypersphere of radius R in d dimensions:
+V_sphere(d) = πᵈ/² × Rᵈ / Γ(d/2+1)
+Fraction within thickness ε of surface:
+= 1 − (1 − ε/R)ᵈ → 1 as d → ∞ for any fixed ε > 0
+→ Almost all the "space" is on the surface, not in the interior
+→ Random samples all appear equidistant from center</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Fighting the Curse</div>
+<table>
+  <tr><th>Problem</th><th>Curse Effect</th><th>Solution</th></tr>
+  <tr><td>KNN on high-D data</td><td>All distances equal → meaningless NN</td><td>PCA first, then KNN. Or use deep embedding + cosine</td></tr>
+  <tr><td>K-means clustering</td><td>Cluster boundaries meaningless in high-D</td><td>Reduce to ~50D via PCA before k-means</td></tr>
+  <tr><td>Tabular data with 1000 features</td><td>Distances noisy, trees over-split</td><td>L1 feature selection, gradient boosting (handles curse better)</td></tr>
+  <tr><td>NLP: bag-of-words (50k dim)</td><td>Sparse, high-D → bad distances</td><td>TF-IDF + SVD (LSA), or use neural embeddings (low-D manifold)</td></tr>
+  <tr><td>Deep learning</td><td>Learning function in high-D</td><td>Implicitly learns low-D manifold via representation learning</td></tr>
+  <tr><td>BERT 768D embeddings</td><td>Seems high-D but NOT cursed</td><td>Learned embeddings live on low-D semantic manifold (~30-100 intrinsic dims)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: If BERT creates 768-dimensional embeddings, why doesn't it suffer from the curse of dimensionality? <span class="qa-a">▶</span></button>
+<div class="ap">The curse affects RANDOM or UNSTRUCTURED high-dimensional spaces. BERT embeddings are NOT random — they're trained to encode language semantics. The key insight: natural language lies on a low-dimensional manifold. All grammatically valid English sentences, despite infinite variety, occupy a vastly smaller space than all 768-dimensional vectors. Intrinsic dimensionality of language semantics is estimated at ~30-100 dimensions (not 768). BERT uses 768D to represent these 30-100 intrinsic dimensions more accurately. Evidence: (1) PCA on BERT embeddings shows ~90% variance in first 50 components. (2) You can fine-tune BERT with low-rank adapters (LoRA with r=8!) and get near-identical performance. (3) Sentence embeddings cluster meaningfully in 2D UMAP projections.<div class="a-bn">বাংলায়: BERT embedding = learned low-D manifold in 768D space। Natural language-এর intrinsic dimension ≈ 30-100। Random 768D নয়, structured semantic space। LoRA এই insight-ই use করে।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: How do tree-based methods (Random Forest, XGBoost) partially escape the curse of dimensionality? <span class="qa-a">▶</span></button>
+<div class="ap">Trees make decisions based on SINGLE FEATURE thresholds at each node, not distances in full feature space. At each split: find best threshold for one feature → O(d·n·log n) — not exponential in d. This means: (1) Trees don't compute pairwise distances → distance concentration doesn't affect them directly. (2) Random Forest samples random feature subsets per tree — focuses on the most informative features. (3) Feature importance: trees measure IG per feature → effective implicit feature selection. (4) Non-parametric: no assumption about the shape of the decision boundary in full d-dimensional space. Weakness: with d >> n, trees still overfit (too many possible splits). But the mechanism of failure is different from KNN — trees overfit individual features, not distances.<div class="a-bn">বাংলায়: Tree = single feature threshold। Full distance নয়। Curse of dimensionality-এর distance concentration tree-কে সরাসরি affect করে না। তবে d>>n-এ overfitting হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: What is the manifold hypothesis and why is it the foundation of deep learning's success? <span class="qa-a">▶</span></button>
+<div class="ap">Manifold Hypothesis: high-dimensional real-world data (images, text, audio) actually lies on or near a low-dimensional manifold embedded in the high-dimensional space. Example: 128×128 pixel images exist in a 16,384-dimensional space. But "natural images" (photographs, not random noise) occupy a tiny fraction — a manifold of perhaps 100-1000 intrinsic dimensions. A deep network learns to "unfold" this manifold — layers progressively transform the complex curved low-D manifold into a flat, well-separated representation. The final layer's space is where distances become meaningful again. This is why: (1) Neural networks need far less data than naive d-dimensional analysis suggests. (2) Representations learned at intermediate layers are useful for transfer learning. (3) Generative models (VAE, diffusion) can generate on the manifold without sampling random high-D noise.<div class="a-bn">বাংলায়: Manifold Hypothesis = real data high-D space-এ একটা low-D manifold-এ থাকে। Deep network এই manifold "unfold" করতে শেখে। এজন্য neural network বিশাল high-D problem solve করতে পারে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Data Coverage</div>
+<p>You want 10% coverage density in your feature space. How many samples do you need in (a) 2D (b) 5D (c) 20D?</p>
+<div class="ex-ans">(a) 10² = 100 samples (b) 10⁵ = 100,000 samples (c) 10²⁰ = 100,000,000,000,000,000,000 samples = impossible! This is why in 20D, your training data is always extremely sparse — even with millions of samples, each point is isolated.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Practical Decision</div>
+<p>You have 10,000 samples and must choose between: Model A = KNN with raw 500 features. Model B = KNN with first 20 PCA components (explaining 85% variance). Which do you predict will perform better and why?</p>
+<div class="ex-ans">Model B (PCA→20D) will perform better. 10,000 samples in 500D = severely cursed (10K/500=20 samples/dim, but in joint space it's 10000/500^... = sparse). 10,000 samples in 20D = reasonable density. PCA removes noisy dimensions while preserving 85% of information. Distance metrics in 20D are meaningful; in 500D they've concentrated. Rule: for KNN/k-means, reduce to d ≤ √n when possible. Here √10000=100, so 20D is excellent.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.youtube.com/watch?v=9iol3Lk6kyU" target="_blank">🎬 StatQuest: Dimensionality Reduction</a>
+<a class="rl" href="https://arxiv.org/abs/2206.10671" target="_blank">📄 Intrinsic Dimensionality of BERT Representations</a>
+<a class="rl" href="https://scikit-learn.org/stable/auto_examples/decomposition/plot_pca_vs_lda.html" target="_blank">📘 PCA vs LDA (sklearn examples)</a>
+</div>`}
+
+];
+
+/* ══════════════════════════════════
+   BUILD & ROUTING
+══════════════════════════════════ */
+function buildAll(){
+  const nl=document.getElementById('nl'),mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-n">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · GEOMETRY & DISTANCE MEASURES</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===0) initDistCanvas();
+    if(i===2) initCosCanvas();
+    if(i===3) initAngleCanvas();
+    if(i===4) initCurseCanvas();
+  },150);
+}
+
+function tQ(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+/* ══════════════════════════════════
+   SHARED DRAGGABLE DISTANCE CANVAS (ch 1)
+══════════════════════════════════ */
+let ptA={x:150,y:200},ptB={x:400,y:120},dragging=null;
+
+function initDistCanvas(){
+  const c=document.getElementById('dist-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const scale=W/580;
+
+  function toScreen(p){return{x:p.x*scale,y:p.y*scale};}
+  function fromScreen(x,y){return{x:x/scale,y:y/scale};}
+
+  function hitTest(px,py,pt){
+    const sp=toScreen(pt);
+    return Math.hypot(px-sp.x,py-sp.y)<14;
+  }
+
+  function draw(){
+    ctx.fillStyle='#04080f';ctx.fillRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle='#1a2d45';ctx.lineWidth=0.5;
+    for(let x=0;x<580;x+=40){const sx=x*scale;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,H);ctx.stroke();}
+    for(let y=0;y<300;y+=40){const sy=y*scale;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke();}
+
+    const sA=toScreen(ptA),sB=toScreen(ptB);
+
+    // Manhattan path (dashed)
+    ctx.strokeStyle='rgba(255,77,143,.6)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(sA.x,sA.y);ctx.lineTo(sB.x,sA.y);ctx.lineTo(sB.x,sB.y);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Euclidean line
+    ctx.strokeStyle='rgba(0,229,200,.8)';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(sA.x,sA.y);ctx.lineTo(sB.x,sB.y);ctx.stroke();
+
+    // Origin lines for cosine (from origin 290,150 center)
+    const ox=145*scale,oy=150*scale;
+    ctx.strokeStyle='rgba(155,114,255,.3)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(sA.x,sA.y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(sB.x,sB.y);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Points
+    [[sA,'#00e5c8',ptA,'A'],[sB,'#ff4d8f',ptB,'B']].forEach(([s,col,pt,lbl])=>{
+      ctx.beginPath();ctx.fillStyle=col;ctx.arc(s.x,s.y,9,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=2;ctx.arc(s.x,s.y,9,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=col;ctx.font=`bold ${13*scale}px Fira Code`;ctx.textAlign='center';
+      ctx.fillText(lbl,s.x,s.y-14);
+    });
+
+    // Compute distances
+    const dx=ptB.x-ptA.x,dy=ptB.y-ptA.y;
+    const euc=Math.sqrt(dx*dx+dy*dy);
+    const man=Math.abs(dx)+Math.abs(dy);
+    const magA=Math.sqrt(ptA.x*ptA.x+ptA.y*ptA.y);
+    const magB=Math.sqrt(ptB.x*ptB.x+ptB.y*ptB.y);
+    const cosv=magA&&magB?(ptA.x*ptB.x+ptA.y*ptB.y)/(magA*magB):0;
+
+    document.getElementById('euc-out').textContent=`Euclidean: ${euc.toFixed(2)}`;
+    document.getElementById('man-out').textContent=`Manhattan: ${man.toFixed(2)}`;
+    document.getElementById('cos-out').textContent=`Cosine sim: ${cosv.toFixed(4)}`;
+
+    // Labels on canvas
+    ctx.font=`${10*scale}px Fira Code`;ctx.textAlign='left';
+    ctx.fillStyle='rgba(0,229,200,.7)';ctx.fillText(`L2=${euc.toFixed(1)}`,(sA.x+sB.x)/2+6*scale,(sA.y+sB.y)/2);
+    ctx.fillStyle='rgba(255,77,143,.7)';ctx.fillText(`L1=${man.toFixed(1)}`,sB.x+6*scale,sA.y-6*scale);
+  }
+
+  c.addEventListener('mousedown',e=>{
+    const r=c.getBoundingClientRect();
+    const mx=(e.clientX-r.left)*(c.width/r.width);
+    const my=(e.clientY-r.top)*(c.height/r.height);
+    if(hitTest(mx,my,ptA))dragging='A';
+    else if(hitTest(mx,my,ptB))dragging='B';
+  });
+  c.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    const r=c.getBoundingClientRect();
+    const mx=(e.clientX-r.left)*(c.width/r.width);
+    const my=(e.clientY-r.top)*(c.height/r.height);
+    const p=fromScreen(mx,my);
+    if(dragging==='A'){ptA=p;}else{ptB=p;}
+    draw();
+  });
+  c.addEventListener('mouseup',()=>dragging=null);
+  c.addEventListener('touchstart',e=>{e.preventDefault();const r=c.getBoundingClientRect();const t=e.touches[0];const mx=(t.clientX-r.left)*(c.width/r.width);const my=(t.clientY-r.top)*(c.height/r.height);if(hitTest(mx,my,ptA))dragging='A';else if(hitTest(mx,my,ptB))dragging='B';},{passive:false});
+  c.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging)return;const r=c.getBoundingClientRect();const t=e.touches[0];const mx=(t.clientX-r.left)*(c.width/r.width);const my=(t.clientY-r.top)*(c.height/r.height);const p=fromScreen(mx,my);if(dragging==='A')ptA=p;else ptB=p;draw();},{passive:false});
+  c.addEventListener('touchend',()=>dragging=null);
+  draw();
+}
+
+/* ══ COSINE CANVAS (ch3) ══ */
+function initCosCanvas(){
+  const c=document.getElementById('cos-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const angS=document.getElementById('cos-angle'),magS=document.getElementById('cos-mag');
+  const angV=document.getElementById('cos-angle-v'),magV=document.getElementById('cos-mag-v');
+
+  function draw(){
+    const theta=parseInt(angS.value)*Math.PI/180;
+    const mag=parseInt(magS.value)*0.5+1;
+    angV.textContent=parseInt(angS.value)+'°';
+    magV.textContent=mag.toFixed(1);
+
+    ctx.fillStyle='#04080f';ctx.fillRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle='#1a2d45';ctx.lineWidth=0.5;
+    for(let i=0;i<=8;i++){const x=W*i/8;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let i=0;i<=6;i++){const y=H*i/6;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    const ox=W/2,oy=H/2;
+    // Fixed vector A (always length 5, pointing right-ish)
+    const aLen=120,bLen=mag*24;
+    const ax=ox+aLen,ay=oy;
+    const bx=ox+bLen*Math.cos(-theta),by=oy+bLen*Math.sin(-theta);
+
+    // Draw angle arc
+    ctx.strokeStyle='rgba(155,114,255,.5)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(ox,oy,35,-(parseInt(angS.value)*Math.PI/180),0);ctx.stroke();
+    ctx.fillStyle='rgba(155,114,255,.7)';ctx.font='12px Fira Code';ctx.textAlign='center';
+    const midA=-theta/2;ctx.fillText(parseInt(angS.value)+'°',ox+50*Math.cos(midA),oy+50*Math.sin(midA));
+
+    // Vector A
+    ctx.strokeStyle='#00e5c8';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ax,ay);ctx.stroke();
+    arrowHead(ctx,ox,oy,ax,ay,'#00e5c8');
+    ctx.fillStyle='#00e5c8';ctx.font='bold 13px Fira Code';ctx.textAlign='center';
+    ctx.fillText('A',ax+15,ay);
+
+    // Vector B (with different magnitude)
+    ctx.strokeStyle='#ff4d8f';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(bx,by);ctx.stroke();
+    arrowHead(ctx,ox,oy,bx,by,'#ff4d8f');
+    ctx.fillStyle='#ff4d8f';ctx.font='bold 13px Fira Code';
+    ctx.fillText('B',bx+(bx>ox?15:-15),by+(by>oy?15:-15));
+
+    // Origin
+    ctx.beginPath();ctx.fillStyle='#4d6e99';ctx.arc(ox,oy,5,0,Math.PI*2);ctx.fill();
+
+    // Compute
+    const cosTheta=Math.cos(theta);
+    const dotProd=aLen/24*bLen/24*cosTheta;
+    const cosSimV=cosTheta;
+
+    document.getElementById('cos-val').textContent=`cos_sim = ${cosSimV.toFixed(4)}`;
+    document.getElementById('cos-dot').textContent=`dot = ${(aLen/24*bLen/24*cosTheta).toFixed(2)}`;
+    document.getElementById('cos-euc').textContent=`|A-B| = ${(Math.sqrt((ax-bx)**2+(ay-by)**2)/24).toFixed(2)}`;
+    document.getElementById('cos-lbl').textContent=`θ=${parseInt(angS.value)}°, |A|=5.0 (fixed), |B|=${mag.toFixed(1)} — cosine only changes with θ, NOT |B|`;
+  }
+
+  angS.addEventListener('input',draw);magS.addEventListener('input',draw);draw();
+}
+
+function arrowHead(ctx,x1,y1,x2,y2,color){
+  const angle=Math.atan2(y2-y1,x2-x1);
+  const size=10;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-size*Math.cos(angle-0.4),y2-size*Math.sin(angle-0.4));
+  ctx.lineTo(x2-size*Math.cos(angle+0.4),y2-size*Math.sin(angle+0.4));
+  ctx.closePath();ctx.fill();
+}
+
+/* ══ ANGLE CANVAS (ch4) ══ */
+function initAngleCanvas(){
+  const c=document.getElementById('ang-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const thetaS=document.getElementById('ang-theta'),magAS=document.getElementById('ang-magA');
+  const thetaV=document.getElementById('ang-theta-v'),magAV=document.getElementById('ang-magA-v');
+
+  function draw(){
+    const theta=parseInt(thetaS.value)*Math.PI/180;
+    const magA=parseInt(magAS.value)*15;
+    thetaV.textContent=parseInt(thetaS.value)+'°';
+    magAV.textContent=parseInt(magAS.value);
+
+    ctx.fillStyle='#04080f';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#1a2d45';ctx.lineWidth=0.5;
+    for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(W*i/8,0);ctx.lineTo(W*i/8,H);ctx.stroke();}
+    for(let i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(0,H*i/5);ctx.lineTo(W,H*i/5);ctx.stroke();}
+
+    const ox=W/2,oy=H/2;
+    const magB=100; // fixed B
+
+    const ax=ox+magA,ay=oy; // A always pointing right
+    const bx=ox+magB*Math.cos(-theta),by=oy+magB*Math.sin(-theta);
+
+    // Angle arc
+    const arcR=Math.min(magA,magB)*0.4;
+    ctx.strokeStyle='rgba(255,205,60,.6)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(ox,oy,arcR,-theta,0);ctx.stroke();
+
+    // Reference circle
+    ctx.strokeStyle='rgba(77,110,153,.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.arc(ox,oy,Math.min(magA,magB)*0.8,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+    // Projection of B onto A
+    const proj=Math.cos(theta)*magB;
+    ctx.strokeStyle='rgba(155,114,255,.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(ox+proj,oy);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.fillStyle='rgba(155,114,255,.6)';ctx.arc(ox+proj,oy,4,0,Math.PI*2);ctx.fill();
+
+    // Vector A (teal)
+    ctx.strokeStyle='#00e5c8';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ax,ay);ctx.stroke();
+    arrowHead(ctx,ox,oy,ax,ay,'#00e5c8');
+    ctx.fillStyle='#00e5c8';ctx.font='bold 13px Fira Code';ctx.textAlign='center';
+    ctx.fillText('a',ax+12,ay+4);
+
+    // Vector B (gold)
+    ctx.strokeStyle='#ffcd3c';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(bx,by);ctx.stroke();
+    arrowHead(ctx,ox,oy,bx,by,'#ffcd3c');
+    ctx.fillStyle='#ffcd3c';ctx.font='bold 13px Fira Code';
+    ctx.fillText('b',bx+(bx>ox?12:-18),by+(by>oy?14:-10));
+
+    const cosV=Math.cos(theta);
+    const dotV=(magA/15)*(magB/15)*cosV;
+
+    document.getElementById('ang-theta-out').textContent=`θ = ${parseInt(thetaS.value).toFixed(1)}°`;
+    document.getElementById('ang-cos-out').textContent=`cos(θ) = ${cosV.toFixed(4)}`;
+    document.getElementById('ang-dot-out').textContent=`a·b = ${dotV.toFixed(3)} (|a|=${parseInt(magAS.value)}, |b|=${(magB/15).toFixed(0)})`;
+
+    // Angle annotation
+    const midAngle=-theta/2;
+    ctx.fillStyle='rgba(255,205,60,.8)';ctx.font='11px Fira Code';ctx.textAlign='center';
+    ctx.fillText(`${parseInt(thetaS.value)}°`,ox+arcR*1.4*Math.cos(midAngle),oy+arcR*1.4*Math.sin(midAngle));
+
+    // Projection label
+    if(Math.abs(proj)>20){
+      ctx.fillStyle='rgba(155,114,255,.6)';ctx.font='10px Fira Code';
+      ctx.fillText(`proj = ${(proj/15).toFixed(1)}`,ox+proj,oy+18);
+    }
+  }
+
+  thetaS.addEventListener('input',draw);magAS.addEventListener('input',draw);draw();
+}
+
+/* ══ CURSE CANVAS (ch5) ══ */
+function initCurseCanvas(){
+  const c=document.getElementById('curse-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const dimS=document.getElementById('dim-s'),ptsS=document.getElementById('pts-s');
+  const dimV=document.getElementById('dim-v'),ptsV=document.getElementById('pts-v');
+
+  function draw(){
+    const d=parseInt(dimS.value),n=parseInt(ptsS.value);
+    dimV.textContent=d;ptsV.textContent=n;
+
+    // Generate n random points in d-dimensional unit hypercube
+    // Compute pairwise distances (subsample for efficiency)
+    const SAMPLE=Math.min(n,80);
+    const points=Array.from({length:SAMPLE},()=>Array.from({length:d},()=>Math.random()));
+    const dists=[];
+    for(let i=0;i<SAMPLE;i++)for(let j=i+1;j<SAMPLE;j++){
+      let s=0;for(let k=0;k<d;k++)s+=(points[i][k]-points[j][k])**2;
+      dists.push(Math.sqrt(s));
+    }
+    dists.sort((a,b)=>a-b);
+    if(dists.length===0)return;
+
+    const minD=dists[0],maxD=dists[dists.length-1],meanD=dists.reduce((a,b)=>a+b)/dists.length;
+    const ratio=minD>0?maxD/minD:Infinity;
+
+    ctx.fillStyle='#04080f';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#1a2d45';ctx.lineWidth=0.5;
+    for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(0,H*i/6);ctx.lineTo(W,H*i/6);ctx.stroke();}
+
+    // Histogram of distances
+    const pad=40,BINS=40;
+    const bw=(maxD-minD)/BINS;
+    const hist=new Array(BINS).fill(0);
+    dists.forEach(dd=>{const b=Math.min(Math.floor((dd-minD)/bw),BINS-1);hist[b]++;});
+    const maxH=Math.max(...hist);
+
+    const cx2=i=>pad+(i/BINS)*(W-2*pad);
+    const cy2=h=>H-pad-h/(maxH*1.1)*(H-2*pad);
+
+    hist.forEach((h,i)=>{
+      const x=cx2(i),bwp=(W-2*pad)/BINS;
+      const hue = d<10 ? 160 : d<100 ? 45 : 0; // teal → gold → red
+      ctx.fillStyle=`hsla(${hue},80%,60%,${0.3+0.6*(h/maxH)})`;
+      ctx.fillRect(x,cy2(h),bwp-1,H-pad-cy2(h));
+    });
+
+    // Mean line
+    const meanX=pad+(meanD-minD)/(maxD-minD+0.001)*(W-2*pad);
+    ctx.strokeStyle='rgba(0,229,200,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(meanX,pad);ctx.lineTo(meanX,H-pad);ctx.stroke();ctx.setLineDash([]);
+
+    // Labels
+    ctx.font='10px Fira Code';ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,229,200,.6)';ctx.fillText(`mean=${meanD.toFixed(2)}`,meanX,pad-6);
+    ctx.fillStyle='#4d6e99';ctx.fillText(`min=${minD.toFixed(2)}`,pad+30,H-8);
+    ctx.fillStyle='#4d6e99';ctx.fillText(`max=${maxD.toFixed(2)}`,W-pad-30,H-8);
+
+    // Status
+    const useful=ratio>1.5;
+    document.getElementById('curse-min').textContent=`min dist: ${minD.toFixed(3)}`;
+    document.getElementById('curse-max').textContent=`max dist: ${maxD.toFixed(3)}`;
+    document.getElementById('curse-ratio').textContent=`max/min: ${ratio.toFixed(3)}`;
+    document.getElementById('curse-useful').textContent=`KNN useful? ${useful?'✅ YES (ratio>1.5)':'❌ NO (distances collapsed)'}`;
+    document.getElementById('curse-lbl').textContent=`d=${d} dimensions | Distance histogram | High max/min ratio = distance is meaningful`;
+  }
+
+  dimS.addEventListener('input',draw);ptsS.addEventListener('input',draw);draw();
+}
+
+buildAll();
+setTimeout(initDistCanvas,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

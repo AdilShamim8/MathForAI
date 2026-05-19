@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability + Linear Algebra in ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050912;--bg2:#090f1e;--bg3:#0f1828;--bg4:#172034;
+  --border:#1c2e48;--text:#ccdeff;--muted:#4a6898;
+  --gold:#f5c842;--teal:#00e0c7;--violet:#b06cff;
+  --rose:#ff5577;--sky:#4fc3f7;--lime:#a8ff5e;
+  --orange:#ff9446;--green:#4dffa0;
+  --radius:13px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'Fira Code',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.83em;color:var(--teal)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:272px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:42px 46px;max-width:990px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,rgba(245,200,66,.06),rgba(176,108,255,.04))}
+.s-sym{font-size:2.2em;margin-bottom:6px;line-height:1}
+.s-title{font-size:.95em;font-weight:700;color:var(--gold)}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--teal);font-size:.79em;margin-top:2px}
+.s-sub{font-size:.69em;color:var(--muted);margin-top:5px;line-height:1.4}
+.pg-row{display:flex;justify-content:space-between;font-size:.68em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.pg-bar{height:3px;background:var(--bg3);border-radius:2px}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--violet));border-radius:2px;transition:width .5s ease}
+.nav-wrap{padding:10px 0;flex:1}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:12px 20px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;font-size:.79em;line-height:1.4;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--gold);border-left-color:var(--gold)}
+.nb-n{font-family:'Fira Code',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.7em;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-n{background:var(--gold);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:30px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:30px;position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,200,66,.05),rgba(176,108,255,.04));pointer-events:none}
+.ch-num{font-family:'Fira Code',monospace;font-size:.68em;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:1.9em;font-weight:800;line-height:1.15;color:var(--text)}
+.ch-title em{color:var(--gold);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--teal);font-size:.93em;margin-top:6px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 12px;border-radius:20px;font-size:.7em;font-weight:700;border:1px solid}
+.tg{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.09)}
+.tt{border-color:var(--teal);color:var(--teal);background:rgba(0,224,199,.09)}
+.tv{border-color:var(--violet);color:var(--violet);background:rgba(176,108,255,.09)}
+.tp{border-color:var(--rose);color:var(--rose);background:rgba(255,85,119,.09)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--gold);background:rgba(245,200,66,.04)}
+.law2{border-left:4px solid var(--rose);background:rgba(255,85,119,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.69em;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'Fira Code',monospace;font-size:.84em;color:var(--sky);line-height:2.15;overflow-x:auto;margin:10px 0;white-space:pre}
+.fg{color:var(--gold)}.ft{color:var(--teal)}.fv{color:var(--violet)}.fp{color:var(--rose)}.fl2{color:var(--lime)}.fo{color:var(--orange)}.fw{color:var(--text)}
+
+/* ── HIGHLIGHTS ── */
+.hg{color:var(--gold);font-weight:600}.ht{color:var(--teal);font-weight:600}.hv{color:var(--violet);font-weight:600}.hp{color:var(--rose);font-weight:600}.hl{color:var(--lime);font-weight:600}.hsk{color:var(--sky);font-weight:600}.ho{color:var(--orange);font-weight:600}.hgr{color:var(--green);font-weight:600}
+
+/* ── BIG EQ ── */
+.big-eq{text-align:center;padding:22px;background:var(--bg);border:1px solid var(--border);border-radius:11px;margin:14px 0}
+.big-eq .eq{font-family:'Fira Code',monospace;font-size:1.12em;color:var(--gold);display:block;margin-bottom:7px;line-height:1.8}
+.big-eq .eq-sub{font-size:.82em;color:var(--muted);line-height:1.5}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(245,200,66,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(0,224,199,.05);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(0,224,199,.9);font-size:.88em;line-height:1.9}
+.call-v{background:rgba(176,108,255,.05);border-left:4px solid var(--violet);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-r{background:rgba(255,85,119,.05);border-left:4px solid var(--rose);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.75em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--gold);border-bottom-color:transparent}
+.qa-a{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-a{transform:rotate(90deg);color:var(--gold)}
+.ap{display:none;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.85}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(0,224,199,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(245,200,66,.04);border:1px solid rgba(245,200,66,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--gold);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--gold);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.71em;color:var(--muted);text-align:center;margin-top:6px;font-family:'Fira Code',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap;min-width:fit-content}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--gold);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.78em;font-family:'Inter',sans-serif}
+.cval{font-family:'Fira Code',monospace;font-size:.79em;color:var(--gold);min-width:48px}
+.cout{font-family:'Fira Code',monospace;font-size:.82em;color:var(--gold);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+.cout-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--rose);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(164,255,94,.04);border:1px solid rgba(164,255,94,.14);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--lime);font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--sky);text-decoration:none;font-size:.79em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--sky);background:var(--bg4)}
+
+/* ── MATRIX DISPLAY ── */
+.mat-wrap{display:inline-block;position:relative;padding:6px 18px;margin:4px}
+.mat-wrap::before,.mat-wrap::after{content:'';position:absolute;top:0;bottom:0;width:6px;border:2px solid var(--muted)}
+.mat-wrap::before{left:0;border-right:none}
+.mat-wrap::after{right:0;border-left:none}
+.mat-row{display:flex;gap:18px;justify-content:center;font-family:'Fira Code',monospace;font-size:.9em;padding:3px 0}
+.mat-row span{min-width:60px;text-align:center}
+
+/* ── ANALOGY ── */
+.analogy{background:linear-gradient(135deg,rgba(245,200,66,.05),rgba(176,108,255,.04));border:1px solid rgba(245,200,66,.18);border-radius:10px;padding:18px;margin:13px 0}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'Inter',sans-serif;font-size:.87em}
+@media(max-width:760px){.mob{display:block}.sb{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* ── INSIGHT BOX ── */
+.insight{background:rgba(176,108,255,.06);border:1px solid rgba(176,108,255,.25);border-radius:10px;padding:18px;margin:14px 0}
+.insight-title{color:var(--violet);font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+/* ── SIGMA COLOR ZONES ── */
+.zone1{color:var(--gold)}.zone2{color:var(--teal)}.zone3{color:var(--violet)}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Multivariate Distributions</option>
+    <option value="1">02 — Gaussian in Higher Dimensions</option>
+    <option value="2">03 — Covariance Matrix Interpretation</option>
+    <option value="3">04 — Mahalanobis Distance</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sb">
+  <div class="s-brand">
+    <div class="s-sym">🔗</div>
+    <div class="s-title">Probability + Linear Algebra</div>
+    <div class="s-bn">সম্ভাবনা ও রৈখিক বীজগণিত</div>
+    <div class="s-sub">Where probability meets geometry · The mathematical heart of ML</div>
+    <div class="pg-row"><span>Progress</span><span id="pp">25%</span></div>
+    <div class="pg-bar"><div class="pg-fill" id="pf" style="width:25%"></div></div>
+  </div>
+  <div class="nav-wrap" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Multivariate Distributions","Gaussian in Higher Dimensions","Covariance Matrix Interpretation","Mahalanobis Distance"];
+
+const TOPICS=[
+
+/* ══════════════════════════════════════════════════════
+   01  MULTIVARIATE DISTRIBUTIONS
+══════════════════════════════════════════════════════ */
+{title:"Multivariate <em>Distributions</em>",bn:"বহুচলক সম্ভাবনা বিতরণ",
+tags:[{t:"Joint Probability",c:"tg"},{t:"Marginal / Conditional",c:"tt"},{t:"Independence",c:"tv"},{t:"ML Data Model",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A neural network takes 784 features (pixel values) as input. Is the joint distribution P(x₁, x₂, ..., x₇₈₄) of all pixels easy to work with? What makes it hard, and how do neural networks overcome this?</p>
+  <p style="margin-top:9px;color:var(--gold)">✅ <strong>Exponentially hard.</strong> The full joint over 784 binary pixels requires 2⁷⁸⁴ − 1 parameters — more than atoms in the universe! Neural networks overcome this through <strong>representation learning</strong>: layers learn low-dimensional sufficient statistics of the joint (the manifold). The network implicitly factorises P(x₁,...,x₇₈₄) into compressed representations — this is why depth matters.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing joint, marginal, and conditional distributions.</strong> P(X, Y) = joint (both together). P(X) = marginal (integrate out Y). P(X|Y) = conditional (given Y). These are different mathematical objects. Getting them wrong in Bayesian inference, VAEs, or generative models destroys results.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Independence ≠ uncorrelated.</strong> P(X,Y) = P(X)P(Y) is independence (strong condition). Cov(X,Y) = 0 is uncorrelated (weaker). Uncorrelated does NOT imply independent (only true for Gaussians!). Example: X ~ Uniform[-1,1], Y=X². Cov=0 but clearly dependent.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Assuming independence when features are correlated.</strong> Naïve Bayes assumes feature independence: P(x₁,...,xₙ|y) = ΠP(xᵢ|y). This fails when features are correlated (text: "New" and "York" highly correlated). Naïve Bayes still works surprisingly well even when violated — but probability estimates are miscalibrated.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>A <span class="hg">multivariate distribution</span> describes the joint probability behaviour of <strong>two or more random variables simultaneously</strong>. It captures not just each variable's individual behaviour, but their <em>dependencies</em> — how they relate to each other.</p>
+  <div class="big-eq">
+    <span class="eq">P(X₁=x₁, X₂=x₂, ..., Xₙ=xₙ) — the full joint distribution</span>
+    <span class="eq-sub">Contains ALL information about the relationship between variables · Marginals and conditionals can be derived from it</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>The fundamental decomposition chain:</strong></p>
+  <div class="fx"><span class="fg">Joint → Marginal → Conditional</span>
+
+<span class="fw">Joint:</span>      P(X,Y)          "probability of X AND Y simultaneously"
+<span class="fw">Marginal:</span>   P(X) = ΣᵧP(X,Y)  "probability of X, ignoring Y" (sum/integrate Y out)
+<span class="fw">Conditional:</span> P(X|Y) = P(X,Y)/P(Y)  "probability of X given we KNOW Y"
+
+<span class="fw">Bayes' rule connects them:</span>  P(X|Y) = P(Y|X)·P(X) / P(Y)</div>
+
+  <p style="margin-top:16px"><strong>Independence — the simplifying assumption:</strong></p>
+  <div class="fx">X and Y are <span class="ft">independent</span> iff:
+  P(X,Y) = P(X)·P(Y)  for ALL x,y
+  Equivalently: P(X|Y) = P(X)  (knowing Y tells you nothing about X)
+
+<span class="fw">Conditional independence</span>: X ⊥ Y | Z
+  P(X,Y|Z) = P(X|Z)·P(Y|Z)  (given Z, X and Y are independent)
+  Foundation of: Naïve Bayes, Markov chains, Bayesian networks</div>
+
+  <div class="insight">
+    <div class="insight-title">🔑 The Chain Rule of Probability</div>
+    <p>Any joint distribution can be factored as a product of conditionals:</p>
+    <div class="fx" style="margin-top:8px">P(X₁, X₂, ..., Xₙ) = P(X₁)·P(X₂|X₁)·P(X₃|X₁,X₂)···P(Xₙ|X₁,...,Xₙ₋₁)
+This is EXACTLY how autoregressive language models work!
+GPT: P(w₁,w₂,...,wₙ) = Π P(wₜ|w₁,...,wₜ₋₁)  ← chain rule of probability</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Multivariate Distribution</strong> একসাথে অনেকগুলো random variable-এর আচরণ বর্ণনা করে।</p>
+  <div class="call-bn">💡 উদাহরণ: একজন ব্যক্তির উচ্চতা (X) ও ওজন (Y)।
+• Joint P(X, Y): উচ্চতা ১৭০cm এবং ওজন ৭০kg — দুটো একসাথে।
+• Marginal P(X): শুধু উচ্চতার distribution — ওজন ignore।
+• Conditional P(X|Y=৭০): কেউ ৭০kg হলে তার উচ্চতা কতটা সম্ভবত? ৭০kg জানলে ১৪০cm বা ২০০cm হওয়া unlikely → P(X|Y) ≠ P(X)।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ Multivariate Distribution:</strong></p>
+  <p class="bn">• <strong>Training data:</strong> প্রতিটা sample = (x₁, x₂, ..., xₙ, y) joint distribution P(X, Y) থেকে draw।</p>
+  <p class="bn">• <strong>Generative model:</strong> P(X) = data distribution শেখা (GAN, VAE)।</p>
+  <p class="bn">• <strong>Discriminative model:</strong> P(Y|X) = conditional শেখা (neural network)।</p>
+  <p class="bn">• <strong>LLM:</strong> P(w₁,...,wₙ) = ভাষার joint distribution → chain rule দিয়় factorize।</p>
+  <p class="bn" style="margin-top:10px"><strong>Independence-এর সুবিধা:</strong> n টা variable independent হলে P(X₁,...,Xₙ) = ΠP(Xᵢ) — computation exponential থেকে linear হয়ে যায়!</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 KEY FORMULAS</div>
+  <div class="fl">Joint → Marginal (summing/integrating out variables)</div>
+  <div class="fx"><span class="ft">Discrete:</span>  P(X=x) = Σᵧ P(X=x, Y=y)
+<span class="ft">Continuous:</span> f_X(x) = ∫ f_{X,Y}(x,y) dy
+
+Example: 2 fair dice (X=die1, Y=die2)
+P(sum=7) = Σ P(X=k, Y=7-k) for k=1..6 = 6×(1/36) = 1/6</div>
+  <div class="fl">Conditional probability and Bayes</div>
+  <div class="fx">P(X|Y) = P(X,Y) / P(Y)    [conditional = joint / marginal]
+P(X,Y) = P(X|Y)·P(Y)     [product rule]
+P(Y|X) = P(X|Y)·P(Y) / P(X)  [Bayes' theorem]
+
+Law of Total Probability: P(X) = Σᵧ P(X|Y=y)·P(Y=y)</div>
+  <div class="fl">Covariance and correlation matrix (preview of Ch 3)</div>
+  <div class="fx">For random vector X = [X₁, X₂, ..., Xₙ]ᵀ:
+μ = E[X]    (mean vector)
+Σ = E[(X−μ)(X−μ)ᵀ]  (covariance matrix, n×n, symmetric PSD)
+Σ[i,j] = Cov(Xᵢ,Xⱼ),  Σ[i,i] = Var(Xᵢ)</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>Multivariate Distribution Role</th></tr>
+  <tr><td>Supervised learning</td><td>Model P(Y|X) — conditional distribution of label given features</td></tr>
+  <tr><td>Generative models (GAN, VAE)</td><td>Learn and sample from P(X) — the data distribution</td></tr>
+  <tr><td>Autoregressive LLMs (GPT)</td><td>P(w₁,...,wₙ) factored via chain rule → predict P(wₜ|w₁,...,wₜ₋₁)</td></tr>
+  <tr><td>Naïve Bayes</td><td>Assumes P(X|Y) = ΠᵢP(Xᵢ|Y) — conditional independence per feature</td></tr>
+  <tr><td>EM Algorithm</td><td>Alternates between estimating joint P(X,Z) and optimizing parameters</td></tr>
+  <tr><td>Bayesian Neural Networks</td><td>P(θ|data) — full posterior over weight distributions</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: GPT-style language models factor P(w₁,...,wₙ) using the chain rule. Why is this factorization exact, not an approximation? <span class="qa-a">▶</span></button>
+<div class="ap">The chain rule of probability P(X₁,...,Xₙ) = P(X₁)·P(X₂|X₁)·P(X₃|X₁,X₂)···P(Xₙ|X₁,...,Xₙ₋₁) is a mathematical identity — it holds for ANY joint distribution without assumptions. This is fundamentally different from Naïve Bayes (which assumes independence, an approximation). GPT uses this exact factorization: train a neural network to estimate P(wₜ|w₁,...,wₜ₋₁) for each t, then the product of these conditionals gives the exact joint probability. The neural network learns a compressed representation of the entire conditional distribution. The approximation in GPT is finite context window (can't condition on infinite past), not the chain rule itself.<div class="a-bn">বাংলায়: Chain rule হলো exact mathematical identity — কোনো assumption নেই। GPT এই exact factorization ব্যবহার করে, approximation নয়। Finite context window-ই একমাত্র approximation।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the difference between discriminative and generative models in terms of which distribution they model? <span class="qa-a">▶</span></button>
+<div class="ap">Discriminative models learn P(Y|X) directly — the conditional distribution of labels given features. Examples: logistic regression, neural networks, SVMs. They don't model how X is distributed — just how to classify given X. Generative models learn P(X,Y) = P(X|Y)P(Y) — the full joint. They can generate new samples by sampling X|Y or classify via Bayes: P(Y|X) ∝ P(X|Y)P(Y). Examples: Naïve Bayes, Gaussian Discriminant Analysis, GANs, VAEs. Discriminative usually achieves higher accuracy with limited data (direct optimization of what we care about). Generative models are more data-hungry but enable generation, anomaly detection, missing data imputation, and semi-supervised learning.<div class="a-bn">বাংলায়: Discriminative = P(Y|X) শেখে (সরাসরি classification)। Generative = P(X,Y) শেখে (generation + classification)। Generative বেশি করে পারে কিন্তু বেশি data লাগে।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Joint to Marginal</div>
+<p>P(X=0,Y=0)=0.1, P(X=0,Y=1)=0.4, P(X=1,Y=0)=0.2, P(X=1,Y=1)=0.3. Find: (a) P(X=1) (b) P(Y=0|X=1)</p>
+<div class="ex-ans">(a) P(X=1) = P(X=1,Y=0)+P(X=1,Y=1) = 0.2+0.3 = 0.5. (b) P(Y=0|X=1) = P(X=1,Y=0)/P(X=1) = 0.2/0.5 = 0.4. Check: P(Y=1|X=1)=0.3/0.5=0.6. Sum=1 ✓</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Independence Test</div>
+<p>From above: Is X independent of Y? Show using the definition P(X,Y)=P(X)P(Y).</p>
+<div class="ex-ans">P(X=0)=0.5, P(Y=0)=0.3. P(X=0)P(Y=0)=0.15 ≠ P(X=0,Y=0)=0.1. NOT independent. Also: P(X=0,Y=1)=0.4, P(X=0)P(Y=1)=0.5×0.7=0.35≠0.4. Multiple violations confirm dependence.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://www.khanacademy.org/math/statistics-probability/probability-library/conditional-probability-independence/v/conditional-probability-and-independence" target="_blank">📘 Khan: Conditional Probability</a>
+<a class="rl" href="http://www.deeplearningbook.org/contents/prob.html" target="_blank">📄 Deep Learning Book: Probability Chapter</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   02  MULTIVARIATE GAUSSIAN
+══════════════════════════════════════════════════════ */
+{title:"Gaussian in <em>Higher Dimensions</em>",bn:"উচ্চ মাত্রায় গাউসিয়ান বিতরণ",
+tags:[{t:"N(μ, Σ)",c:"tg"},{t:"Contour Ellipses",c:"tt"},{t:"VAE / GDA",c:"tv"},{t:"PCA Connection",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A 2D Gaussian has μ=[2, 5] and Σ=[[4, 2],[2, 9]]. Before computing — what shape do the contours of its density function have, and in which direction is the distribution most "spread out"?</p>
+  <p style="margin-top:9px;color:var(--gold)">✅ The contours are <strong>ellipses</strong>, not circles. The covariance Σ=[[4,2],[2,9]] tells us: x-variance=4, y-variance=9, positive covariance=2. The distribution is most spread in the y-direction (variance 9 > 4) but the ellipses are <em>tilted</em> because of the off-diagonal covariance term. The eigenvectors of Σ give the tilt directions; eigenvalues give the spread along each axis.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Assuming diagonal covariance without checking.</strong> Σ = diagonal means features are uncorrelated. If they're actually correlated (correlated pixels in images, correlated word embeddings), a diagonal approximation loses important structure. Full covariance Σ can be expensive (d² parameters), so use diagonal only when justified.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Σ must be positive definite, not just symmetric.</strong> A covariance matrix must have all eigenvalues > 0 (positive definite) or ≥ 0 (positive semi-definite). Sample covariance from n < d samples is rank-deficient — NOT positive definite. Always use regularization: Σ̂ = S + εI for some small ε.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>The multivariate Gaussian is NOT maximum entropy in general.</strong> For a fixed COVARIANCE MATRIX, the multivariate Gaussian IS maximum entropy. But with other constraints, maximum entropy might be a different distribution. The Gaussian is special — it's the limit distribution of sums (CLT) AND maximum entropy under second-moment constraints.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THE MULTIVARIATE GAUSSIAN — Full Definition</div>
+  <p>The <span class="hg">Multivariate Gaussian (MVN)</span> is the extension of the 1D normal distribution to d dimensions. It's the most important probability distribution in all of ML.</p>
+  <div class="big-eq">
+    <span class="eq">X ~ N(μ, Σ)</span>
+    <span class="eq">f(x) = (2π)^(-d/2) · |Σ|^(-1/2) · exp(-½(x-μ)ᵀΣ⁻¹(x-μ))</span>
+    <span class="eq-sub">μ ∈ ℝᵈ = mean vector · Σ ∈ ℝᵈˣᵈ = covariance matrix (symmetric, positive definite)</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Breaking down the formula:</strong></p>
+  <div class="fx"><span class="fg">(2π)^(-d/2) · |Σ|^(-1/2)</span>  ← normalizing constant (ensures integrates to 1)
+<span class="fg">exp(-½(x-μ)ᵀΣ⁻¹(x-μ))</span>  ← the "shape" term
+
+The exponent: <span class="fg">(x-μ)ᵀΣ⁻¹(x-μ)</span> = squared Mahalanobis distance from x to μ
+Higher Mahalanobis distance → lower density
+When Σ = I (identity): simplifies to ordinary squared Euclidean distance!</div>
+
+  <p style="margin-top:16px"><strong>Three cases — how Σ shapes the distribution:</strong></p>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(245,200,66,.35)">
+      <div class="gbox-t hg">Σ = σ²I (spherical)</div>
+      <p style="font-size:.85em">All features have equal variance σ². No correlations. Contours are perfect circles. Simplest case — isotropic Gaussian.</p>
+      <div class="fx" style="font-size:.79em;margin-top:8px">Σ = ⎡σ² 0 ⎤
+    ⎣0  σ²⎦</div>
+    </div>
+    <div class="gbox" style="border-color:rgba(0,224,199,.35)">
+      <div class="gbox-t ht">Σ = diagonal</div>
+      <p style="font-size:.85em">Features have different variances, but are uncorrelated. Contours are axis-aligned ellipses. Naïve Bayes assumption.</p>
+      <div class="fx" style="font-size:.79em;margin-top:8px">Σ = ⎡σ₁² 0  ⎤
+    ⎣0   σ₂²⎦</div>
+    </div>
+    <div class="gbox" style="border-color:rgba(176,108,255,.35)">
+      <div class="gbox-t hv">Σ = full matrix</div>
+      <p style="font-size:.85em">Features have different variances AND correlations. Contours are tilted ellipses. Most general — requires d(d+1)/2 parameters.</p>
+      <div class="fx" style="font-size:.79em;margin-top:8px">Σ = ⎡σ₁²  ρ  ⎤
+    ⎣ρ   σ₂²⎦</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Multivariate Gaussian</strong> হলো d মাত্রায় Normal distribution। এটা ML-এর সবচেয়ে গুরুত্বপূর্ণ distribution।</p>
+  <div class="call-bn">💡 2D উদাহরণ: মানুষের উচ্চতা (x₁) ও ওজন (x₂)-এর joint distribution। একা একা উভয়ই Normal, কিন্তু তারা correlated — লম্বা মানুষ সাধারণত বেশি ভারী। এই correlation-ই covariance matrix Σ ধারণ করে।
+• Σ = Identity → circular contour (উচ্চতা ও ওজন independent এবং same scale)
+• Σ = diagonal → axis-aligned ellipse (ভিন্ন variance, কিন্তু uncorrelated)
+• Σ = full → tilted ellipse (correlated — এটাই বাস্তব!)</div>
+  <p class="bn" style="margin-top:12px"><strong>MVN কেন এত গুরুত্বপূর্ণ?</strong></p>
+  <p class="bn">① <strong>CLT:</strong> যেকোনো distribution-এর sample mean → Gaussian (Central Limit Theorem)</p>
+  <p class="bn">② <strong>Maximum entropy:</strong> fixed mean ও covariance সহ সর্বোচ্চ entropy distribution</p>
+  <p class="bn">③ <strong>Tractability:</strong> Gaussian-এর linear combination = Gaussian। Conditioning করলেও Gaussian। এটা analytically সহজ।</p>
+  <p class="bn">④ <strong>ML use:</strong> VAE latent prior N(0,I), weight initialization, Gaussian Discriminant Analysis, Gaussian Processes।</p>
+</div>
+
+<!-- INTERACTIVE MULTIVARIATE GAUSSIAN VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Multivariate Gaussian Contour Explorer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Adjust the covariance matrix parameters and observe how contours (constant-density ellipses) change shape, tilt, and size.</p>
+  <div class="ctrl">
+    <label>σ₁ (x-std)</label>
+    <input type="range" id="mv-s1" min="5" max="30" value="15">
+    <span class="cval" id="mv-s1v">1.5</span>
+    <label>σ₂ (y-std)</label>
+    <input type="range" id="mv-s2" min="5" max="30" value="20">
+    <span class="cval" id="mv-s2v">2.0</span>
+    <label>ρ (correlation)</label>
+    <input type="range" id="mv-rho" min="-90" max="90" value="60">
+    <span class="cval" id="mv-rhov">0.60</span>
+  </div>
+  <div class="cw">
+    <canvas id="mv-canvas" width="580" height="300" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="mv-lbl">Constant-density contours of 2D Gaussian — ellipses aligned with eigenvectors of Σ</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="mv-det">|Σ| = ...</span>
+    <span class="cout" id="mv-eig" style="color:var(--violet)">λ₁, λ₂ = ...</span>
+    <span class="cout" id="mv-angle" style="color:var(--teal)">tilt = ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 KEY PROPERTIES & RESULTS</div>
+  <div class="fl">Marginal and conditional distributions (both Gaussian — beautiful!)</div>
+  <div class="fx">X = [X₁, X₂]ᵀ ~ N(μ, Σ), partitioned as:
+μ = [μ₁, μ₂]ᵀ,  Σ = ⎡Σ₁₁  Σ₁₂⎤
+                       ⎣Σ₂₁  Σ₂₂⎦
+
+<span class="ft">Marginal:</span>  X₁ ~ N(μ₁, Σ₁₁)   [just the diagonal block!]
+<span class="ft">Conditional:</span> X₁|X₂=x₂ ~ N(μ₁|₂, Σ₁|₂) where:
+  μ₁|₂ = μ₁ + Σ₁₂Σ₂₂⁻¹(x₂ − μ₂)   [mean shifts toward x₂]
+  Σ₁|₂ = Σ₁₁ − Σ₁₂Σ₂₂⁻¹Σ₂₁       [variance reduces!]
+
+Key: conditioning REDUCES variance — learning X₂ gives info about X₁!</div>
+  <div class="fl">Linear transformation of Gaussian</div>
+  <div class="fx">If X ~ N(μ, Σ) and Y = AX + b, then:
+Y ~ N(<span class="fg">Aμ + b</span>, <span class="fg">AΣAᵀ</span>)
+Linear combination of Gaussians = Gaussian!
+→ Why linear layers in VAE preserve Gaussian latent structure</div>
+  <div class="fl">Standard Normal → General Gaussian (sampling trick)</div>
+  <div class="fx">To sample X ~ N(μ, Σ):
+1. Factor Σ = LLᵀ  (Cholesky decomposition, L lower triangular)
+2. Sample Z ~ N(0, I)  (standard normal — easy!)
+3. X = μ + L·Z  ← valid sample from N(μ, Σ)
+VAE reparameterization: z = μ + σ·ε, ε~N(0,1) is this exact trick!</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — MVN is Everywhere</div>
+<table>
+  <tr><th>ML System</th><th>Multivariate Gaussian Role</th></tr>
+  <tr><td>VAE latent prior</td><td>p(z) = N(0, I) — standard MVN forces structured latent space</td></tr>
+  <tr><td>VAE reparameterization</td><td>z = μ + σ⊙ε, ε~N(0,I) — differentiable sampling via linear transform</td></tr>
+  <tr><td>Gaussian Discriminant Analysis</td><td>P(X|Y=k) = N(μₖ, Σ) — Gaussian class-conditionals</td></tr>
+  <tr><td>Gaussian Processes (GP)</td><td>f ~ GP(m, k) — infinite-dimensional MVN over functions</td></tr>
+  <tr><td>Kalman Filter</td><td>State prediction and update both maintain Gaussian posteriors</td></tr>
+  <tr><td>Diffusion models (DDPM)</td><td>Forward process adds Gaussian noise; reverse denoises</td></tr>
+  <tr><td>Weight init (Xavier/He)</td><td>W ~ N(0, 2/nᵢₙ) — Gaussian with specific variance</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why does the VAE use N(0,I) as the latent prior, and what happens if you use a non-Gaussian prior? <span class="qa-a">▶</span></button>
+<div class="ap">N(0,I) is chosen for three reasons: (1) <strong>Tractable KL divergence</strong>: KL(N(μ,σ²)||N(0,1)) has a closed form = −½Σ(1+log σⱼ²−μⱼ²−σⱼ²). No sampling needed for the KL term. (2) <strong>Easy sampling</strong>: can sample z~N(0,I) trivially and decode. (3) <strong>Reparameterization trick</strong>: z = μ+σ⊙ε with ε~N(0,I) gives differentiable sampling. Non-Gaussian priors: discrete (VQ-VAE uses categorical/codebook), mixture of Gaussians (richer but harder KL), normalizing flow prior (more flexible). Recent work: diffusion models use the entire Gaussian noise diffusion process instead of a simple fixed prior — allows more complex data distributions.<div class="a-bn">বাংলায়: N(0,I) ব্যবহার করা হয় কারণ KL closed-form, sampling সহজ, এবং reparameterization trick কাজ করে। Non-Gaussian prior সম্ভব কিন্তু জটিল।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is a Gaussian Process and how does it generalize the multivariate Gaussian? <span class="qa-a">▶</span></button>
+<div class="ap">A finite-dimensional MVN defines a distribution over vectors of size d. A Gaussian Process (GP) extends this to an infinite-dimensional distribution over FUNCTIONS. GP: any finite collection of function values {f(x₁),...,f(xₙ)} is jointly Gaussian with mean m(xᵢ) and covariance k(xᵢ,xⱼ) (the kernel). The kernel encodes assumptions about function smoothness. GP regression: given training points {(xᵢ,yᵢ)}, the posterior over functions is again a GP (due to Gaussian-Gaussian conjugacy). Prediction at x* is Gaussian — giving both mean AND variance (uncertainty!). Used in: Bayesian optimization (hyperparameter tuning), surrogate models, uncertainty quantification in safety-critical ML.<div class="a-bn">বাংলায়: Gaussian Process = infinite-dimensional MVN। Function-এর distribution define করে। GP regression Gaussian posterior দেয় — point estimate + uncertainty। Bayesian optimization-এ ব্যবহার।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise — Marginalization</div>
+<p>X = [X₁, X₂]ᵀ ~ N([3, 7]ᵀ, [[4, 2],[2, 9]]). (a) What is X₁'s marginal distribution? (b) If we observe X₂=10 (above mean 7), does X₁'s conditional mean increase or decrease? Why?</p>
+<div class="ex-ans">(a) X₁ ~ N(3, 4) — just take the (1,1) element of Σ and first element of μ. (b) Since Cov(X₁,X₂)=2>0 (positive correlation), observing X₂=10>7 means X₁ likely to also be above its mean. Conditional mean: μ₁|₂ = 3 + (2/9)(10-7) = 3 + 2/3 ≈ 3.67 > 3. Yes, conditional mean increases! The conditional variance is 4 - (2×2)/9 = 4 - 4/9 ≈ 3.56 (reduced from 4).</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://distill.pub/2019/visual-exploration-gaussian-processes/" target="_blank">🎯 Distill: Visual Guide to Gaussian Processes</a>
+<a class="rl" href="https://www.youtube.com/watch?v=eHcg3ZDrJkA" target="_blank">🎬 StatQuest: Multivariate Normal</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   03  COVARIANCE MATRIX INTERPRETATION
+══════════════════════════════════════════════════════ */
+{title:"Covariance Matrix <em>Interpretation</em>",bn:"কোভেরিয়েন্স ম্যাট্রিক্স ব্যাখ্যা",
+tags:[{t:"Σ Geometry",c:"tg"},{t:"Eigendecomposition",c:"tt"},{t:"PCA Connection",c:"tv"},{t:"Precision Matrix",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You compute the covariance matrix of a dataset and find eigenvalues [100, 5, 0.1]. What does this tell you about the data's intrinsic dimensionality and how you should approach dimensionality reduction?</p>
+  <p style="margin-top:9px;color:var(--gold)">✅ The data varies <strong>strongly</strong> along the first principal component (variance 100), weakly along the second (5), and almost not at all along the third (0.1). The data effectively lives in ~2D (first two eigenvectors capture 100+5 / 105.1 = 99.9% of variance). For PCA: keep 2 components, discard the third. This is the geometric meaning of eigenvalues — they ARE the variances along the principal component directions.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing covariance matrix with correlation matrix.</strong> Cov matrix Σ has variances on diagonal (can be any positive number). Correlation matrix R has 1s on diagonal (normalised). Use correlation matrix to compare relationships across features of different scales. PCA on raw features uses covariance; PCA on scaled features (StandardScaler) uses correlation.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>The precision matrix Σ⁻¹ is equally important.</strong> The Gaussian density exponent is (x−μ)ᵀΣ⁻¹(x−μ) — the precision (inverse covariance) matrix appears, not Σ itself. The precision matrix encodes conditional independencies: Σ⁻¹[i,j] = 0 means Xᵢ ⊥ Xⱼ | all other variables (graphical models).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Sample covariance is biased for small n.</strong> With n < d, the sample covariance matrix is singular (not invertible). Need regularisation: Ledoit-Wolf shrinkage, diagonal + scalar, or (Σ̂ + εI) for computing the Gaussian exponent or Mahalanobis distance.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THE COVARIANCE MATRIX AS A GEOMETRIC OBJECT</div>
+  <p>The covariance matrix Σ is not just a collection of numbers — it is a <span class="hg">linear operator that encodes the shape, orientation, and scale of a data distribution</span> in space.</p>
+
+  <div class="insight">
+    <div class="insight-title">🔑 The Spectral (Eigenvalue) Decomposition</div>
+    <p>Any symmetric positive definite Σ can be written as:</p>
+    <div class="fx" style="margin-top:10px">Σ = QΛQᵀ  where:
+  Q = [q₁ | q₂ | ... | qₐ]  ← orthogonal matrix of eigenvectors (columns)
+  Λ = diag(λ₁, λ₂, ..., λₐ)  ← diagonal matrix of eigenvalues (λ₁ ≥ λ₂ ≥ ... ≥ λₐ > 0)
+
+Geometric interpretation:
+  qᵢ = <span class="ft">direction</span> of i-th principal axis of the distribution
+  λᵢ = <span class="fg">variance</span> along that axis (λᵢ = σᵢ²)
+  √λᵢ = <span class="fv">standard deviation</span> along that axis = semi-axis length of the data ellipsoid</div>
+  </div>
+
+  <p style="margin-top:16px"><strong>Reading the covariance matrix — a complete guide:</strong></p>
+  <div class="fx">For Σ = ⎡σ₁²   Cov₁₂⎤
+         ⎣Cov₂₁  σ₂²  ⎦
+
+Diagonal elements Σ[i,i] = Var(Xᵢ) = variance of feature i
+Off-diagonal Σ[i,j] = Cov(Xᵢ,Xⱼ):
+  > 0 → positively correlated (tend to increase together)
+  = 0 → uncorrelated (not necessarily independent!)
+  < 0 → negatively correlated (one increases, other decreases)
+
+Eigenvalues λ₁, λ₂ → variances along principal directions
+Eigenvectors q₁, q₂ → the principal directions themselves
+Determinant |Σ| = λ₁·λ₂·...·λₐ → "volume" of the data cloud (in units²)</div>
+
+  <p style="margin-top:16px"><strong>PCA = Eigendecomposition of the Covariance Matrix:</strong></p>
+  <div class="fx"><span class="fw">PCA algorithm:</span>
+1. Center data: X̃ = X − μ
+2. Compute covariance: Σ = X̃ᵀX̃ / (n−1)
+3. Eigendecompose: Σ = QΛQᵀ
+4. Sort by eigenvalue: q₁ (most variance), q₂ (second most), ...
+5. Project: Z = X̃ · Q[:, :k]   ← keep top-k principal components
+
+Explained variance ratio of component i = λᵢ / Σⱼλⱼ
+→ Choose k to explain 95% cumulative variance</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Covariance Matrix Σ</strong> শুধু সংখ্যার table নয় — এটা data-র shape, দিক, ও spread-এর সম্পূর্ণ geometric বিবরণ।</p>
+  <div class="call-bn">💡 Balloon analogy:
+কল্পনা করো data হলো একটা balloon। Covariance matrix বলে:
+• Diagonal (σ₁², σ₂²): balloon কতটা লম্বা ও চওড়া (x ও y দিকে)
+• Off-diagonal (Cov₁₂): balloon কতটা তির্যক (tilted)
+• Eigenvectors: balloon-এর actual দীর্ঘ অক্ষ ও ছোট অক্ষের দিক
+• Eigenvalues: সেই অক্ষ বরাবর কতটা লম্বা
+PCA = balloon-কে সোজা করে তার actual বড়/ছোট অক্ষ খুঁজে বের করা!</div>
+  <p class="bn" style="margin-top:12px"><strong>Precision Matrix Σ⁻¹ (Inverse Covariance):</strong></p>
+  <p class="bn">MVN-এর density function-এ Σ⁻¹ ব্যবহার হয়। Σ⁻¹[i,j] = 0 মানে Xᵢ ও Xⱼ conditionally independent (অন্য সব variable জানা থাকলে)। এটা graphical model-এর ভিত্তি।</p>
+  <p class="bn" style="margin-top:8px"><strong>Whitening transform (Sphering):</strong></p>
+  <p class="bn">X_white = Σ^(-1/2)·X → transformed data-র covariance = Identity matrix।</p>
+  <p class="bn">এটা করলে features independent ও unit variance হয় → gradient descent দ্রুত converge করে।</p>
+</div>
+
+<!-- INTERACTIVE COVARIANCE MATRIX VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Covariance Matrix Geometry</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Adjust the covariance matrix. See eigenvectors (principal axes), eigenvalues (spread), and data samples in real time.</p>
+  <div class="ctrl">
+    <label>Var(X₁) = σ₁²</label>
+    <input type="range" id="cov-v1" min="5" max="50" value="20">
+    <span class="cval" id="cov-v1v">2.0</span>
+    <label>Var(X₂) = σ₂²</label>
+    <input type="range" id="cov-v2" min="5" max="50" value="35">
+    <span class="cval" id="cov-v2v">3.5</span>
+    <label>Cov(X₁,X₂)</label>
+    <input type="range" id="cov-c" min="-40" max="40" value="20">
+    <span class="cval" id="cov-cv">2.0</span>
+  </div>
+  <div class="cw">
+    <canvas id="cov-canvas" width="580" height="300" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="cov-lbl">Data ellipse with eigenvectors (principal axes) and sample points</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="cov-mat">Σ = ...</span>
+    <span class="cout" id="cov-eigs" style="color:var(--violet)">Eigenvalues: ...</span>
+    <span class="cout" id="cov-det" style="color:var(--teal)">|Σ| = ...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS — COVARIANCE MATRIX OPERATIONS</div>
+  <div class="fl">Computing eigenvalues (2×2 case)</div>
+  <div class="fx">Σ = ⎡a  b⎤    Characteristic equation: det(Σ − λI) = 0
+    ⎣b  d⎦    (a−λ)(d−λ) − b² = 0
+              λ² − (a+d)λ + (ad−b²) = 0
+              λ = [(a+d) ± √((a−d)²+4b²)] / 2
+
+Sum of eigenvalues = trace(Σ) = a+d
+Product of eigenvalues = det(Σ) = ad−b²</div>
+  <div class="fl">Whitening / Sphering transform</div>
+  <div class="fx">Given Σ = QΛQᵀ  (eigendecomposition)
+Σ^(1/2) = QΛ^(1/2)Qᵀ  (matrix square root)
+Σ^(-1/2) = QΛ^(-1/2)Qᵀ  (inverse square root)
+
+Whitened data: X_w = Σ^(-1/2)(X − μ)
+→ Cov(X_w) = Σ^(-1/2)·Σ·Σ^(-1/2) = I  ← identity covariance!
+→ Equivalent to rotating to eigenvector basis + scaling by 1/√λ</div>
+  <div class="fl">Precision matrix and conditional independence</div>
+  <div class="fx">Precision matrix: Ω = Σ⁻¹
+Gaussian density: f(x) ∝ exp(-½(x−μ)ᵀΩ(x−μ))
+Gaussian graphical model: Ω[i,j] = 0 ⟺ Xᵢ ⊥ Xⱼ | X_{-ij}
+→ Sparse precision matrix = sparse conditional independence graph
+→ Graphical Lasso learns sparse Ω via L1 penalty on Ω entries</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>Algorithm</th><th>Covariance Matrix Role</th></tr>
+  <tr><td>PCA</td><td>Eigendecompose Σ → principal components = eigenvectors, explained variance = eigenvalues</td></tr>
+  <tr><td>LDA (Linear Discriminant Analysis)</td><td>Between-class Σ_B vs within-class Σ_W — maximize Σ_B/Σ_W</td></tr>
+  <tr><td>Gaussian Discriminant Analysis</td><td>Estimate Σ per class (QDA) or shared Σ (LDA) for class-conditional Gaussians</td></tr>
+  <tr><td>Kalman Filter</td><td>State uncertainty as Gaussian with tracked covariance Σₜ</td></tr>
+  <tr><td>Batch Normalization</td><td>Normalizes by feature variance (diagonal of Σ). LayerNorm normalizes by feature vector norm</td></tr>
+  <tr><td>Graphical Lasso</td><td>Estimate sparse precision matrix Ω = Σ⁻¹ for conditional independence structure</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: What is the relationship between PCA and the eigendecomposition of the covariance matrix? Why do eigenvectors give the principal components? <span class="qa-a">▶</span></button>
+<div class="ap">PCA finds the direction w (unit vector) that maximizes variance of the projection wᵀX. Variance = wᵀΣw. Constrained optimization: max wᵀΣw subject to ||w||=1. Lagrangian: Σw = λw — eigenvalue equation! First principal component = eigenvector with largest eigenvalue (maximizes wᵀΣw = λ). Second PC = eigenvector with second largest λ, orthogonal to first. k-th PC = k-th eigenvector. The variance captured by PC_k = λₖ. Total variance = trace(Σ) = Σλₖ. This is why PCA on data = eigendecomposition of its covariance matrix — mathematically equivalent, not just a heuristic.<div class="a-bn">বাংলায়: Maximum variance direction = covariance matrix-এর largest eigenvector। This is EXACT equivalence, not approximation — Lagrange multiplier proof করলে eigenvalue equation পাওয়া যায়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Why is the covariance matrix always positive semi-definite? What happens if you have a covariance matrix that isn't? <span class="qa-a">▶</span></button>
+<div class="ap">Proof: For any vector v, vᵀΣv = vᵀE[(X−μ)(X−μ)ᵀ]v = E[vᵀ(X−μ)(X−μ)ᵀv] = E[((X−μ)ᵀv)²] ≥ 0. A squared quantity is always non-negative, so its expectation is ≥ 0 → Σ is PSD. It's PD (strictly positive definite) if no linear combination of features is constant. If Σ is not PSD in practice: (1) numerical errors → add εI. (2) n < d → rank deficient, use pseudoinverse. (3) Wrong sign due to floating point → use Cholesky → if fails, regularize. Common fix: Σ_reg = Σ + εI ensures PD without changing eigenvectors significantly.<div class="a-bn">বাংলায়: Cov matrix PSD কারণ vᵀΣv = E[(variance)²] ≥ 0। Sample cov n<d হলে singular। Fix: Σ + εI যোগ করো।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise — Full Eigenanalysis</div>
+<p>Σ = [[5, 4],[4, 5]]. (a) Find eigenvalues. (b) Find eigenvectors. (c) What % variance does each principal component explain? (d) What does the covariance structure tell you about the data?</p>
+<div class="ex-ans">(a) λ = [(5+5) ± √((5-5)²+4×16)] / 2 = [10 ± √64]/2 = [10±8]/2 → λ₁=9, λ₂=1. (b) For λ₁=9: (Σ-9I)v=0 → [[-4,4],[4,-4]]v=0 → v₁=[1,1]/√2. For λ₂=1: v₂=[1,-1]/√2. (c) Total=10. PC1: 9/10=90%. PC2: 1/10=10%. (d) Large positive covariance 4 → strong positive correlation. PC1=[1,1]/√2 → diagonal direction → features increase together. PC2=[1,-1]/√2 → anti-diagonal → captures their difference. 90% of variance in one direction → nearly 1D data!</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://setosa.io/ev/principal-component-analysis/" target="_blank">🎯 Setosa: Interactive PCA Visualization</a>
+<a class="rl" href="https://www.youtube.com/watch?v=FgakZw6K1QQ" target="_blank">🎬 StatQuest: PCA Step-by-Step</a>
+</div>`},
+
+/* ══════════════════════════════════════════════════════
+   04  MAHALANOBIS DISTANCE
+══════════════════════════════════════════════════════ */
+{title:"Mahalanobis <em>Distance</em>",bn:"মহলানবিস দূরত্ব",
+tags:[{t:"Σ⁻¹ Weighted",c:"tg"},{t:"Anomaly Detection",c:"tt"},{t:"Scale Invariant",c:"tv"},{t:"Statistical Distance",c:"tp"}],
+body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Two data points p₁=[5, 5] and p₂=[8, 5]. Mean μ=[5, 5]. Distribution: x₁ has variance 1, x₂ has variance 100 (very spread). Which point is more unusual: p₁=mean (distance 0) or p₂=[8,5]? What does Euclidean say vs Mahalanobis?</p>
+  <p style="margin-top:9px;color:var(--gold)">✅ p₁ is the mean — trivially 0 distance. For p₂: <strong>Euclidean</strong> = 3 (just the x₁ difference). <strong>Mahalanobis</strong> with Σ=diag(1,100): d² = (8-5)²/1 + (5-5)²/100 = 9 + 0 = 9 → d=3. But if variance was reversed (σ₁²=100, σ₂²=1): Mahalanobis d² = 9/100 = 0.09 → d=0.3. Moving 3 units in a direction of variance 100 is totally normal; moving 3 units in a direction of variance 1 is extreme. Mahalanobis correctly accounts for the data's natural spread.</p>
+</div>
+
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Mahalanobis requires Σ to be invertible.</strong> If features are perfectly correlated (rank-deficient Σ), Σ⁻¹ doesn't exist. Fix: regularize with Σ + εI, or use pseudoinverse, or remove correlated features first (PCA).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Mahalanobis needs a reliable covariance estimate.</strong> With few samples (n ≪ d), the sample covariance is noisy → Mahalanobis distances are unreliable. Robust covariance estimators (Minimum Covariance Determinant / MCD, Ledoit-Wolf shrinkage) are essential for anomaly detection in high dimensions.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Mahalanobis is not the same as standardized Euclidean.</strong> Standardized Euclidean (scaling by √σᵢ² per feature separately) ignores correlations between features. Mahalanobis accounts for both variances AND covariances — it fully "whitens" the space using the full Σ⁻¹.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THE MAHALANOBIS DISTANCE — Definition & Intuition</div>
+  <p>The <span class="hg">Mahalanobis distance</span> measures how many <strong>standard deviations away</strong> a point is from the mean of a distribution, accounting for the full covariance structure — correlations and different feature scales.</p>
+  <div class="big-eq">
+    <span class="eq">D_M(x, μ) = √((x − μ)ᵀ Σ⁻¹ (x − μ))</span>
+    <span class="eq-sub">D²_M = (x − μ)ᵀ Σ⁻¹ (x − μ) — "squared Mahalanobis distance" · appears in the exponent of the MVN density!</span>
+  </div>
+
+  <p style="margin-top:16px"><strong>Why Σ⁻¹? — The whitening interpretation:</strong></p>
+  <div class="fx">Mahalanobis distance = Euclidean distance in the "whitened" coordinate system.
+Step 1: Whiten the data:  x_w = Σ^(-1/2) (x − μ)
+Step 2: Euclidean in whitened space: ||x_w||₂ = ||Σ^(-1/2)(x−μ)||₂
+This equals: √((x−μ)ᵀ (Σ^(-1/2))ᵀ Σ^(-1/2) (x−μ)) = √((x−μ)ᵀ Σ⁻¹ (x−μ))
+→ Mahalanobis IS ordinary Euclidean after whitening the space!</div>
+
+  <p style="margin-top:16px"><strong>Three distances compared:</strong></p>
+  <table>
+    <tr><th>Distance</th><th>Formula</th><th>Accounts For</th><th>Contours</th></tr>
+    <tr><td><span class="hsk">Euclidean</span></td><td>√(x-μ)ᵀ(x-μ)</td><td>Nothing (raw coordinates)</td><td>Spheres (circles in 2D)</td></tr>
+    <tr><td><span class="hv">Standardized Euclidean</span></td><td>√Σᵢ(xᵢ-μᵢ)²/σᵢ²</td><td>Different variances (diagonal Σ)</td><td>Axis-aligned ellipses</td></tr>
+    <tr><td><span class="hg">Mahalanobis</span></td><td>√(x-μ)ᵀΣ⁻¹(x-μ)</td><td>Variances + correlations (full Σ)</td><td>Tilted ellipses (data's shape)</td></tr>
+  </table>
+
+  <div class="insight" style="margin-top:16px">
+    <div class="insight-title">🔑 Mahalanobis Contours = Gaussian Density Contours</div>
+    <p>Points with the same Mahalanobis distance from μ form an ellipsoid. These are EXACTLY the constant-density contours of the Gaussian N(μ, Σ)! So Mahalanobis distance is the natural distance measure for Gaussian-distributed data — and that's most of the assumptions ML makes.</p>
+    <div class="fx" style="margin-top:10px">Gaussian density:  f(x) ∝ exp(-½ D²_M(x, μ))
+Constant density ↔ constant D_M ↔ ellipsoid surface
+D_M = 1 ↔ surface of the 1-σ probability ellipsoid
+D_M = 2 ↔ surface of the 2-σ probability ellipsoid  (contains ~95% of data in 2D!)
+D_M = 3 ↔ outlier threshold (contains ~99.7% of data in 1D)</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Mahalanobis Distance</strong> একটা data point কতটা "অস্বাভাবিক" সেটা পরিমাপ করে — distribution-এর natural spread ও correlations বিবেচনায় নিয়ে।</p>
+  <div class="call-bn">💡 উদাহরণ: বাংলাদেশে মানুষের উচ্চতা (mean=165cm, σ=7cm) ও ওজন (mean=65kg, σ=10kg)। 
+• একজন 165cm, 65kg → Mahalanobis = 0 (exactly average)
+• একজন 172cm, 65kg → উচ্চতা 1σ বেশি। Euclidean = 7cm কিন্তু Mahalanobis ≈ 1.0 (1 standard deviation away)
+• একজন 165cm, 95kg → ওজন 3σ বেশি। Euclidean = 30kg কিন্তু Mahalanobis ≈ 3.0 (outlier!)
+Mahalanobis distribution-এর unit-এ measure করে — cm বা kg নয়, "কত σ দূরে"।</div>
+  <p class="bn" style="margin-top:12px"><strong>Whitening analogy:</strong></p>
+  <p class="bn">Mahalanobis = প্রথমে data-কে "whiten" করো (সব features-কে same scale ও uncorrelated করো), তারপর সাধারণ Euclidean distance নাও।</p>
+  <p class="bn" style="margin-top:8px"><strong>Anomaly Detection-এ ব্যবহার:</strong></p>
+  <p class="bn">• D_M > 3 → outlier (Gaussian-এ 99.7% data D_M < 3-এর মধ্যে)</p>
+  <p class="bn">• Training data-র covariance দিয়ে নতুন point-এর D_M হিসাব করো</p>
+  <p class="bn">• Medical diagnosis: রোগীর feature vector কি normal population-এ fit করে?</p>
+</div>
+
+<!-- INTERACTIVE MAHALANOBIS VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Mahalanobis vs Euclidean Explorer</div>
+  <p style="font-size:.84em;color:var(--muted);margin-bottom:10px">Click anywhere on the canvas to place a point. Observe how Euclidean and Mahalanobis distances differ based on the data distribution's shape.</p>
+  <div class="ctrl">
+    <label>σ₁² (x-variance)</label>
+    <input type="range" id="mah-v1" min="5" max="50" value="20">
+    <span class="cval" id="mah-v1v">2.0</span>
+    <label>σ₂² (y-variance)</label>
+    <input type="range" id="mah-v2" min="5" max="50" value="40">
+    <span class="cval" id="mah-v2v">4.0</span>
+    <label>Covariance</label>
+    <input type="range" id="mah-cov" min="-35" max="35" value="20">
+    <span class="cval" id="mah-covv">2.0</span>
+  </div>
+  <div class="cw">
+    <canvas id="mah-canvas" width="580" height="300" style="width:100%;display:block;cursor:crosshair"></canvas>
+    <div class="clbl" id="mah-lbl">Click to place a point — Mahalanobis = Euclidean in whitened space</div>
+  </div>
+  <div class="cout-row">
+    <span class="cout" id="mah-euc">Euclidean from μ: —</span>
+    <span class="cout" id="mah-mah" style="color:var(--gold)">Mahalanobis from μ: —</span>
+    <span class="cout" id="mah-class" style="color:var(--lime)">Classification: —</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS — STEP-BY-STEP</div>
+  <div class="fl">Computing Mahalanobis distance — full example</div>
+  <div class="fx">Data distribution: μ=[2, 3], Σ = ⎡4  2⎤
+                                      ⎣2  9⎦
+Test point: x = [4, 6]
+
+Step 1: Compute x − μ = [4−2, 6−3] = [2, 3]
+
+Step 2: Invert Σ:
+  det(Σ) = 4×9 − 2×2 = 32
+  Σ⁻¹ = (1/32)⎡ 9  -2⎤ = ⎡0.281  -0.063⎤
+               ⎣-2   4⎦   ⎣-0.063  0.125⎦
+
+Step 3: Compute (x-μ)ᵀ Σ⁻¹ (x-μ):
+  Σ⁻¹(x-μ) = [0.281×2 + (-0.063)×3, (-0.063)×2 + 0.125×3]
+            = [0.563 - 0.188, -0.125 + 0.375] = [0.375, 0.25]
+  (x-μ)ᵀ · [0.375, 0.25] = 2×0.375 + 3×0.25 = 0.75 + 0.75 = 1.5
+  D²_M = 1.5,   D_M = <span class="fg">√1.5 ≈ 1.22</span>
+
+Compare: Euclidean = √(2²+3²) = √13 ≈ 3.61</div>
+  <div class="fl">Mahalanobis for anomaly detection (Chi-squared distribution)</div>
+  <div class="fx">If X ~ N(μ, Σ), then D²_M ~ χ²(d)  (chi-squared with d degrees of freedom)
+
+Anomaly thresholds (Gaussian assumption):
+  d=1: D_M > 3.0 → p < 0.003 (3-sigma rule)
+  d=2: D²_M > 5.99 → p < 0.05 (chi-squared 95th percentile)
+  d=10: D²_M > 18.3 → p < 0.05
+
+Python:
+  from scipy.stats import chi2
+  threshold = chi2.ppf(0.95, df=d)  # 95th percentile
+  anomaly = D_M_squared > threshold</div>
+  <div class="fl">Relation to LDA (Linear Discriminant Analysis)</div>
+  <div class="fx">LDA decision rule: assign x to class k that minimizes:
+  D²_M(x, μₖ) = (x−μₖ)ᵀ Σ⁻¹ (x−μₖ)
+where Σ = pooled within-class covariance matrix
+→ LDA = nearest-centroid classifier in Mahalanobis distance!
+→ Linear boundaries because D²_M is quadratic in x (but differences cancel quadratic terms)</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Mahalanobis in Modern ML</div>
+<table>
+  <tr><th>Application</th><th>Mahalanobis Distance Role</th></tr>
+  <tr><td>Anomaly / Outlier Detection</td><td>D_M > threshold → outlier. Accounts for correlated features correctly</td></tr>
+  <tr><td>LDA (Linear Discriminant Analysis)</td><td>Classify by nearest centroid in Mahalanobis distance (pooled Σ)</td></tr>
+  <tr><td>Gaussian likelihood evaluation</td><td>log P(x|μ,Σ) ∝ −D²_M/2 — the MVN density IS Mahalanobis distance</td></tr>
+  <tr><td>Mahalanobis-based few-shot learning</td><td>Match query to class prototypes using Mahalanobis → better than cosine</td></tr>
+  <tr><td>Quality control / Manufacturing</td><td>Is this product's measurements within normal range? → D_M threshold</td></tr>
+  <tr><td>OOD Detection (Out-of-Distribution)</td><td>Lee et al. 2018: Mahalanobis score on class-conditional Gaussians for OOD</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why is Mahalanobis distance better than Euclidean for anomaly detection in practice? Give a concrete example where Euclidean fails. <span class="qa-a">▶</span></button>
+<div class="ap">Example: Credit card fraud detection. Features: transaction amount (σ=500), time since last transaction (σ=0.5 hours). A transaction $1500 above average but at a typical time: Euclidean = √(1500²+0²) = 1500 — seems very far! But 1500/500 = 3 standard deviations in amount — suspicious but not impossible. Mahalanobis correctly computes 3 standard deviations. Now: transaction $100 above average (not suspicious) but made 1.5 hours after a purchase in another country. Euclidean = √(100²+1.5²) ≈ 100 — looks close to normal! But 1.5/0.5 = 3 standard deviations in time — very suspicious! Mahalanobis = √(0.04+9) ≈ 3.0 — correctly flags as suspicious. Euclidean is dominated by the large-scale feature; Mahalanobis normalizes by the natural variation of each feature.<div class="a-bn">বাংলায়: Euclidean বড় scale-এর feature দ্বারা dominated। Mahalanobis প্রতিটা feature-এর natural variation (σ) দিয়ে normalize করে → সঠিক outlier detection।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q2: Mahalanobis-based few-shot learning — how does replacing cosine similarity with Mahalanobis help? <span class="qa-a">▶</span></button>
+<div class="ap">In prototypical networks, each class is represented by a prototype (mean embedding). Classification = nearest prototype. Standard: cosine similarity or Euclidean distance. Problem: within each class, the embedding distribution may have complex covariance structure — some directions are more variable than others. Mahalanobis solution: estimate Σₖ per class (from support set). Compute D_M(x, μₖ) = √((x−μₖ)ᵀΣₖ⁻¹(x−μₖ)) for each class k. Assign to k that minimises D_M. This accounts for within-class variability: if a class's embeddings vary a lot along one direction, moving in that direction matters less. Paper: "A Closer Look at Few-Shot Classification" — Mahalanobis consistently improves over Euclidean/cosine when class covariances are estimated reliably from support data.<div class="a-bn">বাংলায়: Few-shot learning-এ Mahalanobis প্রতিটা class-এর embedding covariance বিবেচনায় নেয় → better classification কারণ within-class variation handle হয়।</div></div></div>
+<div class="qa"><button class="qb" onclick="tQ(this)">Q3: How is Mahalanobis distance used for Out-of-Distribution (OOD) detection in deep learning? <span class="qa-a">▶</span></button>
+<div class="ap">Lee et al. (2018) "A Simple Unified Framework for Detecting OOD Samples": (1) Train classifier. (2) For each class k, fit a Gaussian to penultimate layer features: N(μₖ, Σ) with shared Σ (pooled within-class covariance). (3) For test input x, compute Mahalanobis score: M(x) = max_k [−(f(x)−μₖ)ᵀΣ⁻¹(f(x)−μₖ)]. (4) High M(x) → in-distribution. Low M(x) → OOD. Why it works: deep features of in-distribution samples cluster near class Gaussians. OOD samples lie far from all class centroids in Mahalanobis distance. This outperformed softmax-confidence baselines on multiple benchmarks. Modern extension: use Mahalanobis score from multiple layers, aggregate for robustness.<div class="a-bn">বাংলায়: OOD detection-এ deep feature-এর class-conditional Gaussian fit করো। New sample-এর Mahalanobis score low = OOD। Softmax confidence-এর চেয়ে বেশি reliable।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+<div class="ex"><div class="ex-t">Exercise 1 — Compute Mahalanobis</div>
+<p>μ=[0,0], Σ=[[4,0],[0,1]] (diagonal — x-variance=4, y-variance=1). Compute D_M for: (a) p₁=[2,0] (b) p₂=[0,2] (c) Which point is more "unusual" for this distribution?</p>
+<div class="ex-ans">Σ⁻¹=[[1/4,0],[0,1]]. (a) p₁: D²=2²/4+0=1, D_M=1.0. (b) p₂: D²=0+2²/1=4, D_M=2.0. (c) p₂ is more unusual (2σ vs 1σ). Even though both are the same Euclidean distance (2.0) from the mean, p₂ is 2 standard deviations away in the tight y-direction, while p₁ is only 1 standard deviation in the wide x-direction. Euclidean says equal; Mahalanobis correctly identifies p₂ as more anomalous.</div></div>
+<div class="ex"><div class="ex-t">Exercise 2 — Connection to MVN</div>
+<p>Show that for X~N(μ,Σ), the log-density is −(d/2)log(2π) − (1/2)log|Σ| − (1/2)D²_M(x,μ). What does this tell you about MLE and Mahalanobis distance?</p>
+<div class="ex-ans">log f(x) = log[(2π)^(-d/2)|Σ|^(-1/2)exp(−½D²_M)] = −(d/2)log(2π) − ½log|Σ| − ½D²_M. Implication: maximizing the Gaussian log-likelihood = minimizing D²_M (the other terms are constants). So fitting a Gaussian via MLE finds the mean μ and covariance Σ that minimise average squared Mahalanobis distance — a beautiful connection between probability and geometry!</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+<a class="rl" href="https://arxiv.org/abs/1807.03888" target="_blank">📄 Mahalanobis OOD Detection (Lee et al.)</a>
+<a class="rl" href="https://www.sciencedirect.com/science/article/pii/S0047259X12000262" target="_blank">📄 Mahalanobis Distance Survey</a>
+<a class="rl" href="https://scikit-learn.org/stable/modules/covariance.html" target="_blank">📘 sklearn: Covariance Estimation</a>
+</div>`}
+
+];
+
+/* ══════════════ BUILD ══════════════ */
+function buildAll(){
+  const nl=document.getElementById('nl'),mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-n">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · PROBABILITY + LINEAR ALGEBRA IN ML</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===1)initMV();
+    if(i===2)initCov();
+    if(i===3)initMah();
+  },150);
+}
+
+function tQ(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+/* ══ SHARED CANVAS HELPERS ══ */
+function clearCanvas(id){
+  const c=document.getElementById(id);
+  if(!c)return null;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.fillStyle='#050912';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1c2e48';ctx.lineWidth=0.5;
+  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(W*i/8,0);ctx.lineTo(W*i/8,H);ctx.stroke();}
+  for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(0,H*i/6);ctx.lineTo(W,H*i/6);ctx.stroke();}
+  return{ctx,W,H,c};
+}
+
+function eigenvalues2x2(a,b,d){
+  const t=a+d,det=a*d-b*b;
+  const disc=Math.sqrt(Math.max(0,(t/2)*(t/2)-det));
+  return[t/2+disc,t/2-disc];
+}
+function eigenvectors2x2(a,b,lam){
+  if(Math.abs(b)<1e-10)return[1,0];
+  const v=[b,lam-a];const n=Math.sqrt(v[0]**2+v[1]**2);
+  return[v[0]/n,v[1]/n];
+}
+
+/* ══ DRAW ELLIPSE ══ */
+function drawEllipse(ctx,cx,cy,Sigma,scale,color,alpha){
+  const[a,b,d]=[Sigma[0][0],Sigma[0][1],Sigma[1][1]];
+  const[l1,l2]=eigenvalues2x2(a,b,d);
+  const[vx,vy]=eigenvectors2x2(a,b,l1);
+  const rx=Math.sqrt(Math.max(0,l1))*scale,ry=Math.sqrt(Math.max(0,l2))*scale;
+  const angle=Math.atan2(vy,vx);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+  ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.globalAlpha=alpha;ctx.stroke();
+  ctx.globalAlpha=1;ctx.restore();
+}
+
+/* ══ MVN CANVAS ══ */
+function initMV(){
+  const r=clearCanvas('mv-canvas');if(!r)return;
+  const{ctx,W,H}=r;
+  const s1s=document.getElementById('mv-s1'),s2s=document.getElementById('mv-s2'),rhos=document.getElementById('mv-rho');
+  function draw(){
+    const s1=parseInt(s1s.value)/10,s2=parseInt(s2s.value)/10,rho=parseInt(rhos.value)/100;
+    document.getElementById('mv-s1v').textContent=s1.toFixed(1);
+    document.getElementById('mv-s2v').textContent=s2.toFixed(1);
+    document.getElementById('mv-rhov').textContent=rho.toFixed(2);
+    clearCanvas('mv-canvas');
+    const ctx2=document.getElementById('mv-canvas').getContext('2d');
+    const Sigma=[[s1*s1,rho*s1*s2],[rho*s1*s2,s2*s2]];
+    const ox=W/2,oy=H/2,sc=28;
+    // Draw 1,2,3 sigma ellipses
+    [[3,'rgba(255,85,119,.25)',0.35],[2,'rgba(176,108,255,.4)',0.5],[1,'rgba(245,200,66,.7)',0.9]].forEach(([n,col,a])=>{
+      drawEllipse(ctx2,ox,oy,[[Sigma[0][0]*n*n,Sigma[0][1]*n*n],[Sigma[0][1]*n*n,Sigma[1][1]*n*n]],sc,col,a);
+    });
+    // Draw eigenvectors
+    const[l1,l2]=eigenvalues2x2(Sigma[0][0],Sigma[0][1],Sigma[1][1]);
+    const[vx1,vy1]=eigenvectors2x2(Sigma[0][0],Sigma[0][1],l1);
+    const[vx2,vy2]=[-vy1,vx1];
+    [[vx1,vy1,l1,'#00e0c7'],[vx2,vy2,l2,'#b06cff']].forEach(([vx,vy,lam,col])=>{
+      const len=Math.sqrt(lam)*sc*2;
+      ctx2.strokeStyle=col;ctx2.lineWidth=2.5;
+      ctx2.beginPath();ctx2.moveTo(ox,oy);ctx2.lineTo(ox+vx*len,oy+vy*len);ctx2.stroke();
+      ctx2.beginPath();ctx2.moveTo(ox,oy);ctx2.lineTo(ox-vx*len,oy-vy*len);ctx2.stroke();
+      // arrowhead
+      const ang=Math.atan2(vy,vx);const sz=8;
+      ctx2.fillStyle=col;ctx2.beginPath();
+      ctx2.moveTo(ox+vx*len,oy+vy*len);
+      ctx2.lineTo(ox+vx*len-sz*Math.cos(ang-0.4),oy+vy*len-sz*Math.sin(ang-0.4));
+      ctx2.lineTo(ox+vx*len-sz*Math.cos(ang+0.4),oy+vy*len-sz*Math.sin(ang+0.4));
+      ctx2.closePath();ctx2.fill();
+    });
+    // Center dot
+    ctx2.beginPath();ctx2.fillStyle='#f5c842';ctx2.arc(ox,oy,6,0,Math.PI*2);ctx2.fill();
+    // Labels
+    ctx2.font='11px Fira Code';ctx2.textAlign='left';
+    ctx2.fillStyle='rgba(245,200,66,.6)';ctx2.fillText('1σ',ox+Math.sqrt(l1)*sc+4,oy-4);
+    ctx2.fillStyle='rgba(176,108,255,.5)';ctx2.fillText('2σ',ox+Math.sqrt(l1)*sc*2+4,oy-4);
+    ctx2.fillStyle='rgba(255,85,119,.45)';ctx2.fillText('3σ',ox+Math.sqrt(l1)*sc*3+4,oy-4);
+    ctx2.fillStyle='#00e0c7';ctx2.fillText(`q₁ (λ=${l1.toFixed(2)})`,ox+vx1*Math.sqrt(l1)*sc*2+6,oy+vy1*Math.sqrt(l1)*sc*2);
+    // Output
+    const det=l1*l2;
+    const ang=Math.atan2(vy1,vx1)*180/Math.PI;
+    document.getElementById('mv-det').textContent=`|Σ| = ${det.toFixed(3)}`;
+    document.getElementById('mv-eig').textContent=`λ₁=${l1.toFixed(3)}, λ₂=${l2.toFixed(3)}`;
+    document.getElementById('mv-angle').textContent=`tilt = ${ang.toFixed(1)}°`;
+    document.getElementById('mv-lbl').textContent=`N(0, Σ): σ₁=${s1}, σ₂=${s2}, ρ=${rho} | Gold=1σ, Purple=2σ, Rose=3σ | Teal/violet = eigenvectors`;
+  }
+  s1s.addEventListener('input',draw);s2s.addEventListener('input',draw);rhos.addEventListener('input',draw);draw();
+}
+
+/* ══ COV CANVAS ══ */
+function initCov(){
+  const r=clearCanvas('cov-canvas');if(!r)return;
+  const{W,H}=r;
+  const v1s=document.getElementById('cov-v1'),v2s=document.getElementById('cov-v2'),cs=document.getElementById('cov-c');
+  const NPTS=120;
+  function draw(){
+    const v1=parseInt(v1s.value)/5,v2=parseInt(v2s.value)/5,cov=parseInt(cs.value)/5;
+    document.getElementById('cov-v1v').textContent=v1.toFixed(1);
+    document.getElementById('cov-v2v').textContent=v2.toFixed(1);
+    document.getElementById('cov-cv').textContent=cov.toFixed(1);
+    clearCanvas('cov-canvas');
+    const ctx=document.getElementById('cov-canvas').getContext('2d');
+    const Sigma=[[v1,cov],[cov,v2]];
+    const det=v1*v2-cov*cov;
+    const ox=W/2,oy=H/2,sc=22;
+    if(det<=0){
+      ctx.fillStyle='var(--rose)';ctx.font='14px Inter';ctx.textAlign='center';
+      ctx.fillText('Invalid: Σ must be positive definite',W/2,H/2);
+      document.getElementById('cov-mat').textContent=`Σ not PD — reduce |cov|`;
+      return;
+    }
+    // Cholesky to sample from N(0, Sigma)
+    const L11=Math.sqrt(v1),L21=cov/L11,L22=Math.sqrt(v2-L21*L21);
+    // Sample points
+    const pts=[];
+    for(let i=0;i<NPTS;i++){
+      const z1=(()=>{let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);})();
+      const z2=(()=>{let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);})();
+      const x=L11*z1, y=L21*z1+L22*z2;
+      pts.push([x,y]);
+    }
+    // Draw points
+    pts.forEach(([x,y])=>{
+      ctx.beginPath();ctx.fillStyle='rgba(77,184,255,.45)';
+      ctx.arc(ox+x*sc,oy+y*sc,3,0,Math.PI*2);ctx.fill();
+    });
+    // Draw ellipses
+    [[1,'rgba(245,200,66,.85)',0.9],[2,'rgba(176,108,255,.5)',0.6]].forEach(([n,col,a])=>{
+      const S=[[Sigma[0][0]*n*n,Sigma[0][1]*n*n],[Sigma[0][1]*n*n,Sigma[1][1]*n*n]];
+      drawEllipse(ctx,ox,oy,S,sc,col,a);
+    });
+    // Eigenvectors
+    const[l1,l2]=eigenvalues2x2(v1,cov,v2);
+    const[vx,vy]=eigenvectors2x2(v1,cov,l1);
+    [[vx,vy,l1,'#f5c842'],[- vy,vx,l2,'#b06cff']].forEach(([ex,ey,lam,col])=>{
+      const len=Math.sqrt(lam)*sc;
+      ctx.strokeStyle=col;ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(ox-ex*len,oy-ey*len);ctx.lineTo(ox+ex*len,oy+ey*len);ctx.stroke();
+      const sz=8,ang=Math.atan2(ey,ex);
+      ctx.fillStyle=col;ctx.beginPath();
+      ctx.moveTo(ox+ex*len,oy+ey*len);
+      ctx.lineTo(ox+ex*len-sz*Math.cos(ang-0.4),oy+ey*len-sz*Math.sin(ang-0.4));
+      ctx.lineTo(ox+ex*len-sz*Math.cos(ang+0.4),oy+ey*len-sz*Math.sin(ang+0.4));
+      ctx.closePath();ctx.fill();
+    });
+    // Center
+    ctx.beginPath();ctx.fillStyle='#f5c842';ctx.arc(ox,oy,6,0,Math.PI*2);ctx.fill();
+    document.getElementById('cov-mat').textContent=`Σ = [[${v1.toFixed(1)}, ${cov.toFixed(1)}],[${cov.toFixed(1)}, ${v2.toFixed(1)}]]`;
+    document.getElementById('cov-eigs').textContent=`λ₁=${l1.toFixed(3)}, λ₂=${l2.toFixed(3)}`;
+    document.getElementById('cov-det').textContent=`|Σ| = ${det.toFixed(3)}`;
+    document.getElementById('cov-lbl').textContent=`${NPTS} sample points + 1σ,2σ ellipses + eigenvectors (PC axes)`;
+  }
+  v1s.addEventListener('input',draw);v2s.addEventListener('input',draw);cs.addEventListener('input',draw);draw();
+}
+
+/* ══ MAHALANOBIS CANVAS ══ */
+let mahPoint={x:null,y:null};
+
+function initMah(){
+  const r=clearCanvas('mah-canvas');if(!r)return;
+  const{W,H,c}=r;
+  const v1s=document.getElementById('mah-v1'),v2s=document.getElementById('mah-v2'),covs=document.getElementById('mah-cov');
+  let lastSigma=[[2,1],[1,3]];
+
+  function computeMah(px,py,Sigma){
+    const det=Sigma[0][0]*Sigma[1][1]-Sigma[0][1]*Sigma[1][0];
+    if(det<=0)return null;
+    const inv=[[Sigma[1][1]/det,-Sigma[0][1]/det],[-Sigma[1][0]/det,Sigma[0][0]/det]];
+    const tx=inv[0][0]*px+inv[0][1]*py;
+    const ty=inv[1][0]*px+inv[1][1]*py;
+    return Math.sqrt(px*tx+py*ty);
+  }
+
+  function draw(){
+    const v1=parseInt(v1s.value)/5,v2=parseInt(v2s.value)/5,cov=parseInt(covs.value)/5;
+    document.getElementById('mah-v1v').textContent=v1.toFixed(1);
+    document.getElementById('mah-v2v').textContent=v2.toFixed(1);
+    document.getElementById('mah-covv').textContent=cov.toFixed(1);
+    const Sigma=[[v1,cov],[cov,v2]];
+    const det=v1*v2-cov*cov;
+    lastSigma=Sigma;
+    clearCanvas('mah-canvas');
+    const ctx=document.getElementById('mah-canvas').getContext('2d');
+    const ox=W/2,oy=H/2,sc=22;
+    if(det<=0){ctx.fillStyle='var(--rose)';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Invalid Σ',W/2,H/2);return;}
+    // Draw sigma shells
+    [[3,'rgba(255,85,119,.2)',0.3],[2,'rgba(176,108,255,.3)',0.45],[1,'rgba(245,200,66,.65)',0.8]].forEach(([n,col,a])=>{
+      const S=[[Sigma[0][0]*n*n,Sigma[0][1]*n*n],[Sigma[0][1]*n*n,Sigma[1][1]*n*n]];
+      drawEllipse(ctx,ox,oy,S,sc,col,a);
+    });
+    // Labels
+    ctx.font='10px Fira Code';ctx.textAlign='center';
+    const[l1,l2]=eigenvalues2x2(v1,cov,v2);
+    const[vx,vy]=eigenvectors2x2(v1,cov,l1);
+    ctx.fillStyle='rgba(245,200,66,.6)';ctx.fillText('1σ',ox+vx*Math.sqrt(l1)*sc+20*vx,oy+vy*Math.sqrt(l1)*sc+20*vy);
+    ctx.fillStyle='rgba(176,108,255,.5)';ctx.fillText('2σ',ox+vx*Math.sqrt(l1)*sc*2+20*vx,oy+vy*Math.sqrt(l1)*sc*2+20*vy);
+    ctx.fillStyle='rgba(255,85,119,.4)';ctx.fillText('3σ',ox+vx*Math.sqrt(l1)*sc*3+20*vx,oy+vy*Math.sqrt(l1)*sc*3+20*vy);
+    // Mean
+    ctx.beginPath();ctx.fillStyle='#f5c842';ctx.arc(ox,oy,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#f5c842';ctx.font='11px Fira Code';ctx.fillText('μ',ox,oy-12);
+    // Draw test point if set
+    if(mahPoint.x!==null){
+      const px=(mahPoint.x-ox)/sc,py=(mahPoint.y-oy)/sc;
+      const euc=Math.sqrt(px*px+py*py);
+      const mah=computeMah(px,py,Sigma);
+      // Line from mean to point
+      ctx.strokeStyle='rgba(75,195,247,.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(mahPoint.x,mahPoint.y);ctx.stroke();ctx.setLineDash([]);
+      // Point
+      const mahClass=mah===null?'?':mah<1?'✅ Normal (< 1σ)':mah<2?'🔵 Slightly unusual (1-2σ)':mah<3?'🟡 Unusual (2-3σ)':'🔴 Outlier (> 3σ)';
+      const ptColor=mah===null?'#aaa':mah<1?'#4dffa0':mah<2?'#4fc3f7':mah<3?'#f5c842':'#ff5577';
+      ctx.beginPath();ctx.fillStyle=ptColor;ctx.arc(mahPoint.x,mahPoint.y,8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(mahPoint.x,mahPoint.y,8,0,Math.PI*2);ctx.stroke();
+      document.getElementById('mah-euc').textContent=`Euclidean from μ: ${euc.toFixed(3)}`;
+      document.getElementById('mah-mah').textContent=`Mahalanobis from μ: ${mah?mah.toFixed(3):'err'}`;
+      document.getElementById('mah-class').textContent=`Classification: ${mahClass}`;
+      // Annotations
+      ctx.fillStyle=ptColor;ctx.font='11px Fira Code';ctx.textAlign='left';
+      if(mahPoint.x<W-80)ctx.fillText(`D_M=${mah?mah.toFixed(2):'?'}`,mahPoint.x+12,mahPoint.y-4);
+    } else {
+      document.getElementById('mah-euc').textContent='Euclidean from μ: — (click canvas)';
+      document.getElementById('mah-mah').textContent='Mahalanobis from μ: — (click canvas)';
+      document.getElementById('mah-class').textContent='Click to place a test point';
+    }
+  }
+
+  c.addEventListener('click',e=>{
+    const rect=c.getBoundingClientRect();
+    mahPoint.x=(e.clientX-rect.left)*(c.width/rect.width);
+    mahPoint.y=(e.clientY-rect.top)*(c.height/rect.height);
+    draw();
+  });
+  v1s.addEventListener('input',draw);v2s.addEventListener('input',draw);covs.addEventListener('input',draw);draw();
+}
+
+buildAll();
+setTimeout(initMV,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>
