@@ -105,3 +105,4 @@ This is a static site. Any static host works:
 - JavaScript is required for navigation, progress tracking, and interactive visualizations.
 - Interactive sections use `<canvas>` and need a modern browser.
 - There are no build tools or package dependencies.
+ 
