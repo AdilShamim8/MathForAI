@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculus for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0e17;--bg2:#1a1828;--bg3:#242235;--bg4:#2e2b42;
+  --border:#3a3750;--text:#fffffe;--muted:#a7a9be;
+  --orange:#ff8906;--pink:#f25f4c;--purple:#e53170;
+  --teal:#3da9fc;--green:#44cf6c;--gold:#ffd700;
+  --yellow:#ffdd57;--cream:#fffffe;
+  --radius:12px;
+}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code,pre{font-family:'JetBrains Mono',monospace}
+code{background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:0.85em;color:var(--teal)}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+.sidebar{width:290px;background:var(--bg2);border-right:1px solid var(--border);padding:0;overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:36px 40px;max-width:940px;overflow-x:hidden}
+
+/* SIDEBAR HEADER */
+.s-head{padding:22px 18px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(255,137,6,0.12),rgba(242,95,76,0.08))}
+.s-logo{font-size:1.5em;margin-bottom:4px}
+.s-title{font-size:1em;font-weight:700;color:var(--orange);line-height:1.3}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:0.82em;margin-top:2px}
+.s-sub{font-size:0.73em;color:var(--muted);margin-top:6px}
+.prog-wrap{margin-top:10px}
+.prog-label{font-size:0.7em;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--bg3);border-radius:2px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--pink));border-radius:2px;transition:width .4s}
+
+/* NAV ITEMS */
+.nav-list{padding:10px 0;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Sora',sans-serif;font-size:0.8em;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--orange);border-left-color:var(--orange)}
+.nav-num{background:var(--bg4);color:var(--muted);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.72em;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.nav-item.active .nav-num{background:var(--orange);color:var(--bg)}
+.nav-text{line-height:1.3}
+
+/* TOPIC SECTIONS */
+.topic-section{display:none;animation:fadeIn .3s ease}
+.topic-section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* TOPIC HEADER */
+.t-header{margin-bottom:30px;padding:24px;background:linear-gradient(135deg,rgba(255,137,6,0.08),rgba(242,95,76,0.05));border:1px solid rgba(255,137,6,0.2);border-radius:var(--radius)}
+.t-num{font-family:'JetBrains Mono',monospace;font-size:0.75em;color:var(--orange);font-weight:500;letter-spacing:.1em;margin-bottom:6px}
+.t-title{font-size:1.85em;font-weight:800;color:var(--cream);line-height:1.2}
+.t-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:1em;margin-top:5px}
+.t-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 11px;border-radius:20px;font-size:0.72em;font-weight:600;border:1px solid}
+.tag-a{border-color:var(--orange);color:var(--orange);background:rgba(255,137,6,0.1)}
+.tag-b{border-color:var(--teal);color:var(--teal);background:rgba(61,169,252,0.1)}
+.tag-c{border-color:var(--green);color:var(--green);background:rgba(68,207,108,0.1)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card-hd{font-size:0.72em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.card-hd .ic{font-size:1.15em}
+
+/* LAW CARDS */
+.law-red{border-left:4px solid var(--orange);background:rgba(255,137,6,0.06)}
+.law-dark{border-left:4px solid var(--pink);background:rgba(242,95,76,0.06)}
+.law-gold{border-left:4px solid var(--gold);background:rgba(255,215,0,0.05)}
+.law-purple{border-left:4px solid var(--purple);background:rgba(229,49,112,0.06)}
+
+/* FORMULA */
+.formula-wrap{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:10px 0;overflow-x:auto;line-height:2;white-space:pre}
+.formula-wrap code,.formula-wrap{font-family:'JetBrains Mono',monospace;font-size:0.88em;color:var(--teal)}
+.f-label{font-size:0.72em;color:var(--muted);margin-bottom:4px;font-family:'Sora',sans-serif}
+.f-highlight{color:var(--orange);font-weight:600}
+.f-green{color:var(--green)}
+.f-pink{color:var(--pink)}
+.f-yellow{color:var(--yellow)}
+
+/* ANALOGY */
+.analogy{background:linear-gradient(135deg,rgba(68,207,108,0.07),rgba(61,169,252,0.07));border:1px solid rgba(68,207,108,0.2);border-radius:10px;padding:18px;margin:12px 0}
+
+/* FAILURE MODES */
+.fail-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.fail-icon{color:var(--pink);font-size:1.1em;flex-shrink:0;margin-top:2px}
+
+/* ML APP */
+.ml-box{background:rgba(61,169,252,0.06);border:1px solid rgba(61,169,252,0.2);border-radius:10px;padding:18px;margin:12px 0}
+.ml-box-title{color:var(--teal);font-size:0.75em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+
+/* QA */
+.qa{margin-bottom:14px}
+.q-btn{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:0.88em;font-weight:500;cursor:pointer;font-family:'Sora',sans-serif;transition:background .2s}
+.q-btn:hover{background:var(--bg4)}
+.q-btn.open{border-bottom-color:transparent;color:var(--orange)}
+.q-arrow{color:var(--muted);transition:transform .2s;flex-shrink:0;margin-left:10px}
+.q-btn.open .q-arrow{transform:rotate(90deg);color:var(--orange)}
+.a-panel{display:none;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:0.88em;color:var(--muted);line-height:1.8}
+.a-panel.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,215,0,0.75);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:0.95em}
+
+/* EXERCISE */
+.ex-box{background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:9px;padding:16px;margin-bottom:12px}
+.ex-title{color:var(--gold);font-size:0.78em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.ex-answer{color:var(--muted);font-size:0.85em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:0.86em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:0.78em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* RESOURCE */
+.res-link{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--teal);text-decoration:none;font-size:0.82em;margin:4px;transition:all .2s}
+.res-link:hover{border-color:var(--teal);background:var(--bg4)}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.gbox{background:var(--bg3);border-radius:9px;padding:14px;border:1px solid var(--border)}
+
+/* HIGHLIGHTS */
+.hl-o{color:var(--orange);font-weight:600}
+.hl-t{color:var(--teal);font-weight:600}
+.hl-g{color:var(--green);font-weight:600}
+.hl-p{color:var(--pink);font-weight:600}
+.hl-y{color:var(--gold);font-weight:600}
+.hl-m{color:var(--purple);font-weight:600}
+
+/* STEP LIST */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:11px;align-items:flex-start;counter-increment:s}
+.steps li::before{content:counter(s);background:var(--orange);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.76em;font-weight:700;flex-shrink:0;margin-top:3px}
+
+/* CONCEPT BOX */
+.concept-pair{display:flex;gap:14px;margin:12px 0}
+.concept-side{flex:1;background:var(--bg3);border-radius:9px;padding:14px;border:1px solid var(--border)}
+.concept-side-title{font-size:0.78em;font-weight:700;margin-bottom:7px}
+
+/* CANVAS */
+.canvas-wrap{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:12px 0;text-align:center;position:relative}
+canvas{display:block;margin:0 auto}
+.canvas-label{font-size:0.75em;color:var(--muted);margin-top:6px;font-family:'Sora',sans-serif}
+
+/* DIVIDER */
+hr{border:none;border-top:1px solid var(--border);margin:22px 0}
+
+/* MOBILE */
+.mob-nav{display:none;padding:12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob-nav select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:7px;font-family:'Sora',sans-serif;font-size:0.88em}
+@media(max-width:720px){.mob-nav{display:block}.sidebar{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* IMPORTANT CALLOUT */
+.callout{background:rgba(255,137,6,0.08);border-left:4px solid var(--orange);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:0.9em}
+.callout-bn{background:rgba(255,215,0,0.06);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:0.9em;font-family:'Noto Sans Bengali',sans-serif;color:rgba(255,215,0,0.9)}
+
+/* INTERACTIVE CONTROLS */
+.ctrl-row{display:flex;align-items:center;gap:14px;margin:10px 0;flex-wrap:wrap}
+.ctrl-row label{font-size:0.8em;color:var(--muted)}
+.ctrl-row input[type=range]{flex:1;min-width:100px;accent-color:var(--orange)}
+.ctrl-val{font-family:'JetBrains Mono',monospace;font-size:0.82em;color:var(--orange);min-width:48px}
+.ctrl-output{font-family:'JetBrains Mono',monospace;font-size:0.92em;color:var(--green);background:var(--bg3);padding:8px 14px;border-radius:7px;margin-top:6px;display:inline-block}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob-nav">
+  <select onchange="showTopic(this.value)">
+    <option value="0">01 — Functions and Graphs</option>
+    <option value="1">02 — Limits (Intuition Only)</option>
+    <option value="2">03 — Derivatives and Gradients</option>
+    <option value="3">04 — Partial Derivatives</option>
+    <option value="4">05 — Chain Rule (Very Important!)</option>
+    <option value="5">06 — Gradient as Steepest Descent</option>
+    <option value="6">07 — Local vs Global Minima</option>
+    <option value="7">08 — Convex vs Non-Convex Functions</option>
+  </select>
+</div>
+
+<div class="app">
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="s-head">
+    <div class="s-logo">∂</div>
+    <div class="s-title">Differential Calculus</div>
+    <div class="s-bn">ডিফারেনশিয়াল ক্যালকুলাস</div>
+    <div class="s-sub">Learning Happens Here · ML Engineer's Guide</div>
+    <div class="prog-wrap">
+      <div class="prog-label"><span>Progress</span><span id="prog-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="nav-list" id="nav-list"></div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="main"></main>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const topics = [
+
+/* -------- 01 FUNCTIONS & GRAPHS -------- */
+{title:"Functions and Graphs",bn:"ফাংশন ও গ্রাফ",tags:["Foundation","Input→Output","Mapping"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>A neural network is a function y = f(x; θ). <strong>Before reading further</strong>: what are the inputs, outputs, and what role do θ (parameters) play?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ Input x = data (e.g., image pixels). Output y = prediction (e.g., class probability). θ = learned weights & biases — the "shape" of the function. Training = finding θ that makes f(x;θ) best approximate the true mapping.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Confusing a function's <strong>domain</strong> (valid inputs) with its <strong>range</strong> (valid outputs). Sigmoid's range is (0,1) — you can't get output 2.0. This matters for loss functions!</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Thinking all ML models are functions of x only. They're functions of <strong>both x and θ</strong>. Fixing θ gives predictions; optimizing over θ gives training.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Treating activation functions as arbitrary — each has specific domain/range properties that affect training (e.g., tanh squashes to (−1,1), ReLU clips negatives to 0).</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p>A <span class="hl-o">function</span> f is a rule that maps every input x to exactly one output y = f(x). Think of it as a machine: put something in, get something out.</p>
+  <div class="g2" style="margin:14px 0">
+    <div class="gbox"><p class="hl-t" style="margin-bottom:6px">Domain</p><p>All valid INPUTS the function can accept. Example: f(x) = √x → domain = x ≥ 0 (can't square-root a negative)</p></div>
+    <div class="gbox"><p class="hl-g" style="margin-bottom:6px">Range (Codomain)</p><p>All possible OUTPUTS. Example: sigmoid → range = (0, 1). Every output is strictly between 0 and 1.</p></div>
+  </div>
+  <p style="margin-bottom:10px"><strong>Key ML activation functions as mathematical functions:</strong></p>
+  <table>
+    <tr><th>Function</th><th>Formula</th><th>Domain</th><th>Range</th><th>Why Used</th></tr>
+    <tr><td><span class="hl-o">ReLU</span></td><td>max(0, x)</td><td>ℝ</td><td>[0, ∞)</td><td>Fast, sparse, avoids vanishing gradient</td></tr>
+    <tr><td><span class="hl-t">Sigmoid</span></td><td>1/(1+e⁻ˣ)</td><td>ℝ</td><td>(0, 1)</td><td>Probability output, binary classification</td></tr>
+    <tr><td><span class="hl-g">Tanh</span></td><td>(eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)</td><td>ℝ</td><td>(−1, 1)</td><td>Zero-centered, better than sigmoid</td></tr>
+    <tr><td><span class="hl-p">Softmax</span></td><td>eˣⁱ/Σeˣʲ</td><td>ℝⁿ</td><td>(0,1)ⁿ, sums to 1</td><td>Multi-class probability distribution</td></tr>
+    <tr><td><span class="hl-y">Linear</span></td><td>ax + b</td><td>ℝ</td><td>ℝ</td><td>Regression output, last layer</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>ফাংশন</strong> হলো একটা নিয়ম যা প্রতিটা input-কে ঠিক একটা output-এ রূপান্তর করে।</p>
+  <div class="callout-bn">💡 উদাহরণ: একটা চা বানানোর মেশিন। তুমি চা-পাতা + পানি দিলে (input), মেশিন চা বানিয়ে দেয় (output)। একই input দিলে সবসময় একই output পাবে — এটাই function!</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ function মানে:</strong></p>
+  <p class="bn">• <span style="color:var(--orange)">y = f(x; θ)</span> — x হলো ডেটা, θ হলো শেখা প্যারামিটার, y হলো prediction</p>
+  <p class="bn">• Training মানে θ-এর সঠিক মান খোঁজা যাতে f(x; θ) ≈ সত্যিকারের উত্তর</p>
+  <p class="bn" style="margin-top:10px"><strong>গ্রাফ (Graph):</strong> x-অক্ষে input, y-অক্ষে output। গ্রাফ দেখে বুঝা যায় function কতটা smooth, কোথায় বাড়ছে/কমছে, কোথায় plateau আছে।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> FORMULAS & NOTATION</div>
+  <div class="f-label">Function Notation</div>
+  <div class="formula-wrap">f: ℝ → ℝ         (maps real numbers to real numbers)
+f: ℝⁿ → ℝ        (takes n inputs, gives 1 output — like loss function)
+f: ℝⁿ → ℝᵐ       (takes n inputs, gives m outputs — like neural net layer)
+
+y = f(x) = x²    → domain: ℝ, range: [0,∞)
+y = f(x) = 1/(1+e⁻ˣ)  → sigmoid: domain: ℝ, range: (0,1)</div>
+  <div class="f-label">Composition of Functions — The Neural Network!</div>
+  <div class="formula-wrap">Single layer:  h = σ(Wx + b)          where σ = activation function
+Two layers:   y = σ₂(W₂ · σ₁(W₁x + b₁) + b₂)
+Deep network: y = fₙ(fₙ₋₁(... f₂(f₁(x)) ...))   ← composition of n functions
+This is why the CHAIN RULE is the most important thing in ML calculus!</div>
+  <div class="f-label">Loss Function (maps parameters θ to a single number)</div>
+  <div class="formula-wrap">L: ℝᵖ → ℝ   (p parameters → 1 loss value)
+Example: L(θ) = (1/n) Σᵢ (yᵢ - f(xᵢ; θ))²   ← MSE loss
+We want to MINIMIZE L(θ) — find θ that makes loss smallest</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd"><span class="ic">🎯</span> ANALOGY — The Vending Machine</div>
+  <p>A function is like a vending machine. You press B3 (input x) → it gives you chips (output y = f(x)). The <strong>domain</strong> is all valid button codes (B1–D5). The <strong>range</strong> is all available snacks. A <strong>neural network</strong> is like a complex vending machine where pressing buttons also adjusts internal gears (weights θ) to make future outputs more accurate.</p>
+  <p class="bn callout-bn" style="margin-top:10px;padding:10px">বাংলায়: function = ভেন্ডিং মেশিন। input দাও, output পাও। ML-এ আমরা সেই মেশিনটার ভেতরের গিয়ার (θ) এডজাস্ট করি ভালো output পেতে।</p>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application</div>
+  <table>
+    <tr><th>ML Component</th><th>Is a Function?</th><th>Domain → Range</th></tr>
+    <tr><td>Linear layer (Wx+b)</td><td>Yes — affine function</td><td>ℝⁿ → ℝᵐ</td></tr>
+    <tr><td>Loss (MSE, CrossEntropy)</td><td>Yes — scalar-valued</td><td>ℝᵖ → ℝ</td></tr>
+    <tr><td>Softmax</td><td>Yes — probability simplex</td><td>ℝⁿ → (0,1)ⁿ</td></tr>
+    <tr><td>Full neural network</td><td>Yes — composition of functions</td><td>ℝⁿ → ℝᵐ</td></tr>
+    <tr><td>Gradient function ∇L</td><td>Yes — derivative of loss</td><td>ℝᵖ → ℝᵖ</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: A neural network is called a "universal function approximator." What does this mean? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">The Universal Approximation Theorem states that a feedforward neural network with at least one hidden layer and a non-linear activation function can approximate ANY continuous function on a compact domain to arbitrary precision, given enough neurons. This is why neural networks are so powerful — they can learn virtually any input-output relationship from data. The key word is "approximate" — there's no guarantee of exact representation, and finding the right weights requires training. <div class="a-bn">বাংলায়: universal function approximator মানে neural network যেকোনো function-কে যেকোনো নির্ভুলতায় approximate করতে পারে — শুধু যথেষ্ট neuron থাকতে হবে।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: Why can't we use only linear activation functions in deep networks? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Linear functions composed together are still linear. f(g(x)) = f(ax+b) = a(ax+b)+b = a²x+ab+b — still linear. No matter how many linear layers you stack, the entire network is equivalent to a single linear transformation. This limits it to only learning linear decision boundaries. Non-linear activations (ReLU, tanh, sigmoid) break this, allowing the network to learn complex non-linear patterns — like recognizing faces or understanding text. <div class="a-bn">বাংলায়: linear function-এর composition সবসময় linear। Complex pattern শিখতে non-linearity দরকার।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q3: Why is ReLU preferred over sigmoid in hidden layers of deep networks? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Three reasons: (1) <strong>No vanishing gradient</strong> — sigmoid's derivative is at most 0.25, so in deep networks gradients multiply by <0.25 at each layer and vanish. ReLU's derivative is 1 for x>0. (2) <strong>Computational efficiency</strong> — max(0,x) is trivial; sigmoid requires exponential. (3) <strong>Sparse activation</strong> — ReLU outputs zero for x<0, creating sparse representations which are efficient and often generalize better. Downside: "dying ReLU" problem where neurons stuck at 0. Solutions: Leaky ReLU, ELU. <div class="a-bn">বাংলায়: ReLU sigmoid-এর চেয়ে ভালো কারণ: vanishing gradient নেই, দ্রুত হিসাব, এবং sparse representation।</div></div></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🏋️</span> EXERCISES — অনুশীলন</div>
+  <div class="ex-box"><div class="ex-title">Exercise 1 — Domain & Range</div>
+  <p>For each function, state domain and range: (a) f(x) = log(x) (b) f(x) = √(1−x²) (c) σ(x) = 1/(1+e⁻ˣ)</p>
+  <div class="ex-answer">✅ (a) domain: x>0, range: ℝ (b) domain: [−1,1], range: [0,1] (c) domain: ℝ, range: (0,1)</div></div>
+  <div class="ex-box"><div class="ex-title">Exercise 2 — Composition</div>
+  <p>Write the full forward pass of a 2-layer neural net as a single composed function. If h = ReLU(W₁x+b₁) and y = σ(W₂h+b₂), write y as a function of x.</p>
+  <div class="ex-answer">✅ y = σ(W₂·ReLU(W₁x+b₁)+b₂) — this is function composition: outer σ applied to inner ReLU applied to linear transform.</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.desmos.com/calculator" target="_blank">📊 Desmos (plot any function)</a>
+  <a class="res-link" href="https://www.3blue1brown.com/topics/neural-networks" target="_blank">🎬 3Blue1Brown Neural Networks</a>
+  <a class="res-link" href="https://playground.tensorflow.org" target="_blank">🤖 TensorFlow Playground</a>
+</div>`},
+
+/* -------- 02 LIMITS -------- */
+{title:"Limits (Intuition Only)",bn:"সীমা — শুধু অনুভূতি",tags:["Continuity","Approaching","Derivatives Foundation"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>The derivative formula involves a limit: <strong>f'(x) = lim[h→0] (f(x+h)−f(x))/h</strong>. What goes wrong if you just set h=0?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ You get <strong>0/0</strong> — undefined! The limit is about what the expression <em>approaches</em> as h gets infinitely small, NOT what it equals at h=0. This is why limits exist — to handle these "approaching but never reaching" situations.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Thinking lim[x→a] f(x) = f(a) always. This is only true for <strong>continuous</strong> functions. Step functions, ReLU at x=0 — limits and function values can differ!</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Forgetting that a limit can exist even if the function is <strong>undefined</strong> at that point. Classic example: sin(x)/x as x→0 → limit = 1, but sin(0)/0 = 0/0 is undefined.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>In ML numerical computing: dividing by very small numbers (ε≈0) causes instability — this is a practical limit problem. Solutions: gradient clipping, numerical stability tricks like log-sum-exp.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English (Intuition Focus)</div>
+  <p>A limit asks: <span class="hl-o">"What value does f(x) APPROACH as x gets close to some number a?"</span></p>
+  <p style="margin-top:10px">Written as: <code>lim[x→a] f(x) = L</code> means "as x gets closer and closer to a (from both sides), f(x) gets closer and closer to L."</p>
+  <div class="callout"><strong>Key insight:</strong> We care about the JOURNEY (approaching), not the DESTINATION (arriving at a). x never actually equals a in a limit.</div>
+  <p style="margin-top:12px"><strong>Three possible outcomes:</strong></p>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(68,207,108,0.3)"><p class="hl-g" style="margin-bottom:5px">✅ Limit exists</p><p style="font-size:0.88em">Left-side approach = Right-side approach → same value L</p></div>
+    <div class="gbox" style="border-color:rgba(242,95,76,0.3)"><p class="hl-p" style="margin-bottom:5px">❌ Limit DNE</p><p style="font-size:0.88em">Left ≠ Right approach (like step function jumping at 0)</p></div>
+    <div class="gbox" style="border-color:rgba(255,137,6,0.3)"><p class="hl-o" style="margin-bottom:5px">∞ Diverges</p><p style="font-size:0.88em">Function grows unboundedly (like 1/x as x→0)</p></div>
+  </div>
+  <p style="margin-top:14px"><strong>Why limits matter for ML:</strong></p>
+  <ul style="padding-left:16px;margin-top:6px">
+    <li>Derivatives are defined via limits → all of backpropagation rests on limits</li>
+    <li>Continuity (from limits) tells us if a function is "smooth" enough for gradient descent</li>
+    <li>Learning rate → 0 in theory is a limit process</li>
+    <li>Numerical stability issues in code ARE limit problems</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>সীমা (Limit)</strong> মানে: "x যদি a-এর দিকে এগিয়ে যায় (কিন্তু পৌঁছায় না), তাহলে f(x)-এর মান কত হবে?"</p>
+  <div class="callout-bn">💡 উদাহরণ: কল্পনা করো তুমি একটা দেয়ালের দিকে হাঁটছ। তুমি প্রতিদিন অর্ধেক দূরত্ব এগিয়ে যাও। তুমি কখনো দেয়াল স্পর্শ করবে না, কিন্তু দেয়ালের দিকে "approach" করছ। Limit হলো সেই দেয়ালের অবস্থান।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ Limit কেন গুরুত্বপূর্ণ:</strong></p>
+  <p class="bn">• Derivative = limit-এর মাধ্যমে সংজ্ঞায়িত (derivative ছাড়া gradient descent সম্ভব নয়)</p>
+  <p class="bn">• Continuous function = সর্বত্র limit আছে এমন function। Gradient descent smooth function-এ ভালো কাজ করে।</p>
+  <p class="bn">• Numerical issues যেমন division by zero বা log(0) — এগুলো limit problem। PyTorch-এ এজন্য <code>eps=1e-8</code> যোগ করা হয়।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> FORMULAS & KEY LIMITS</div>
+  <div class="f-label">Limit Notation</div>
+  <div class="formula-wrap">lim[x→a] f(x) = L      "limit of f(x) as x approaches a equals L"
+lim[x→a⁺] f(x)         right-hand limit (approach from right)
+lim[x→a⁻] f(x)         left-hand limit (approach from left)
+Limit exists ⟺ left limit = right limit</div>
+  <div class="f-label">The Derivative as a Limit (THE most important limit in ML)</div>
+  <div class="formula-wrap"><span class="f-highlight">f'(x) = lim[h→0] (f(x+h) − f(x)) / h</span>
+Intuition: slope of the "infinitely small" secant line = tangent line slope
+Example: f(x) = x²
+  f'(x) = lim[h→0] ((x+h)² − x²) / h
+        = lim[h→0] (x²+2xh+h² − x²) / h
+        = lim[h→0] (2xh + h²) / h
+        = lim[h→0] (2x + h) = <span class="f-green">2x</span>   ✓</div>
+  <div class="f-label">Important Limits to Know</div>
+  <div class="formula-wrap">lim[x→0] sin(x)/x = 1                  (fundamental trig limit)
+lim[x→∞] (1 + 1/x)ˣ = e ≈ 2.718...    (definition of e!)
+lim[x→∞] 1/x = 0                        (infinity denominator)
+lim[x→0⁺] log(x) = -∞                  (log blows up at 0)</div>
+  <div class="f-label">Continuity from Limits</div>
+  <div class="formula-wrap">f is continuous at a if:   <span class="f-highlight">lim[x→a] f(x) = f(a)</span>
+Three conditions: 1) f(a) exists  2) limit exists  3) they're equal
+ReLU: continuous everywhere, but NOT differentiable at x=0
+Sigmoid: continuous AND differentiable everywhere (smooth S-curve)</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd"><span class="ic">🎯</span> ANALOGY — The Speed Camera</div>
+  <p>Imagine measuring a car's <strong>instantaneous speed</strong> at exactly 3:00 PM. You can't divide by zero time! Instead, you measure: distance in last 1 minute → 30 seconds → 1 second → 0.1 second... As the time interval <em>approaches</em> zero, the average speed <em>approaches</em> the instantaneous speed. That's a limit! The speedometer reading IS a derivative — defined via a limit.</p>
+  <p class="bn callout-bn" style="margin-top:10px;padding:10px">বাংলায়: গাড়ির তাৎক্ষণিক গতি পরিমাপ করতে আমরা ক্রমশ ছোট সময়ের ব্যবধান ব্যবহার করি। এটাই limit এবং এভাবেই derivative সংজ্ঞায়িত।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: What is numerical differentiation and when is it used in ML? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Numerical differentiation approximates derivatives using finite differences: f'(x) ≈ (f(x+h) − f(x))/h for small h. In ML, it's used for <strong>gradient checking</strong> — verifying your analytically computed gradients are correct. Since automatic differentiation (autograd) in PyTorch/TensorFlow computes exact gradients via chain rule, numerical differentiation is rarely used in production. But during debugging: if numerical gradient ≈ analytical gradient (within ~1e-5), your backprop is correct. <div class="a-bn">বাংলায়: numerical differentiation ছোট h ব্যবহার করে gradient approximate করে। debugging-এ gradient checking-এর জন্য ব্যবহার হয়।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: Why do we add a small ε=1e-8 to denominators in code like log(x+ε)? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">This is numerical stability — avoiding limit-related disasters in floating-point arithmetic. log(0) = −∞ and 1/0 = ±∞ would cause NaN values that propagate through the entire network. Adding ε=1e-8 keeps inputs just above zero. Cross-entropy loss: −Σyᵢ·log(pᵢ+ε). Batch normalization denominator: √(σ²+ε). Without ε, a single zero prediction would crash training. This is essentially enforcing that the limit "from the right" of log is used. <div class="a-bn">বাংলায়: log(0) = -∞ এড়াতে ছোট ε যোগ করা হয়। এটা numerical stability-র জন্য limit সমস্যার practical solution।</div></div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.khanacademy.org/math/calculus-1/cs1-limits-and-continuity" target="_blank">📘 Khan Academy: Limits</a>
+  <a class="res-link" href="https://www.3blue1brown.com/lessons/limits" target="_blank">🎬 3B1B: Limits Essence of Calculus</a>
+</div>`},
+
+/* -------- 03 DERIVATIVES -------- */
+{title:"Derivatives and Gradients",bn:"ডেরিভেটিভ ও গ্রেডিয়েন্ট",tags:["Slope","Rate of Change","Backpropagation","Core ML"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>If the loss L = 0.5(y − ŷ)² and ŷ = wx, what is ∂L/∂w? Think step by step before reading.</p>
+  <p style="margin-top:9px;color:var(--green)">✅ Using chain rule: ∂L/∂w = ∂L/∂ŷ · ∂ŷ/∂w = (ŷ−y) · x = (wx−y)·x. This is the gradient used in linear regression gradient descent: w ← w − α·(wx−y)·x. This IS backpropagation!</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Confusing <strong>derivative f'(x)</strong> (1D, single variable) with <strong>gradient ∇f</strong> (multi-dimensional, vector of partial derivatives). Derivatives are scalars; gradients are vectors.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Forgetting that gradient POINTS in direction of steepest ASCENT — gradient descent must SUBTRACT the gradient to go downhill.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Computing df/dX when X is a matrix — result is a matrix of the same shape, not a scalar. Shape rules for matrix calculus trip up almost every ML engineer.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p>The <span class="hl-o">derivative f'(x)</span> measures the <strong>instantaneous rate of change</strong> of f at x — the slope of the tangent line at that point.</p>
+  <div class="concept-pair">
+    <div class="concept-side" style="border-color:rgba(255,137,6,0.3)"><p class="concept-side-title hl-o">Derivative f'(x)</p><p style="font-size:0.88em">Single-variable. Returns a <strong>scalar</strong>. "How fast is y changing as x changes?"</p><div class="formula-wrap" style="margin-top:8px;font-size:0.82em">f(x) = x³ → f'(x) = 3x²</div></div>
+    <div class="concept-side" style="border-color:rgba(61,169,252,0.3)"><p class="concept-side-title hl-t">Gradient ∇f(x)</p><p style="font-size:0.88em">Multi-variable. Returns a <strong>vector</strong>. "In which direction does f increase fastest?"</p><div class="formula-wrap" style="margin-top:8px;font-size:0.82em">∇f = [∂f/∂x₁, ∂f/∂x₂, ..., ∂f/∂xₙ]</div></div>
+  </div>
+  <p style="margin-top:14px"><strong>Essential derivative rules (you MUST know these):</strong></p>
+  <table>
+    <tr><th>Rule</th><th>Formula</th><th>Example</th></tr>
+    <tr><td><span class="hl-o">Power Rule</span></td><td>d/dx[xⁿ] = nxⁿ⁻¹</td><td>d/dx[x⁴] = 4x³</td></tr>
+    <tr><td><span class="hl-t">Constant</span></td><td>d/dx[c] = 0</td><td>d/dx[5] = 0</td></tr>
+    <tr><td><span class="hl-g">Sum</span></td><td>d/dx[f+g] = f'+g'</td><td>d/dx[x²+3x] = 2x+3</td></tr>
+    <tr><td><span class="hl-p">Product</span></td><td>d/dx[fg] = f'g+fg'</td><td>d/dx[x·sin(x)] = sin(x)+x·cos(x)</td></tr>
+    <tr><td><span class="hl-y">Chain</span></td><td>d/dx[f(g(x))] = f'(g(x))·g'(x)</td><td>d/dx[sin(x²)] = cos(x²)·2x</td></tr>
+    <tr><td><span class="hl-m">Exponential</span></td><td>d/dx[eˣ] = eˣ</td><td>d/dx[e²ˣ] = 2e²ˣ</td></tr>
+    <tr><td><span class="hl-o">Logarithm</span></td><td>d/dx[ln(x)] = 1/x</td><td>d/dx[ln(3x)] = 1/x</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>ডেরিভেটিভ</strong> হলো একটা function কতটা দ্রুত পরিবর্তন হচ্ছে তার পরিমাপ। গণিতের ভাষায়: x-এ একটু পরিবর্তন হলে y কতটুকু পরিবর্তন হয়।</p>
+  <div class="callout-bn">💡 বাস্তব উদাহরণ: তুমি পাহাড়ে উঠছ। ডেরিভেটিভ = এই মুহূর্তে পথটা কতটা খাড়া। ধনাত্মক ডেরিভেটিভ = উপরে যাচ্ছ। ঋণাত্মক ডেরিভেটিভ = নিচে আসছ। শূন্য ডেরিভেটিভ = flat মাঠে আছ (সম্ভব minimum বা maximum!)।</div>
+  <p class="bn" style="margin-top:12px"><strong>গ্রেডিয়েন্ট (Gradient):</strong> যখন অনেকগুলো variable আছে, তখন প্রতিটা variable-এর জন্য আলাদা derivative নিয়ে একটা vector তৈরি হয় — এটাই gradient। Gradient সবসময় steepest ascent-এর দিক নির্দেশ করে।</p>
+  <p class="bn"><strong>Gradient Descent:</strong> gradient-এর বিপরীত দিকে ছোট ছোট পদক্ষেপ নিয়ে loss কমানো হয়। θ ← θ − α·∇L(θ)</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> DERIVATIVES OF KEY ML FUNCTIONS</div>
+  <div class="f-label">Sigmoid and its beautiful derivative</div>
+  <div class="formula-wrap">σ(x) = 1/(1+e⁻ˣ)
+<span class="f-highlight">σ'(x) = σ(x)·(1−σ(x))</span>   ← derivative expressed using itself!
+Example: σ(0) = 0.5, σ'(0) = 0.5×0.5 = 0.25 (max gradient)
+Problem: max gradient is only 0.25 → vanishing gradient in deep nets!</div>
+  <div class="f-label">ReLU derivative</div>
+  <div class="formula-wrap">ReLU(x) = max(0,x)
+<span class="f-highlight">ReLU'(x) = 1 if x>0, else 0</span>   (undefined at x=0, set to 0 by convention)
+Gradient flows freely for x>0, blocked for x<0 → "dying ReLU" problem</div>
+  <div class="f-label">MSE Loss gradient w.r.t. prediction</div>
+  <div class="formula-wrap">L = (1/n)Σ(yᵢ − ŷᵢ)²
+∂L/∂ŷᵢ = <span class="f-highlight">−(2/n)(yᵢ − ŷᵢ) = (2/n)(ŷᵢ − yᵢ)</span>
+Interpretation: gradient = prediction error (ŷ−y), scaled by 2/n</div>
+  <div class="f-label">Cross-Entropy Loss gradient</div>
+  <div class="formula-wrap">L = −Σ yᵢ·log(ŷᵢ)
+∂L/∂ŷᵢ = <span class="f-highlight">−yᵢ/ŷᵢ</span>   (large gradient when prediction is wrong!)</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd"><span class="ic">🎯</span> ANALOGY — The Hill Walker</div>
+  <p>You're blindfolded on a hilly landscape (your loss surface). To find the valley (minimum loss):
+  <ol class="steps" style="margin-top:10px">
+    <li>Feel the slope beneath your feet <span class="hl-o">(compute gradient ∇L)</span></li>
+    <li>Take a step in the downhill direction <span class="hl-t">(subtract gradient: θ ← θ − α∇L)</span></li>
+    <li>Repeat until you can't go lower <span class="hl-g">(gradient ≈ 0, reached minimum)</span></li>
+  </ol></p>
+  <p class="bn callout-bn" style="margin-top:10px;padding:10px">বাংলায়: চোখ বাঁধা অবস্থায় পাহাড়ে নিচে নামার মতো। পায়ের নিচে ঢাল অনুভব করো (gradient), ঢালের বিপরীতে পা রাখো (gradient descent) — এটাই ML training!</p>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — Derivatives Everywhere</div>
+  <table>
+    <tr><th>ML Operation</th><th>Derivative/Gradient Used</th></tr>
+    <tr><td>Weight update (SGD)</td><td>θ ← θ − α·∂L/∂θ</td></tr>
+    <tr><td>Backpropagation</td><td>Chain rule of derivatives through all layers</td></tr>
+    <tr><td>Adam optimizer</td><td>Uses gradient + gradient² (first and second moments)</td></tr>
+    <tr><td>Gradient clipping</td><td>||∇L||₂ clipped if too large</td></tr>
+    <tr><td>Learning rate scheduling</td><td>Adjusts step size based on gradient behavior</td></tr>
+    <tr><td>Vanishing gradient diagnosis</td><td>|∂L/∂W| < ε in early layers → problem!</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: What is the vanishing gradient problem and how does it relate to derivatives? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">In backprop, gradients are products of many derivative terms (one per layer). Sigmoid's max derivative is 0.25. With 10 layers: gradient ≈ 0.25¹⁰ ≈ 10⁻⁶ — essentially zero. Early layers receive near-zero gradients and stop learning. Solutions: (1) ReLU — derivative is 1 for positive inputs, no shrinkage. (2) Batch normalization — normalizes activations, keeping them in high-gradient regions. (3) Residual connections (ResNet) — skip connections provide gradient highways. (4) Better weight initialization (Xavier, He). <div class="a-bn">বাংলায়: প্রতিটা layer-এ derivative গুণ হয়। Sigmoid-এর max derivative 0.25, তাই গভীর network-এ gradient প্রায় শূন্য হয়ে যায়।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: What does it mean when the gradient is zero at a point? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">∇L = 0 is called a <strong>critical point</strong>. It could be: (1) Local minimum — loss is lowest nearby (good!). (2) Local maximum — loss is highest nearby. (3) Saddle point — minimum in some directions, maximum in others. In high-dimensional ML (millions of parameters), saddle points are far more common than local minima. Pure gradient descent gets stuck at saddle points; SGD's noise often escapes them. Second-order methods (Newton's) use the Hessian to distinguish these cases. <div class="a-bn">বাংলায়: gradient = 0 মানে critical point — local minimum, maximum, বা saddle point হতে পারে। High-dimensional ML-এ saddle point বেশি থাকে।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q3: Why is automatic differentiation (autograd) better than manual derivatives in ML? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Manual derivation is error-prone and infeasible for millions of parameters. Autograd (PyTorch, TensorFlow) uses the computational graph + chain rule to compute exact derivatives automatically. Two modes: (1) Forward mode — compute derivative alongside forward pass (efficient for many outputs, few inputs). (2) Reverse mode (backprop) — propagate gradients backward (efficient for few outputs like a scalar loss, many inputs like weights). ML universally uses reverse mode because we have 1 loss output and millions of weight inputs. <div class="a-bn">বাংলায়: autograd automatically computational graph-এ chain rule apply করে exact gradient দেয়। লক্ষ লক্ষ parameter-এর জন্য manual derivative অসম্ভব।</div></div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🏋️</span> EXERCISES</div>
+  <div class="ex-box"><div class="ex-title">Exercise 1 — Compute Derivatives</div>
+  <p>Find f'(x): (a) f(x) = 3x⁴ − 2x² + 7 (b) f(x) = e²ˣ (c) f(x) = ln(x²) (d) f(x) = x·eˣ</p>
+  <div class="ex-answer">✅ (a) 12x³−4x (b) 2e²ˣ (c) 2/x (d) eˣ+xeˣ = eˣ(1+x)</div></div>
+  <div class="ex-box"><div class="ex-title">Exercise 2 — ML Gradient</div>
+  <p>For loss L = −(y·log(ŷ) + (1−y)·log(1−ŷ)) (binary cross-entropy), find ∂L/∂ŷ.</p>
+  <div class="ex-answer">✅ ∂L/∂ŷ = −y/ŷ + (1−y)/(1−ŷ) = (ŷ−y)/(ŷ(1−ŷ)). Combined with sigmoid: ∂L/∂z = ŷ−y (beautiful simplification!)</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.youtube.com/watch?v=aircAruvnKk" target="_blank">🎬 3B1B: What is a Neural Network</a>
+  <a class="res-link" href="https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html" target="_blank">🔥 PyTorch Autograd Tutorial</a>
+  <a class="res-link" href="https://www.khanacademy.org/math/calculus-1/cs1-derivatives-definition-and-basic-rules" target="_blank">📘 Khan Academy: Derivatives</a>
+</div>`},
+
+/* -------- 04 PARTIAL DERIVATIVES -------- */
+{title:"Partial Derivatives",bn:"আংশিক ডেরিভেটিভ",tags:["Multi-variable","∂f/∂x","Weight Gradients"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>A neural network has 1 million weights θ₁, θ₂, ..., θ₁ₘ. We need ∂L/∂θᵢ for each. What mathematical tool makes this possible?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ <strong>Partial derivatives!</strong> ∂L/∂θᵢ = derivative of L with respect to θᵢ, treating ALL other weights as constants. Backpropagation computes all 1 million partial derivatives simultaneously using the chain rule. The full gradient ∇L is the vector of all partial derivatives.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Confusing ∂f/∂x (partial — treat other variables as constants) with df/dx (total derivative — account for all variable dependencies). They're different when variables depend on each other!</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Thinking ∂L/∂θ is the same shape as θ — it IS! If θ is a (512×256) matrix, then ∂L/∂θ is also (512×256). Shape always matches.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Forgetting the <strong>Jacobian</strong> — when output is a vector (not scalar), partial derivatives form a matrix, not a vector. Critical for understanding backprop through vector-output layers.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p>A <span class="hl-o">partial derivative ∂f/∂xᵢ</span> asks: "How does f change when we increase xᵢ by a tiny amount, <strong>while holding all other variables constant</strong>?"</p>
+  <div class="callout"><strong>The trick:</strong> When taking ∂f/∂x, treat y, z, etc. as constants. It's just a regular derivative!</div>
+  <p style="margin-top:12px"><strong>The Gradient Vector:</strong></p>
+  <div class="formula-wrap">∇f(x) = [∂f/∂x₁, ∂f/∂x₂, ..., ∂f/∂xₙ]ᵀ  (column vector of all partial derivatives)
+∇f points in direction of STEEPEST ASCENT of f
+−∇f points in direction of STEEPEST DESCENT (what we use!)</div>
+  <p style="margin-top:12px"><strong>The Jacobian Matrix (vector output):</strong></p>
+  <div class="formula-wrap">For f: ℝⁿ → ℝᵐ, Jacobian J is m×n matrix:
+J[i,j] = ∂fᵢ/∂xⱼ   (how output i changes with input j)
+When output is scalar (m=1): Jacobian = gradient (1×n vector)</div>
+  <p style="margin-top:12px"><strong>The Hessian Matrix (second derivatives):</strong></p>
+  <div class="formula-wrap">H[i,j] = ∂²f/(∂xᵢ∂xⱼ)  (n×n symmetric matrix)
+Positive definite Hessian → local minimum
+Negative definite → local maximum
+Indefinite → saddle point</div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>আংশিক ডেরিভেটিভ</strong> মানে: একটা function-এ অনেকগুলো variable থাকলে, শুধু <em>একটা variable</em> পরিবর্তন করে বাকিগুলো স্থির রাখলে function কতটুকু পরিবর্তন হয়।</p>
+  <div class="callout-bn">💡 উদাহরণ: একটা রুটির recipe-তে ময়দা, পানি, এবং লবণ আছে (x, y, z)। আংশিক ডেরিভেটিভ বলে: "শুধু ময়দা বাড়ালে রুটির স্বাদ কীভাবে পরিবর্তন হয়?" — পানি ও লবণ স্থির রেখে।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ ব্যবহার:</strong></p>
+  <p class="bn">• প্রতিটা weight-এর জন্য: ∂L/∂w — "এই weight একটু বাড়ালে loss কতটুকু পরিবর্তন হয়?"</p>
+  <p class="bn">• Gradient ∇L = সব weight-এর partial derivative-এর vector</p>
+  <p class="bn">• Backpropagation = এই সব partial derivative chain rule দিয়ে দ্রুত হিসাব করা</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> STEP-BY-STEP EXAMPLES</div>
+  <div class="f-label">Example 1: f(x,y) = x²y + 3xy²</div>
+  <div class="formula-wrap">∂f/∂x = 2xy + 3y²      (treat y as constant, differentiate w.r.t. x)
+∂f/∂y = x² + 6xy       (treat x as constant, differentiate w.r.t. y)
+At point (1,2):  ∂f/∂x = 4+12=16,  ∂f/∂y = 1+12=13
+Gradient: ∇f(1,2) = [16, 13]ᵀ  ← this vector points uphill</div>
+  <div class="f-label">Example 2: MSE Loss gradient w.r.t. weight w</div>
+  <div class="formula-wrap">L(w,b) = (1/n) Σᵢ (wXᵢ + b − yᵢ)²
+∂L/∂w = (2/n) Σᵢ (wXᵢ + b − yᵢ)·Xᵢ   ← gradient for weight update
+∂L/∂b = (2/n) Σᵢ (wXᵢ + b − yᵢ)       ← gradient for bias update
+These are computed simultaneously — both partial derivatives needed!</div>
+  <div class="f-label">Example 3: Jacobian of softmax (important for classification backprop)</div>
+  <div class="formula-wrap">softmax(x)ᵢ = eˣⁱ/Σⱼeˣʲ = sᵢ
+∂sᵢ/∂xⱼ = sᵢ(1−sᵢ)  if i=j    (diagonal terms)
+          = −sᵢ·sⱼ    if i≠j    (off-diagonal terms)
+Full Jacobian: J = diag(s) − ssᵀ   (n×n matrix)</div>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — Partial Derivatives = Backpropagation</div>
+  <table>
+    <tr><th>Backprop Step</th><th>Partial Derivative Computed</th></tr>
+    <tr><td>Output layer error</td><td>∂L/∂ŷ — loss w.r.t. prediction</td></tr>
+    <tr><td>Last layer weights</td><td>∂L/∂Wₙ = (∂L/∂ŷ)·∂ŷ/∂Wₙ</td></tr>
+    <tr><td>Hidden layer n-1</td><td>∂L/∂Wₙ₋₁ via chain rule backward</td></tr>
+    <tr><td>Bias gradient</td><td>∂L/∂b — same shape as b</td></tr>
+    <tr><td>Weight update</td><td>W ← W − α·∂L/∂W</td></tr>
+  </table>
+  <p style="margin-top:10px;font-size:0.88em;color:var(--muted)">💡 <strong>Key insight:</strong> PyTorch's <code>loss.backward()</code> computes ALL partial derivatives ∂L/∂θᵢ for every parameter θᵢ simultaneously using reverse-mode automatic differentiation.</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: What is the Jacobian and why does it matter in deep learning? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">The Jacobian J of a function f: ℝⁿ→ℝᵐ is the m×n matrix of all partial derivatives J[i,j]=∂fᵢ/∂xⱼ. In backprop: when gradients pass through a vector-to-vector layer (like softmax, batch norm), we multiply by the Jacobian. Full Jacobian computation is O(mn) — expensive for large m,n. That's why we use Jacobian-vector products (JVP) and vector-Jacobian products (VJP): instead of computing the full Jacobian, we directly compute J·v or vᵀ·J for the specific gradient vector v. PyTorch uses VJP (reverse mode) because loss is scalar — one VJP gives all gradients. <div class="a-bn">বাংলায়: Jacobian = সব partial derivative-এর matrix। Backprop-এ এটা gradient pass করতে ব্যবহার হয়।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: Why does ∂L/∂W have the same shape as W? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">For each weight wᵢⱼ in W, we compute ∂L/∂wᵢⱼ — one scalar derivative per weight. Arrange these scalars in the same grid as W → you get a matrix of the same shape as W, where each entry is the gradient of L w.r.t. that specific weight. This is why weight update is just element-wise subtraction: W ← W − α·(∂L/∂W), same shape throughout. This also means memory for gradients = memory for weights — doubles your VRAM usage during training! <div class="a-bn">বাংলায়: প্রতিটা weight-এর জন্য একটা derivative → সব একসাথে রাখলে same shape-এর matrix হয়। তাই training-এ weight-এর ২ গুণ memory লাগে।</div></div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🏋️</span> EXERCISES</div>
+  <div class="ex-box"><div class="ex-title">Exercise</div>
+  <p>For f(x,y,z) = x²yz + xy²z + xyz², compute ∇f at point (1,1,1).</p>
+  <div class="ex-answer">✅ ∂f/∂x=2xyz+y²z+yz²=2+1+1=4. ∂f/∂y=x²z+2xyz+xz²=1+2+1=4. ∂f/∂z=x²y+xy²+2xyz=1+1+2=4. ∇f(1,1,1)=[4,4,4]ᵀ. By symmetry this makes sense!</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.khanacademy.org/math/multivariable-calculus" target="_blank">📘 Khan: Multivariable Calculus</a>
+  <a class="res-link" href="https://explained.ai/matrix-calculus/index.html" target="_blank">📄 Matrix Calculus for Deep Learning</a>
+</div>`},
+
+/* -------- 05 CHAIN RULE -------- */
+{title:"Chain Rule (Very Important!)",bn:"চেইন রুল — অত্যন্ত গুরুত্বপূর্ণ!",tags:["Backpropagation","Composition","Core ML Math"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>For y = sin(x²), what is dy/dx? And more importantly — why does this matter for deep learning?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ Chain rule: dy/dx = cos(x²) · 2x. In deep learning: backpropagation IS the chain rule applied recursively to all composed functions in the network. Every .backward() call in PyTorch is the chain rule in action.</p>
+</div>
+<div class="card" style="background:rgba(255,137,6,0.06);border-color:rgba(255,137,6,0.3)">
+  <div class="card-hd"><span class="ic">🌟</span> WHY THIS IS THE MOST IMPORTANT TOPIC</div>
+  <p style="color:var(--orange);font-weight:600">The chain rule = backpropagation = how neural networks learn.</p>
+  <p style="margin-top:8px">If you understand the chain rule deeply, you understand how gradients flow backward through a neural network. Period. This is the mathematical heart of deep learning.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Stopping the chain too early — in deep networks you must apply chain rule ALL the way back to the first layer. Every layer contributes a multiplicative factor.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Forgetting that when a variable feeds into multiple paths (skip connections, shared weights), gradients from ALL paths must be SUMMED.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Getting confused with matrix chain rule — for matrices, the order of multiplication matters! dL/dX involves careful ordering of Jacobian products.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p>The <span class="hl-o">chain rule</span> tells us how to differentiate a <strong>composition of functions</strong>.</p>
+  <div class="concept-pair">
+    <div class="concept-side" style="border-color:rgba(255,137,6,0.4)"><p class="concept-side-title hl-o">1D Chain Rule</p><div class="formula-wrap" style="font-size:0.82em">y = f(g(x))
+dy/dx = <span class="f-highlight">f'(g(x)) · g'(x)</span>
+= (dy/du) · (du/dx)
+where u = g(x)</div></div>
+    <div class="concept-side" style="border-color:rgba(61,169,252,0.4)"><p class="concept-side-title hl-t">Multivariable Chain Rule</p><div class="formula-wrap" style="font-size:0.82em">z = f(x,y), x=g(t), y=h(t)
+dz/dt = (∂z/∂x)(dx/dt) + (∂z/∂y)(dy/dt)
+= Σᵢ (∂z/∂xᵢ)(dxᵢ/dt)</div></div>
+  </div>
+  <p style="margin-top:14px"><strong>Chain rule through a neural network (2-layer example):</strong></p>
+  <div class="formula-wrap">Forward: x → [Layer1: z₁=W₁x+b₁] → [Act: a₁=ReLU(z₁)] → [Layer2: z₂=W₂a₁+b₂] → L
+Backward (chain rule applied step by step):
+∂L/∂z₂ = ∂L/∂L · ∂L/∂z₂ = 1 · (ŷ−y)        [output gradient]
+∂L/∂W₂ = ∂L/∂z₂ · ∂z₂/∂W₂ = (ŷ−y) · a₁ᵀ    [weight gradient, layer 2]
+∂L/∂a₁ = W₂ᵀ · ∂L/∂z₂                         [propagate back through W₂]
+∂L/∂z₁ = ∂L/∂a₁ ⊙ ReLU'(z₁)                  [through ReLU, element-wise]
+∂L/∂W₁ = ∂L/∂z₁ · xᵀ                           [weight gradient, layer 1]
+Each step: multiply current gradient by local derivative!</div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>চেইন রুল</strong> হলো: যখন একটা function অন্য function-এর ভেতরে থাকে (composition), তখন মোট derivative = প্রতিটা function-এর derivative-এর গুণফল।</p>
+  <div class="callout-bn">💡 উদাহরণ: তোমার বেতন (y) নির্ভর করে তোমার পারফরম্যান্স স্কোর (u)-এর উপর, যা নির্ভর করে তুমি কত ঘণ্টা কাজ করেছ (x)-এর উপর। "বেতন কত ঘণ্টার সাথে কীভাবে পরিবর্তন হয়?" = চেইন রুল: dy/dx = (dy/du)·(du/dx)</div>
+  <p class="bn" style="margin-top:12px"><strong>Neural Network-এ Chain Rule = Backpropagation:</strong></p>
+  <p class="bn">Forward pass: x → layer1 → activation → layer2 → loss (ডানদিকে যাওয়া)</p>
+  <p class="bn">Backward pass: loss-থেকে শুরু করে chain rule দিয়ে প্রতিটা layer-এর gradient হিসাব করা (বামদিকে আসা)</p>
+  <p class="bn">প্রতিটা layer-এ: gradient × local derivative = আগের layer-এর gradient</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> CHAIN RULE — WORKED EXAMPLES</div>
+  <div class="f-label">Example 1: Simple composition</div>
+  <div class="formula-wrap">L = (σ(wx+b) − y)²   where σ is sigmoid
+Let: u = wx+b,  a = σ(u),  L = (a−y)²
+dL/dw = dL/da · da/du · du/dw
+      = 2(a−y) · σ(u)(1−σ(u)) · x
+      = <span class="f-highlight">2(ŷ−y) · ŷ(1−ŷ) · x</span>   ← gradient for weight w</div>
+  <div class="f-label">Example 2: Chain rule for multiple uses (skip connections)</div>
+  <div class="formula-wrap">y = f(x) + g(x)   (x used in TWO paths)
+dy/dx = df/dx + dg/dx   ← ADDITIVE (sum over all paths)
+In ResNets: L depends on x through skip connection AND residual block
+→ ∂L/∂x = ∂L/∂(F(x)+x) = ∂L/∂y · 1 + ∂L/∂y · F'(x)
+              (skip path)    (residual path)
+Even if F'(x)≈0 (vanishing), skip path keeps gradient = 1 flowing!</div>
+  <div class="f-label">General Pattern in Backprop</div>
+  <div class="formula-wrap">At each layer: <span class="f-highlight">incoming_gradient = upstream_gradient × local_derivative</span>
+"Upstream" = gradient coming from loss side
+"Local" = derivative of this layer's operation
+Then pass incoming_gradient to previous layer and repeat</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd"><span class="ic">🎯</span> ANALOGY — The Gear Train</div>
+  <p>Imagine a machine with gears connected in series. You turn Gear A → it turns Gear B → Gear B turns Gear C → Gear C does the work. How much does Gear C move when you turn Gear A? Chain rule: (C/B ratio) × (B/A ratio). A big slow gear connected to a small fast gear connected to another gear — the total transmission ratio is the <strong>product</strong> of individual ratios. Backpropagation through layers works exactly like this: total gradient = product of local derivatives at each "gear" (layer).</p>
+  <p class="bn callout-bn" style="margin-top:10px;padding:10px">বাংলায়: গিয়ার ট্রেনে মোট অনুপাত = প্রতিটা গিয়ারের অনুপাতের গুণফল। Backprop-এ মোট gradient = প্রতিটা layer-এর local derivative-এর গুণফল।</p>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — Chain Rule IS Deep Learning</div>
+  <table>
+    <tr><th>DL Component</th><th>Chain Rule Role</th></tr>
+    <tr><td><strong>Backpropagation</strong></td><td>Chain rule applied recursively from loss to inputs</td></tr>
+    <tr><td><strong>ResNet skip connections</strong></td><td>Additive chain rule keeps gradient paths alive</td></tr>
+    <tr><td><strong>LSTM gates</strong></td><td>Cell state creates direct gradient path (no chain shrinkage)</td></tr>
+    <tr><td><strong>Transformer attention</strong></td><td>Chain rule through softmax Jacobian + value multiplication</td></tr>
+    <tr><td><strong>Gradient clipping</strong></td><td>Product of many chain rule terms can explode → clip</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: Explain backpropagation using the chain rule — walk through a concrete example. <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Simple network: x → [z=Wx+b] → [a=ReLU(z)] → [L=0.5(a−y)²]. Forward: compute z, a, L. Backward: ∂L/∂a = (a−y) [chain: derivative of 0.5(a-y)²]. ∂L/∂z = ∂L/∂a · ∂a/∂z = (a−y)·ReLU'(z) [chain through ReLU]. ∂L/∂W = ∂L/∂z · ∂z/∂W = (∂L/∂z)·xᵀ [chain through linear layer]. ∂L/∂b = ∂L/∂z [bias gradient = just the z gradient, since ∂z/∂b=1]. Each step: multiply by local gradient. This pattern repeats for all layers. <div class="a-bn">বাংলায়: forward pass-এ loss হিসাব, backward pass-এ chain rule দিয়ে প্রতিটা layer-এর gradient হিসাব, তারপর weight update।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: How do ResNet's skip connections solve the vanishing gradient problem via chain rule? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">In plain networks: gradient passes through N nonlinear layers, each multiplying by a number <1 → product shrinks exponentially. In ResNet: y = F(x) + x (skip). ∂L/∂x = ∂L/∂y · (F'(x) + 1). Even if F'(x) ≈ 0 (all gradients blocked), the "+1" term means ∂L/∂x ≈ ∂L/∂y — gradient flows unchanged! The skip connection creates a "gradient highway" bypassing potentially dead layers. This is why ResNets can train 100+ layers without vanishing gradient. <div class="a-bn">বাংলায়: skip connection gradient-কে directly পাঠায় (+1 term)। তাই vanishing gradient হলেও কিছু gradient সবসময় আসে।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q3: What is the computational graph and how does it relate to chain rule? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">The computational graph is a directed acyclic graph (DAG) where nodes are operations and edges are data tensors. Forward pass builds the graph; backward pass traverses it in reverse, applying chain rule at each node. PyTorch builds this dynamically (define-by-run: graph built as ops execute). TensorFlow 1.x used static graphs (define-then-run). Dynamic graphs (PyTorch style) allow Python control flow (if/for statements) to change graph structure — critical for models like RNNs and tree structures. Each node stores its local gradient computation for the backward pass. <div class="a-bn">বাংলায়: computational graph = calculation-এর মানচিত্র। Forward pass-এ তৈরি, backward pass-এ উল্টো দিকে chain rule apply হয়।</div></div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🏋️</span> EXERCISES</div>
+  <div class="ex-box"><div class="ex-title">Exercise 1 — Apply Chain Rule</div>
+  <p>Find dy/dx for: (a) y = (3x²+1)⁵ (b) y = e^(sin(x)) (c) y = ln(1/(1+e⁻ˣ)) — this is log-sigmoid!</p>
+  <div class="ex-answer">✅ (a) 5(3x²+1)⁴·6x=30x(3x²+1)⁴ (b) e^sin(x)·cos(x) (c) Simplify: ln(σ(x))=ln(1)−ln(1+e⁻ˣ). d/dx = e⁻ˣ/(1+e⁻ˣ) = 1−σ(x) = 1/(1+eˣ). OR just: derivative = 1−σ(x).</div></div>
+  <div class="ex-box"><div class="ex-title">Exercise 2 — Backprop by Hand</div>
+  <p>For L = (ŷ−y)², ŷ = ReLU(wx), with w=2, x=3, y=4: compute ŷ, L, ∂L/∂w step by step.</p>
+  <div class="ex-answer">✅ ŷ = ReLU(2×3) = ReLU(6) = 6. L=(6−4)²=4. ∂L/∂ŷ=2(6−4)=4. ∂ŷ/∂(wx)=ReLU'(6)=1 (since 6>0). ∂(wx)/∂w=x=3. Chain: ∂L/∂w=4·1·3=12. Update: w←2−α·12.</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.youtube.com/watch?v=tIeHLnjs5U8" target="_blank">🎬 3B1B: Backpropagation Calculus</a>
+  <a class="res-link" href="https://karpathy.github.io/neuralnets/" target="_blank">🤖 Karpathy: Hacker's Guide to NN</a>
+  <a class="res-link" href="https://cs231n.github.io/optimization-2/" target="_blank">🎓 CS231n: Backpropagation</a>
+</div>`},
+
+/* -------- 06 GRADIENT AS STEEPEST DESCENT -------- */
+{title:"Gradient as Direction of Steepest Descent",bn:"গ্রেডিয়েন্ট — সর্বোচ্চ ঢালের দিক",tags:["Gradient Descent","Optimization","Loss Surface"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>Gradient ∇L(θ) points in the direction of steepest ASCENT. So why does gradient descent SUBTRACT the gradient?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ We want to MINIMIZE loss, not maximize it. The negative gradient −∇L points downhill. So θ ← θ − α∇L moves us in the downhill direction. The α (learning rate) controls how big each step is.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Learning rate too large:</strong> Steps overshoot the minimum, loss diverges (oscillates or goes to ∞). Classic sign: loss increases after first few steps.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Learning rate too small:</strong> Training converges but takes forever (millions of steps). May get stuck in shallow local minima.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Thinking gradient descent always finds the global minimum</strong> — it doesn't! It finds a local minimum. The loss landscape of neural networks is non-convex with many local minima and saddle points.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p><span class="hl-o">The gradient ∇f(x)</span> at any point x is a vector pointing in the direction of <strong>steepest ascent</strong> of f. Its magnitude = how steep the slope is.</p>
+  <div class="callout"><strong>Fundamental Gradient Descent Update Rule:</strong><br>
+  <code style="font-size:1em;color:var(--orange)">θₜ₊₁ = θₜ − α · ∇L(θₜ)</code><br>
+  α = learning rate (step size), ∇L = gradient of loss</div>
+  <p style="margin-top:14px"><strong>Gradient Descent Variants:</strong></p>
+  <table>
+    <tr><th>Variant</th><th>Data Used Per Update</th><th>Pros</th><th>Cons</th></tr>
+    <tr><td><span class="hl-o">Batch GD</span></td><td>Entire dataset</td><td>Stable, true gradient</td><td>Very slow for large data</td></tr>
+    <tr><td><span class="hl-t">Stochastic GD</span></td><td>1 sample</td><td>Fast updates, escapes saddle pts</td><td>Noisy, oscillates</td></tr>
+    <tr><td><span class="hl-g">Mini-batch SGD</span></td><td>32–512 samples</td><td>Best of both worlds</td><td>Batch size is a hyperparameter</td></tr>
+  </table>
+  <p style="margin-top:14px"><strong>Advanced Optimizers (Gradient Descent++):</strong></p>
+  <table>
+    <tr><th>Optimizer</th><th>Key Idea</th><th>Formula</th></tr>
+    <tr><td><span class="hl-o">Momentum</span></td><td>Accumulate velocity</td><td>v ← βv − α∇L; θ ← θ+v</td></tr>
+    <tr><td><span class="hl-t">RMSprop</span></td><td>Adaptive learning rate</td><td>Divide by running avg of grad²</td></tr>
+    <tr><td><span class="hl-g">Adam</span></td><td>Momentum + RMSprop</td><td>m/(√v+ε) with bias correction</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Gradient Descent</strong> হলো: loss function-এর পৃষ্ঠে (landscape) সবচেয়ে নিচু বিন্দু (minimum) খোঁজার পদ্ধতি।</p>
+  <div class="callout-bn">💡 পাহাড়ে নামার analogy: তুমি কুয়াশায় পাহাড়ে আছ, নিচে নামতে চাও। প্রতিটা পদক্ষেপে তোমার পায়ের নিচে কোন দিকটা সবচেয়ে খাড়া সেটা বুঝো (gradient), তার বিপরীতে একটা ছোট পদক্ষেপ নাও (learning rate × gradient)। এটা বারবার করো — ধীরে ধীরে valley-তে পৌঁছাবে (minimum loss)!</div>
+  <p class="bn" style="margin-top:12px"><strong>Learning Rate-এর গুরুত্ব:</strong></p>
+  <p class="bn">• খুব বড় learning rate → বড় পদক্ষেপ → valley পার হয়ে যাও → loss বাড়ে</p>
+  <p class="bn">• খুব ছোট learning rate → অতি ছোট পদক্ষেপ → অনেক সময় লাগে, stuck হতে পারে</p>
+  <p class="bn">• সঠিক learning rate → দ্রুত এবং stable convergence</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> GRADIENT DESCENT — WORKED EXAMPLE</div>
+  <div class="f-label">Interactive: Gradient Descent on f(x) = x² − 4x + 5 (minimum at x=2)</div>
+  <div class="canvas-wrap" id="gd-canvas-wrap">
+    <canvas id="gd-canvas" width="560" height="220"></canvas>
+    <div class="canvas-label">f(x) = x² − 4x + 5 · Gradient Descent Visualization</div>
+  </div>
+  <div class="ctrl-row">
+    <label>Learning Rate α</label>
+    <input type="range" id="lr-slider" min="1" max="19" value="8" step="1">
+    <span class="ctrl-val" id="lr-val">0.8</span>
+    <label style="margin-left:10px">Steps</label>
+    <input type="range" id="steps-slider" min="1" max="20" value="8" step="1">
+    <span class="ctrl-val" id="steps-val">8</span>
+  </div>
+  <div style="margin-top:6px">
+    <span class="ctrl-output" id="gd-output">Starting: x=5, f(5)=10</span>
+  </div>
+  <div class="formula-wrap" style="margin-top:12px">f(x) = x²−4x+5,  f'(x) = 2x−4
+Gradient descent: x ← x − α·f'(x) = x − α·(2x−4)
+Minimum at: f'(x)=0 → 2x−4=0 → x=2,  f(2)=1</div>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — Why Adam Dominates</div>
+  <table>
+    <tr><th>Optimizer</th><th>Update Rule</th><th>When to Use</th></tr>
+    <tr><td>SGD</td><td>θ ← θ−α∇L</td><td>Simple tasks, convex loss, when you have time to tune lr</td></tr>
+    <tr><td>SGD+Momentum</td><td>velocity+gradient history</td><td>Training deep networks, CV models (ResNet)</td></tr>
+    <tr><td><strong>Adam</strong></td><td>Adaptive per-parameter lr</td><td>Default choice for most NLP/LLM training</td></tr>
+    <tr><td>AdamW</td><td>Adam + decoupled weight decay</td><td>Transformers, BERT, GPT training</td></tr>
+    <tr><td>Lion</td><td>Sign-based momentum</td><td>Large-scale LLM training (newer)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: Why does Adam use bias correction in early training steps? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Adam maintains exponential moving averages: m_t = β₁m_{t-1} + (1−β₁)g and v_t = β₂v_{t-1} + (1−β₂)g². At t=1, m_1 = (1−β₁)g ≈ 0.1g (with β₁=0.9) — massively underestimates the true gradient! Bias correction: m̂ = m/(1−β₁ᵗ), v̂ = v/(1−β₂ᵗ). At t=1: 1−β₁¹ = 0.1, so m̂ = 0.1g/0.1 = g. This removes the initialization bias, giving accurate gradient estimates from the very first step. As t→∞, 1−βᵗ→1 and correction vanishes. <div class="a-bn">বাংলায়: Adam শুরুতে gradient estimate কম দেখায়। Bias correction এটা ঠিক করে, তাই প্রথম থেকেই সঠিক update হয়।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: What is learning rate warmup and why do transformers use it? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Learning rate warmup linearly increases lr from 0 to target lr over the first few thousand steps, then decays. Why? At initialization, weight gradients are noisy and large. Starting with large lr causes destructive weight updates before the model has any meaningful signal. Warmup lets the model "settle in" first. Transformers (BERT, GPT) use warmup because: attention matrices start random, leading to extremely noisy gradients. The original "Attention is All You Need" paper used: lr = d_model^-0.5 · min(step^-0.5, step·warmup_steps^-1.5). <div class="a-bn">বাংলায়: শুরুতে ধীরে ধীরে learning rate বাড়ানো হয় যাতে random weights থেকে unstable gradient model ভেঙে না দেয়।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd"><span class="ic">🏋️</span> EXERCISES</div>
+  <div class="ex-box"><div class="ex-title">Exercise — Manual Gradient Descent</div>
+  <p>For f(θ) = θ² − 6θ + 9 (minimum at θ=3), starting from θ=0, learning rate α=0.5, perform 3 steps of gradient descent. Show all work.</p>
+  <div class="ex-answer">✅ f'(θ)=2θ−6. Step 1: θ←0−0.5·(−6)=3.0 (already at minimum!). This is a lucky case of a perfect learning rate. With α=0.1: Step1: 0−0.1·(−6)=0.6. Step2: 0.6−0.1·(−4.8)=1.08. Step3: 1.08−0.1·(−3.84)=1.464. Converging to 3.</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://www.deeplearning.ai/ai-notes/optimization/" target="_blank">📘 DeepLearning.AI: Optimization</a>
+  <a class="res-link" href="https://distill.pub/2017/momentum/" target="_blank">🎯 Distill: Why Momentum Works</a>
+  <a class="res-link" href="https://arxiv.org/abs/1412.6980" target="_blank">📄 Adam Paper (Kingma & Ba)</a>
+</div>`},
+
+/* -------- 07 LOCAL VS GLOBAL MINIMA -------- */
+{title:"Local vs Global Minima",bn:"স্থানীয় বনাম সার্বিক নিম্নবিন্দু",tags:["Optimization","Loss Landscape","Saddle Points"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>In practice, do deep neural networks find the global minimum? And should you care if they don't?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ No — they find local minima or settle near saddle points. But surprisingly, in high-dimensional spaces, most local minima have <strong>similar loss values</strong> to the global minimum. The landscape has many "good enough" valleys. Research shows neural networks generalize well without needing the exact global minimum.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Plateau problem:</strong> Loss stops decreasing but gradient ≠ 0 — you're on a very flat region. Small gradients → tiny updates → effectively stuck. Solution: learning rate scheduling, momentum.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Saddle point confusion:</strong> gradient = 0 but it's NOT a minimum! Saddle points have zero gradient but are NOT optimal. More common than local minima in high-dim spaces. SGD's noise helps escape them.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span><strong>Sharp vs flat minima:</strong> Sharp minima (high Hessian eigenvalues) generalize WORSE than flat minima. A model that perfectly fits training data may be in a sharp minimum that doesn't generalize.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <table>
+    <tr><th>Critical Point</th><th>Gradient</th><th>2nd Derivative</th><th>Description</th></tr>
+    <tr><td><span class="hl-g">Local minimum</span></td><td>∇f = 0</td><td>H positive definite</td><td>Lowest point in neighborhood</td></tr>
+    <tr><td><span class="hl-o">Global minimum</span></td><td>∇f = 0</td><td>H positive definite</td><td>Absolute lowest point everywhere</td></tr>
+    <tr><td><span class="hl-p">Local maximum</span></td><td>∇f = 0</td><td>H negative definite</td><td>Highest point in neighborhood</td></tr>
+    <tr><td><span class="hl-y">Saddle point</span></td><td>∇f = 0</td><td>H indefinite</td><td>Min in some directions, max in others</td></tr>
+    <tr><td><span class="hl-t">Plateau</span></td><td>∇f ≈ 0</td><td>H ≈ 0</td><td>Very flat region, gradients near zero</td></tr>
+  </table>
+  <p style="margin-top:14px"><strong>High-dimensional insight (CRITICAL for ML):</strong></p>
+  <div class="callout">In d-dimensional space, a random critical point is a local minimum only if ALL d eigenvalues of the Hessian are positive. With millions of parameters, probability of this ≈ 0. Almost all critical points in deep networks are saddle points, NOT local minima. Fortunately, saddle points near the global minimum in loss have similar loss values!</div>
+  <p style="margin-top:12px"><strong>Sharp vs Flat Minima (Generalization):</strong></p>
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(242,95,76,0.3)"><p class="hl-p" style="margin-bottom:6px">Sharp Minimum</p><p style="font-size:0.86em">Narrow valley. Small weight perturbations → large loss increase. Overfits to training data. High Hessian eigenvalues. <strong>Generalizes poorly.</strong></p></div>
+    <div class="gbox" style="border-color:rgba(68,207,108,0.3)"><p class="hl-g" style="margin-bottom:6px">Flat Minimum</p><p style="font-size:0.86em">Wide valley. Weight perturbations → small loss increase. Robust to noise. Low Hessian eigenvalues. <strong>Generalizes well!</strong></p></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Local Minimum (স্থানীয় নিম্নবিন্দু):</strong> আশেপাশের তুলনায় সবচেয়ে নিচু বিন্দু, কিন্তু সব জায়গার মধ্যে সবচেয়ে নিচু নাও হতে পারে।</p>
+  <p class="bn"><strong>Global Minimum (সার্বিক নিম্নবিন্দু):</strong> পুরো loss surface-এ সবচেয়ে নিচু বিন্দু।</p>
+  <div class="callout-bn">💡 উদাহরণ: পাহাড়ে একটা ছোট গর্ত (local minimum) থাকতে পারে যেটা একটা বড় উপত্যকার (global minimum) চেয়ে উঁচু। Gradient descent ছোট গর্তে পড়ে যেতে পারে।</div>
+  <p class="bn" style="margin-top:12px"><strong>Saddle Point:</strong> gradient = 0, কিন্তু minimum নয়! কিছু দিকে উপরে, কিছু দিকে নিচে — ঘোড়ার জিনের মতো। High-dimensional ML-এ এগুলো সবচেয়ে বেশি।</p>
+  <p class="bn"><strong>Flat Minimum ভালো কেন?</strong> প্রশস্ত উপত্যকায় থাকলে ছোট noise-এ loss বেশি বদলায় না → model generalize করে ভালো।</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> IDENTIFYING CRITICAL POINTS</div>
+  <div class="f-label">Using Second Derivative Test (1D)</div>
+  <div class="formula-wrap">f'(x) = 0 → critical point found
+f''(x) > 0 → <span class="f-green">local minimum</span>   (concave up, bowl shape)
+f''(x) < 0 → <span class="f-pink">local maximum</span>  (concave down, hill shape)
+f''(x) = 0 → inconclusive (need higher-order test)</div>
+  <div class="f-label">Multi-dimensional: Hessian Eigenvalues</div>
+  <div class="formula-wrap">All eigenvalues of H > 0 → <span class="f-green">local minimum</span>
+All eigenvalues of H < 0 → <span class="f-pink">local maximum</span>
+Mixed signs → <span class="f-yellow">saddle point</span>
+In practice for deep learning: compute H is too expensive → use curvature proxies</div>
+  <div class="f-label">Practical Strategies to Escape Local Minima</div>
+  <div class="formula-wrap">1. SGD noise (mini-batches) → noisy gradients escape shallow minima
+2. Momentum → "rolls through" small barriers
+3. Learning rate warmup → explore first, exploit later
+4. Multiple random restarts → try different starting points
+5. Learning rate annealing → slowly cool to find flat minima
+6. SAM (Sharpness-Aware Minimization) → explicitly seeks flat minima</div>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — The Loss Landscape Reality</div>
+  <table>
+    <tr><th>ML Phenomenon</th><th>Related to Local/Global Minima</th></tr>
+    <tr><td>Different random seeds → different accuracy</td><td>Different local minima with different generalization</td></tr>
+    <tr><td>SGD generalizes better than Adam (sometimes)</td><td>SGD finds flatter minima; Adam finds sharper minima faster</td></tr>
+    <tr><td>Weight averaging (SWA)</td><td>Average weights across training → flat minimum center</td></tr>
+    <tr><td>Early stopping</td><td>Stop before overfitting = stop before entering sharp minimum</td></tr>
+    <tr><td>Dropout</td><td>Noise prevents settling in sharp minima, finds flatter regions</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: Why don't we worry too much about local minima in deep learning? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Three reasons: (1) <strong>High-dimensional geometry</strong>: In d-dimensional space, local minima require ALL d Hessian eigenvalues to be positive — exponentially unlikely with millions of parameters. Most critical points are saddle points. (2) <strong>Loss equivalence</strong>: Empirically, the loss values of local minima in deep networks are close to the global minimum. The loss landscape, while non-convex, has many "good" solutions. (3) <strong>Overparameterization</strong>: Modern networks are highly overparameterized — there exist many weight configurations achieving near-zero training loss, and gradient descent finds one of them. <div class="a-bn">বাংলায়: deep network-এ লক্ষ লক্ষ dimension-এ true local minimum পাওয়া প্রায় অসম্ভব। বেশিরভাগ critical point saddle point, এবং সব ভালো local minimum প্রায় একই loss-এ।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: What is SAM (Sharpness-Aware Minimization) and how does it help generalization? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">SAM explicitly seeks flat minima by modifying the objective: instead of minimizing L(θ), minimize max_{||ε||≤ρ} L(θ+ε) — the worst-case loss in a neighborhood around θ. This is a minimax problem. Two-step update: (1) Find the worst perturbation ε = ρ·∇L/||∇L|| (gradient ascent). (2) Update θ using gradient at (θ+ε) (gradient descent at perturbed point). Result: finds regions where even perturbed weights have low loss — flat minima that generalize well. Used in state-of-the-art image classification (ViT, EfficientNet-SAM). <div class="a-bn">বাংলায়: SAM সরাসরি flat minimum খোঁজে → ভালো generalization। এটা দুই পদক্ষেপে কাজ করে: worst case perturbation খুঁজে, তারপর সেখান থেকে update।</div></div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://losslandscape.com" target="_blank">🗺️ Loss Landscape Visualizer</a>
+  <a class="res-link" href="https://arxiv.org/abs/1712.09913" target="_blank">📄 Visualizing Loss Landscapes</a>
+  <a class="res-link" href="https://arxiv.org/abs/2010.01412" target="_blank">📄 SAM Paper</a>
+</div>`},
+
+/* -------- 08 CONVEX VS NON-CONVEX -------- */
+{title:"Convex vs Non-Convex Functions",bn:"উত্তল বনাম অউত্তল ফাংশন",tags:["Convexity","Optimization Guarantees","Neural Networks"],content:`
+<div class="card law-red">
+  <div class="card-hd"><span class="ic">⚡</span> LAW 1 — PREDICTION FIRST</div>
+  <p>Linear regression's loss (MSE) is convex. A 2-layer neural network's loss is non-convex. What practical difference does this make for training?</p>
+  <p style="margin-top:9px;color:var(--green)">✅ Convex: gradient descent <strong>guarantees</strong> finding the global minimum — any local minimum IS the global minimum. Non-convex: gradient descent only guarantees finding a <strong>local minimum</strong> or saddle point. BUT — in practice, deep networks' non-convex loss landscape has many nearly-equivalent local minima, so this matters less than it sounds.</p>
+</div>
+<div class="card law-dark">
+  <div class="card-hd"><span class="ic">🔴</span> LAW 2 — FAILURE MODES</div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Assuming regularized problems are still convex after adding a neural network — they're not. L2 regularization makes a convex loss more convex (good!), but can't make a non-convex neural network loss convex.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Thinking non-convex = bad. Many ML problems REQUIRE non-convex models (neural nets) to achieve good performance. The art is in handling non-convexity well.</span></div>
+  <div class="fail-item"><span class="fail-icon">✗</span><span>Forgetting that quasi-convex and locally convex functions exist — many practical problems have useful convex-like properties even without full convexity.</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📖</span> CORE CONCEPT — English</div>
+  <p>A function f is <span class="hl-o">convex</span> if the line segment between any two points on its graph lies <strong>above or on</strong> the graph.</p>
+  <div class="formula-wrap"><span class="f-highlight">f(λx + (1−λ)y) ≤ λf(x) + (1−λ)f(y)</span>  for all x,y and λ∈[0,1]
+Intuition: "If you draw a chord between any two points, the chord is above the curve"</div>
+  <div class="g2" style="margin:14px 0">
+    <div class="gbox" style="border-color:rgba(68,207,108,0.4)">
+      <p class="hl-g" style="margin-bottom:8px">✅ Convex — Guarantees</p>
+      <ul style="padding-left:14px;font-size:0.86em">
+        <li>Any local minimum = global minimum</li>
+        <li>Gradient descent converges</li>
+        <li>No saddle points (interior)</li>
+        <li>Unique solution (strictly convex)</li>
+        <li>Examples: x², MSE, cross-entropy (w.r.t. linear model), SVMs</li>
+      </ul>
+    </div>
+    <div class="gbox" style="border-color:rgba(242,95,76,0.4)">
+      <p class="hl-p" style="margin-bottom:8px">⚠️ Non-Convex — Reality</p>
+      <ul style="padding-left:14px;font-size:0.86em">
+        <li>Multiple local minima</li>
+        <li>Saddle points everywhere</li>
+        <li>No global convergence guarantee</li>
+        <li>But: powerful, expressive, necessary!</li>
+        <li>Examples: Neural networks, matrix factorization, k-means</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>Tests for Convexity:</strong></p>
+  <ul style="padding-left:16px">
+    <li>1D: f''(x) ≥ 0 everywhere → convex</li>
+    <li>Multi-D: Hessian H is positive semi-definite everywhere (all eigenvalues ≥ 0)</li>
+    <li>Sum of convex functions is convex</li>
+    <li>Composition: f(g(x)) convex if f is convex+non-decreasing and g is convex</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">🇧🇩</span> বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Convex Function (উত্তল ফাংশন):</strong> গ্রাফে যেকোনো দুটো বিন্দুর মধ্যে সরল রেখা টানলে সেটা সবসময় গ্রাফের উপরে থাকে। যেমন: বাটির মতো আকৃতি (bowl shape)।</p>
+  <div class="callout-bn">💡 মনে রাখার উপায়: Convex = "C" আকৃতির (উপরে খোলা বাটি)। Non-convex = পাহাড়-উপত্যকার মতো উঁচু-নিচু।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ গুরুত্ব:</strong></p>
+  <p class="bn">• Logistic Regression, Linear Regression, SVM → convex loss → gradient descent নিশ্চিতভাবে global minimum পাবে</p>
+  <p class="bn">• Neural Network → non-convex loss → কোনো guarantee নেই, কিন্তু ব্যবহারে ভালো কাজ করে!</p>
+  <p class="bn">• Convex problem → সহজ, নির্ভরযোগ্য। Non-convex → কঠিন, কিন্তু শক্তিশালী।</p>
+  <p class="bn"><strong>Jensen's Inequality (Convex-এর চাবিকাঠি):</strong></p>
+  <p class="bn">f(E[X]) ≤ E[f(X)] — এটা cross-entropy loss-এর mathematical foundation!</p>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">📐</span> FORMULAS & EXAMPLES</div>
+  <div class="f-label">Convexity Test</div>
+  <div class="formula-wrap">f(x) = x²:  f''(x) = 2 > 0  → <span class="f-green">CONVEX</span>
+f(x) = x³:  f''(x) = 6x  (negative for x<0) → <span class="f-pink">NOT CONVEX</span>
+f(x) = |x|: f''(x) = undefined at 0 but convex by definition test
+f(x) = sin(x): f''(x) = −sin(x) changes sign → <span class="f-pink">NOT CONVEX</span>
+MSE L(θ) = ||Xθ−y||²: Hessian = 2XᵀX (PSD) → <span class="f-green">CONVEX</span></div>
+  <div class="f-label">Convex Loss Functions in ML</div>
+  <div class="formula-wrap">Linear regression MSE:  L(w) = (1/n)||Xw−y||²          → convex in w
+Logistic regression:    L(w) = Σlog(1+e^(-yᵢwᵀxᵢ))    → convex in w
+Hinge loss (SVM):      L(w) = Σmax(0, 1−yᵢwᵀxᵢ)       → convex in w
+NOTE: All these become NON-CONVEX when w is replaced by a neural network!</div>
+  <div class="f-label">Jensen's Inequality (Fundamental to ML Theory)</div>
+  <div class="formula-wrap">For convex f:  f(E[X]) ≤ E[f(X)]
+In ML: E[loss] ≥ loss(E[parameters])  (average loss ≥ loss at average params)
+Used to prove convergence bounds for SGD, EM algorithm, KL divergence properties</div>
+</div>
+
+<div class="analogy">
+  <div class="card-hd"><span class="ic">🎯</span> ANALOGY — Bowl vs Mountain Range</div>
+  <p>🥣 <strong>Convex function</strong> = a smooth bowl. Drop a marble in from anywhere — it always rolls to the same lowest point (global minimum). Gradient descent guaranteed to work!<br><br>
+  🏔️ <strong>Non-convex function</strong> = a mountain range with many valleys of different depths. Drop a marble — it rolls into the nearest valley (local minimum), which may or may not be the deepest one. The marble's starting position matters!<br><br>
+  Neural networks are mountain ranges. We use clever tricks (SGD noise, warmup, architecture design) to find deep valleys.</p>
+  <p class="bn callout-bn" style="margin-top:10px;padding:10px">বাংলায়: Convex = বাটি (একটাই নিম্নবিন্দু, সর্বদা পাওয়া যায়)। Non-convex = পাহাড়শ্রেণী (অনেক উপত্যকা, শুরুর অবস্থান গুরুত্বপূর্ণ)।</p>
+</div>
+
+<div class="ml-box">
+  <div class="ml-box-title">🤖 ML Application — Convexity Determines Training Strategy</div>
+  <table>
+    <tr><th>ML Model</th><th>Loss Convexity</th><th>Training Approach</th></tr>
+    <tr><td>Linear Regression</td><td>Convex (quadratic)</td><td>Closed-form (normal equation) or any GD</td></tr>
+    <tr><td>Logistic Regression</td><td>Convex</td><td>Any GD variant, guaranteed convergence</td></tr>
+    <tr><td>SVM</td><td>Convex (quadratic program)</td><td>Dedicated QP solvers or SGD</td></tr>
+    <tr><td>Neural Network</td><td>Non-convex</td><td>SGD/Adam, careful init, regularization</td></tr>
+    <tr><td>K-means clustering</td><td>Non-convex</td><td>Multiple random restarts</td></tr>
+    <tr><td>Matrix Factorization</td><td>Non-convex (bilinear)</td><td>Alternating minimization, SGD</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="ic">💼</span> INTERVIEW Q&A</div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q1: Why is logistic regression's loss convex but a neural network's loss non-convex? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Logistic regression: L(w) = Σlog(1+e^{−yᵢwᵀxᵢ}). The Hessian = XᵀDX where D is diagonal positive → positive semi-definite → convex in w. Neural network: L(W₁,W₂,...) involves products of weight matrices W₂·σ(W₁x+b₁). This is non-linear in W₁,W₂ — the activation functions and matrix products create non-convexity. Specifically: the loss IS convex in W₂ alone (last layer linear regression!), but non-convex in (W₁,W₂) jointly. This is called "bilinear" non-convexity — even two-layer networks are non-convex. <div class="a-bn">বাংলায়: logistic regression-এ parameter w শুধু linear combination-এ আছে → convex। Neural network-এ W₁ এবং W₂ গুণের মধ্যে আছে → non-convex।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q2: What is a convex relaxation and where is it used in ML? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">A convex relaxation replaces a hard non-convex problem with an easier convex approximation. Examples: (1) L1 norm as a convex relaxation of the L0 norm (sparsity): instead of counting non-zeros (NP-hard), minimize |w|₁ (convex, polynomial time). This is the basis of Lasso! (2) Nuclear norm (sum of singular values) as a convex relaxation of matrix rank: instead of minimizing rank (NP-hard), minimize ||A||_* (convex). Used in matrix completion/recommendation systems. (3) SDP relaxation of combinatorial problems. The key: solve the convex relaxation, then project solution back to the original constraint set. <div class="a-bn">বাংলায়: convex relaxation কঠিন non-convex সমস্যাকে সহজ convex সমস্যা দিয়ে approximate করে। Lasso = L0-এর convex relaxation।</div></div></div>
+  <div class="qa"><button class="q-btn" onclick="toggleQ(this)">Q3: Can you explain the difference between convex and strongly convex functions? <span class="q-arrow">▶</span></button>
+  <div class="a-panel">Convex: f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y). Includes flat functions (f=constant is convex). Gradient descent: convergence rate O(1/T). Strongly convex: f(x) ≥ f(y) + ∇f(y)ᵀ(x−y) + (μ/2)||x−y||² for some μ>0. Every point on the function is strictly above its tangent + a quadratic term. Gradient descent: convergence rate O(ρᵀ) (exponentially fast!). Example: L2-regularized logistic regression is strongly convex. Practical impact: strongly convex losses converge in logarithmic steps; plain convex in polynomial steps. This is why Ridge Regression trains faster than pure MSE in ill-conditioned problems. <div class="a-bn">বাংলায়: strongly convex function-এ gradient descent অনেক দ্রুত converge করে (exponential rate)। L2 regularization loss-কে strongly convex করে।</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd"><span class="ic">🏋️</span> EXERCISES</div>
+  <div class="ex-box"><div class="ex-title">Exercise 1 — Identify Convexity</div>
+  <p>Which of these are convex? Justify using f'': (a) f(x) = x⁴ (b) f(x) = −x² (c) f(x) = eˣ (d) f(x) = |x|</p>
+  <div class="ex-answer">✅ (a) f''=12x²≥0 everywhere → CONVEX (b) f''=−2<0 → CONCAVE (not convex) (c) f''=eˣ>0 → CONVEX (d) Not differentiable at 0, but convex by definition test (chord always above) → CONVEX</div></div>
+  <div class="ex-box"><div class="ex-title">Exercise 2 — Practical Reasoning</div>
+  <p>You're training logistic regression and a 3-layer neural network on the same dataset. How does the convexity difference affect: (a) sensitivity to initial weights (b) guarantee of same result each run (c) training time needed?</p>
+  <div class="ex-answer">✅ (a) LR: initialization doesn't matter (always converges to global min). NN: initialization crucial (Xavier/He init matters). (b) LR: same result every run. NN: different random seeds → different models. (c) LR: converges in few passes. NN: may need more epochs, learning rate tuning, early stopping.</div></div>
+</div>
+<div class="card"><div class="card-hd"><span class="ic">🔗</span> RESOURCES</div>
+  <a class="res-link" href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank">📘 Boyd & Vandenberghe: Convex Optimization</a>
+  <a class="res-link" href="https://distill.pub/2017/feature-visualization/" target="_blank">🎯 Distill: Neural Net Optimization</a>
+  <a class="res-link" href="https://www.youtube.com/watch?v=McLq1hEq3UY" target="_blank">🎬 MIT 6.S191: Deep Learning Optimization</a>
+</div>`}
+
+]; /* end topics */
+
+/* ===================== NAV & RENDER ===================== */
+const navNames=["Functions and Graphs","Limits","Derivatives & Gradients","Partial Derivatives","Chain Rule ⭐","Gradient: Steepest Descent","Local vs Global Minima","Convex vs Non-Convex"];
+
+function buildNav(){
+  const nl=document.getElementById('nav-list');
+  navNames.forEach((n,i)=>{
+    const btn=document.createElement('button');
+    btn.className='nav-item'+(i===0?' active':'');
+    btn.innerHTML=`<span class="nav-num">${String(i+1).padStart(2,'0')}</span><span class="nav-text">${n}</span>`;
+    btn.onclick=()=>showTopic(i);
+    nl.appendChild(btn);
+  });
+}
+
+function buildContent(){
+  const m=document.getElementById('main');
+  topics.forEach((t,i)=>{
+    const sec=document.createElement('section');
+    sec.className='topic-section'+(i===0?' active':'');
+    sec.id='sec-'+i;
+    sec.innerHTML=`
+      <div class="t-header">
+        <div class="t-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${topics.length} — DIFFERENTIAL CALCULUS</div>
+        <div class="t-title">${t.title}</div>
+        <div class="t-bn">${t.bn}</div>
+        <div class="t-tags">${t.tags.map(g=>`<span class="tag tag-a">${g}</span>`).join('')}</div>
+      </div>
+      ${t.content}`;
+    m.appendChild(sec);
+  });
+}
+
+function showTopic(i){
+  i=parseInt(i);
+  document.querySelectorAll('.topic-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+i).classList.add('active');
+  document.querySelectorAll('.nav-item')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/topics.length*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(i===5) setTimeout(initGDCanvas,200);
+}
+
+function toggleQ(btn){
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+/* ===================== GRADIENT DESCENT CANVAS ===================== */
+function initGDCanvas(){
+  const canvas=document.getElementById('gd-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const lrSlider=document.getElementById('lr-slider');
+  const stepsSlider=document.getElementById('steps-slider');
+  const lrVal=document.getElementById('lr-val');
+  const stepsVal=document.getElementById('steps-val');
+  const output=document.getElementById('gd-output');
+
+  function f(x){return x*x-4*x+5;}
+  function df(x){return 2*x-4;}
+  // map x∈[−1,7] to canvas x, f(x)∈[1,16] to canvas y
+  const xMin=-1,xMax=7,yMin=0.5,yMax=16;
+  function cx(x){return(x-xMin)/(xMax-xMin)*W;}
+  function cy(y){return H-(y-yMin)/(yMax-yMin)*H;}
+
+  function draw(){
+    const lr=parseInt(lrSlider.value)/10;
+    const steps=parseInt(stepsSlider.value);
+    lrVal.textContent=lr.toFixed(1);
+    stepsVal.textContent=steps;
+
+    ctx.clearRect(0,0,W,H);
+    // Background
+    ctx.fillStyle='#0f0e17';ctx.fillRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle='#2e2b42';ctx.lineWidth=0.5;
+    for(let x=-1;x<=7;x++){ctx.beginPath();ctx.moveTo(cx(x),0);ctx.lineTo(cx(x),H);ctx.stroke();}
+    for(let y=2;y<=16;y+=2){ctx.beginPath();ctx.moveTo(0,cy(y));ctx.lineTo(W,cy(y));ctx.stroke();}
+    // Axes
+    ctx.strokeStyle='#3a3750';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx(0),0);ctx.lineTo(cx(0),H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,cy(0));ctx.lineTo(W,cy(0));ctx.stroke();
+    // Curve
+    ctx.beginPath();ctx.strokeStyle='#3da9fc';ctx.lineWidth=2.5;
+    for(let x=xMin;x<=xMax;x+=0.05){
+      const px=cx(x),py=cy(f(x));
+      x===xMin?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    // Minimum line
+    ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(68,207,108,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx(2),0);ctx.lineTo(cx(2),H);ctx.stroke();
+    ctx.setLineDash([]);
+    // GD path
+    let x=5;
+    const pts=[{x,y:f(x)}];
+    for(let s=0;s<steps;s++){x=x-lr*df(x);pts.push({x,y:f(x)});}
+    // Draw path
+    ctx.beginPath();ctx.strokeStyle='rgba(255,137,6,0.5)';ctx.lineWidth=1.5;
+    pts.forEach((p,i)=>{i===0?ctx.moveTo(cx(p.x),cy(p.y)):ctx.lineTo(cx(p.x),cy(p.y));});
+    ctx.stroke();
+    // Draw points
+    pts.forEach((p,i)=>{
+      ctx.beginPath();
+      ctx.fillStyle=i===0?'#f25f4c':i===pts.length-1?'#44cf6c':'#ff8906';
+      ctx.arc(cx(p.x),cy(p.y),i===0||i===pts.length-1?6:4,0,Math.PI*2);
+      ctx.fill();
+    });
+    // Labels
+    ctx.font='11px JetBrains Mono';
+    ctx.fillStyle='#f25f4c';ctx.fillText(`Start: x=5, f=10`,cx(5)+6,cy(10)-8);
+    ctx.fillStyle='#44cf6c';ctx.fillText(`After ${steps} steps`,cx(pts[pts.length-1].x)+6,cy(pts[pts.length-1].y)-8);
+    ctx.fillStyle='rgba(68,207,108,0.7)';ctx.fillText('minimum x=2',cx(2)+4,cy(1)-6);
+    const last=pts[pts.length-1];
+    output.textContent=`After ${steps} steps: x=${last.x.toFixed(3)}, f(x)=${last.y.toFixed(3)} (target: f=1)`;
+  }
+  lrSlider.addEventListener('input',draw);
+  stepsSlider.addEventListener('input',draw);
+  draw();
+}
+
+buildNav();
+buildContent();
+// init GD canvas on topic 5 if default
+setTimeout(()=>{ if(document.getElementById('gd-canvas')) initGDCanvas(); },300);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>

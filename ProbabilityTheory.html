@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Theory for ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--bg2:#0d1219;--bg3:#131b27;--bg4:#1a2435;
+  --border:#1e2d42;--text:#dce8ff;--muted:#6b84a8;
+  --emerald:#00e5a0;--sky:#38bdf8;--amber:#fbbf24;
+  --rose:#fb7185;--violet:#a78bfa;--indigo:#818cf8;
+  --white:#f0f6ff;--gold:#f9c74f;
+  --radius:12px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+.bn{font-family:'Noto Sans Bengali',sans-serif}
+code{font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:0.83em;color:var(--sky)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sidebar{width:285px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;padding:40px 44px;max-width:980px;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.s-brand{padding:22px 18px 16px;border-bottom:1px solid var(--border);background:linear-gradient(145deg,rgba(0,229,160,.05),rgba(56,189,248,.03))}
+.s-sym{font-size:2.4em;line-height:1;margin-bottom:5px}
+.s-title{font-size:.97em;font-weight:700;color:var(--emerald);letter-spacing:.01em}
+.s-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.8em;margin-top:2px}
+.s-sub{font-size:.7em;color:var(--muted);margin-top:5px;line-height:1.4}
+.prog-row{display:flex;justify-content:space-between;font-size:.69em;color:var(--muted);margin-top:12px;margin-bottom:4px}
+.prog-bar{height:3px;background:var(--bg3);border-radius:2px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--emerald),var(--sky));border-radius:2px;transition:width .5s ease}
+.nav-list{padding:10px 0;flex:1;overflow-y:auto}
+.nb{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:10px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:.79em;line-height:1.35;transition:all .18s;border-left:3px solid transparent}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.active{background:var(--bg3);color:var(--emerald);border-left-color:var(--emerald)}
+.nb-num{font-family:'JetBrains Mono',monospace;background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:.7em;font-weight:500;flex-shrink:0;margin-top:1px;color:var(--muted)}
+.nb.active .nb-num{background:var(--emerald);color:var(--bg)}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:rise .28s ease}
+.sec.active{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CHAPTER HEADER ── */
+.ch{padding:26px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:30px;background:linear-gradient(135deg,rgba(0,229,160,.05),rgba(56,189,248,.03));position:relative;overflow:hidden}
+.ch-num{font-family:'JetBrains Mono',monospace;font-size:.69em;color:var(--emerald);letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px}
+.ch-title{font-size:1.9em;font-weight:800;line-height:1.15;color:var(--white)}
+.ch-title em{color:var(--emerald);font-style:normal}
+.ch-bn{font-family:'Noto Sans Bengali',sans-serif;color:var(--gold);font-size:.93em;margin-top:5px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tag{padding:3px 11px;border-radius:20px;font-size:.7em;font-weight:600;border:1px solid}
+.te{border-color:var(--emerald);color:var(--emerald);background:rgba(0,229,160,.08)}
+.ts{border-color:var(--sky);color:var(--sky);background:rgba(56,189,248,.08)}
+.ta{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.08)}
+.tv{border-color:var(--violet);color:var(--violet);background:rgba(167,139,250,.08)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.ch-hd{font-size:.69em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.law1{border-left:4px solid var(--emerald);background:rgba(0,229,160,.04)}
+.law2{border-left:4px solid var(--rose);background:rgba(251,113,133,.04)}
+.law3{border-left:4px solid var(--amber);background:rgba(251,191,36,.04)}
+
+/* ── FORMULA ── */
+.fl{font-size:.7em;color:var(--muted);margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.03em}
+.fx{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px 19px;font-family:'JetBrains Mono',monospace;font-size:.84em;color:var(--sky);line-height:2.1;overflow-x:auto;margin:10px 0;white-space:pre}
+.fe{color:var(--emerald)}.fr{color:var(--rose)}.fa{color:var(--amber)}.fv{color:var(--violet)}.fi{color:var(--indigo)}.fg{color:#6ee7b7}.fw{color:var(--white)}
+
+/* ── HIGHLIGHTS ── */
+.he{color:var(--emerald);font-weight:600}.hs{color:var(--sky);font-weight:600}.ha{color:var(--amber);font-weight:600}.hv{color:var(--violet);font-weight:600}.hr{color:var(--rose);font-weight:600}.hi{color:var(--indigo);font-weight:600}.hg{color:var(--gold);font-weight:600}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.gbox{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:15px}
+.gbox-t{font-size:.78em;font-weight:700;margin-bottom:7px}
+
+/* ── CALLOUTS ── */
+.call{background:rgba(0,229,160,.05);border-left:4px solid var(--emerald);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-bn{background:rgba(249,199,79,.05);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-family:'Noto Sans Bengali',sans-serif;color:rgba(249,199,79,.9);font-size:.88em;line-height:1.9}
+.call-r{background:rgba(251,113,133,.05);border-left:4px solid var(--rose);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+.call-s{background:rgba(56,189,248,.05);border-left:4px solid var(--sky);border-radius:0 8px 8px 0;padding:13px 16px;margin:12px 0;font-size:.9em}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+th{background:var(--bg3);color:var(--muted);padding:10px 13px;text-align:left;font-weight:600;font-size:.76em;text-transform:uppercase;letter-spacing:.07em}
+td{padding:10px 13px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg3)}
+
+/* ── Q&A ── */
+.qa{margin-bottom:12px}
+.qb{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:13px 15px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;color:var(--text);font-size:.86em;font-weight:500;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .15s;gap:10px}
+.qb:hover{background:var(--bg4)}
+.qb.open{color:var(--emerald);border-bottom-color:transparent}
+.qa-arr{color:var(--muted);transition:transform .2s;flex-shrink:0}
+.qb.open .qa-arr{transform:rotate(90deg);color:var(--emerald)}
+.ap{display:none;padding:14px 15px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:.86em;color:var(--muted);line-height:1.85}
+.ap.open{display:block}
+.a-bn{font-family:'Noto Sans Bengali',sans-serif;color:rgba(249,199,79,.8);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.9;font-size:.93em}
+
+/* ── EXERCISE ── */
+.ex{background:rgba(249,199,79,.04);border:1px solid rgba(249,199,79,.18);border-radius:9px;padding:15px;margin-bottom:11px}
+.ex-t{color:var(--gold);font-size:.74em;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-ans{color:var(--muted);font-size:.84em;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;counter-increment:s;font-size:.91em}
+.steps li::before{content:counter(s);background:var(--emerald);color:var(--bg);min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.74em;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── CANVAS ── */
+.cw{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin:13px 0}
+.clbl{font-size:.72em;color:var(--muted);text-align:center;margin-top:6px;font-family:'JetBrains Mono',monospace}
+
+/* ── CONTROLS ── */
+.ctrl{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+.ctrl label{font-size:.78em;color:var(--muted);white-space:nowrap}
+.ctrl input[type=range]{flex:1;min-width:80px;accent-color:var(--emerald);height:4px}
+.ctrl select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:.79em;font-family:'Plus Jakarta Sans',sans-serif}
+.cval{font-family:'JetBrains Mono',monospace;font-size:.79em;color:var(--emerald);min-width:40px}
+.cout{font-family:'JetBrains Mono',monospace;font-size:.83em;color:var(--emerald);background:var(--bg3);padding:7px 13px;border-radius:7px;margin-top:6px;display:inline-block;border:1px solid var(--border)}
+
+/* ── FAIL ITEMS ── */
+.fi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;font-size:.9em}
+.fi-i{color:var(--rose);flex-shrink:0;margin-top:2px;font-weight:700}
+
+/* ── ANALOGY ── */
+.analogy{background:linear-gradient(135deg,rgba(0,229,160,.05),rgba(56,189,248,.04));border:1px solid rgba(0,229,160,.18);border-radius:10px;padding:18px;margin:13px 0}
+
+/* ── ML BOX ── */
+.mlb{background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:18px;margin:13px 0}
+.mlb-t{color:var(--sky);font-size:.73em;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:11px}
+
+/* ── RESOURCE ── */
+.rl{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 13px;color:var(--sky);text-decoration:none;font-size:.8em;margin:4px;transition:all .2s}
+.rl:hover{border-color:var(--sky);background:var(--bg4)}
+
+/* ── DIST CARD ── */
+.dist-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.dist-name{font-size:.95em;font-weight:700;margin-bottom:4px}
+.dist-symbol{font-family:'JetBrains Mono',monospace;font-size:.8em;color:var(--emerald);margin-bottom:8px}
+.dist-props{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.dp{background:var(--bg4);border-radius:6px;padding:4px 10px;font-size:.75em;font-family:'JetBrains Mono',monospace}
+.dp span{color:var(--emerald)}
+
+/* ── MOBILE ── */
+.mob{display:none;padding:11px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.mob select{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.87em}
+@media(max-width:750px){.mob{display:block}.sidebar{display:none}.main{padding:16px}.g2,.g3{grid-template-columns:1fr}}
+
+/* ── BAYES VISUAL ── */
+.bayes-box{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;border-radius:8px;overflow:hidden;margin:12px 0;font-size:.8em}
+.bb{padding:14px;text-align:center;font-weight:600}
+.bb-label{font-size:.72em;color:var(--muted);font-weight:400;margin-top:3px}
+</style>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<div class="mob">
+  <select onchange="show(this.value)">
+    <option value="0">01 — Random Variables</option>
+    <option value="1">02 — Discrete vs Continuous</option>
+    <option value="2">03 — Probability Distributions</option>
+    <option value="3">04 — PMF, PDF, CDF</option>
+    <option value="4">05 — Expectation & Variance</option>
+    <option value="5">06 — Common Distributions</option>
+    <option value="6">07 — Independence & Conditional Probability</option>
+    <option value="7">08 — Bayes' Theorem</option>
+    <option value="8">09 — Likelihood vs Probability</option>
+  </select>
+</div>
+
+<div class="app">
+<nav class="sidebar">
+  <div class="s-brand">
+    <div class="s-sym">𝑃</div>
+    <div class="s-title">Probability Theory</div>
+    <div class="s-bn">সম্ভাবনা তত্ত্ব</div>
+    <div class="s-sub">Uncertainty Handling · ML Engineer's Guide</div>
+    <div class="prog-row"><span>Progress</span><span id="pp">11%</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="pf" style="width:11%"></div></div>
+  </div>
+  <div class="nav-list" id="nl"></div>
+</nav>
+<main class="main" id="mc"></main>
+</div>
+
+<script>
+const NAV=["Random Variables","Discrete vs Continuous","Probability Distributions","PMF, PDF & CDF","Expectation & Variance","Common Distributions","Independence & Conditional P","Bayes' Theorem","Likelihood vs Probability"];
+
+const TOPICS=[
+
+/* ══════════════════════════════════════════════
+   01  RANDOM VARIABLES
+══════════════════════════════════════════════ */
+{title:"Random <em>Variables</em>",bn:"র‍্যান্ডম ভেরিয়েবল",tags:[{t:"Foundation",c:"te"},{t:"Uncertainty",c:"ts"},{t:"Mapping",c:"ta"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Before reading: a neural network outputs a probability score 0.73 for an image being a cat. Is this a random variable? Why or why not?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ YES — the output is a random variable because it depends on the random input image drawn from data. For a FIXED input, the network output is deterministic. But across the distribution of possible inputs, the output varies — it's a function of a random input, hence a random variable.</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Thinking "random" means "unknown to everyone."</strong> Random means the outcome depends on an experiment/process. A fair coin flip is random even if a physicist could theoretically compute it. In ML, a label y is "random" — it varies across samples drawn from the data distribution.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing a random variable with its value.</strong> X is the random variable (the whole concept — "the outcome of rolling a die"). X=4 is a specific outcome. Writing P(X=4)=1/6 means "the probability that the random variable X takes the value 4 is 1/6."</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Ignoring the underlying sample space.</strong> Every RV has a sample space Ω (the set of all possible outcomes). For a coin: Ω={H,T}. For image classification: Ω = all possible images × all labels. The RV is a function that maps Ω → ℝ.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>A <span class="he">Random Variable (RV)</span> is a <strong>function that maps outcomes of a random experiment to numbers</strong>. It gives us a mathematical way to work with uncertainty.</p>
+  <div class="call"><strong>Formal definition:</strong> X: Ω → ℝ, where Ω is the sample space of all possible outcomes. X assigns a real number to each outcome.</div>
+  <div class="g2" style="margin-top:14px">
+    <div class="gbox" style="border-color:rgba(0,229,160,.25)">
+      <div class="gbox-t he">Example 1: Die Roll</div>
+      <p style="font-size:.86em">Experiment: roll a fair die<br>Sample space: Ω = {⚀,⚁,⚂,⚃,⚄,⚅}<br>RV X = "number shown"<br>X(⚀)=1, X(⚁)=2, ..., X(⚅)=6<br>P(X=k) = 1/6 for k=1,...,6</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(56,189,248,.25)">
+      <div class="gbox-t hs">Example 2: ML Label</div>
+      <p style="font-size:.86em">Experiment: draw one data sample<br>Sample space: all images<br>RV Y = "true label" (cat=1, dog=0)<br>P(Y=1) = fraction of cats in dataset<br>ŷ = f(x) is a function of random X</p>
+    </div>
+  </div>
+  <p style="margin-top:14px"><strong>Capital vs lowercase convention:</strong></p>
+  <div class="fx"><span class="fe">X</span>  = the random variable itself  (a function, a concept)
+<span class="fa">x</span>  = a specific value it can take  (a realization)
+P(<span class="fe">X</span> = <span class="fa">x</span>) = probability that the RV takes value x
+E[<span class="fe">X</span>]  = expected value of the RV  (average over all outcomes)</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>র‍্যান্ডম ভেরিয়েবল (X)</strong> হলো একটা ফাংশন যা একটা random experiment-এর প্রতিটা সম্ভাব্য ফলাফলকে একটা সংখ্যায় রূপান্তর করে।</p>
+  <div class="call-bn">💡 সহজ উদাহরণ: একটা মুদ্রা ছুঁড়লে — Head বা Tail আসতে পারে। আমরা X = "Head আসলে ১, Tail আসলে ০" বলতে পারি। এখন X হলো একটা random variable। X-এর মান জানি না ছোঁড়ার আগে — কিন্তু জানি প্রতিটার সম্ভাবনা ৫০%।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ Random Variables সর্বত্র:</strong></p>
+  <p class="bn">• Training data-র label Y → random (কোন sample আসবে জানি না আগে থেকে)</p>
+  <p class="bn">• Model-এর prediction ŷ → random (কোন input আসবে তার উপর নির্ভরশীল)</p>
+  <p class="bn">• Loss L(θ) → random (কোন mini-batch নেওয়া হবে তার উপর নির্ভরশীল)</p>
+  <p class="bn">• Dropout mask → explicitly random (training-এ neuron randomly বন্ধ হয়)</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 NOTATION & FORMULAS</div>
+  <div class="fl">Key notation used throughout probability theory</div>
+  <div class="fx">P(X = x)     probability that RV X equals specific value x
+P(X ≤ x)     probability that X is at most x  (CDF)
+P(A ∩ B)     probability that BOTH A and B occur  (AND)
+P(A ∪ B)     probability that A OR B occurs  (OR)
+P(A|B)       probability of A GIVEN B occurred  (conditional)
+E[X]         expected value = "average" of X
+Var(X)       variance of X = measure of spread
+std(X) = σ   standard deviation = √Var(X)</div>
+  <div class="fl">Fundamental probability axioms (Kolmogorov)</div>
+  <div class="fx">1. <span class="fe">P(A) ≥ 0</span>                      [non-negativity]
+2. <span class="fe">P(Ω) = 1</span>                      [total probability = 1]
+3. <span class="fe">P(A∪B) = P(A)+P(B)</span> if A∩B=∅   [additivity for disjoint events]
+Derived: P(Aᶜ)=1−P(A),  P(∅)=0,  P(A)≤1</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Context</th><th>The Random Variable</th><th>Values It Takes</th></tr>
+  <tr><td>Supervised learning</td><td>Label Y</td><td>Discrete (classes) or continuous (regression)</td></tr>
+  <tr><td>Generative models</td><td>Data X</td><td>Images, text, audio — from a distribution</td></tr>
+  <tr><td>Bayesian inference</td><td>Parameters θ</td><td>Treated as RVs with prior distribution</td></tr>
+  <tr><td>Dropout</td><td>Mask mᵢ</td><td>Bernoulli(p) — 0 or 1 per neuron</td></tr>
+  <tr><td>SGD noise</td><td>Mini-batch gradient</td><td>Random subsample of true gradient</td></tr>
+</table></div>
+
+<div class="card">
+  <div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: What is the difference between a parameter and a random variable in ML? <span class="qa-arr">▶</span></button>
+  <div class="ap">In frequentist ML: model parameters θ are <em>fixed but unknown</em> — not random variables. We estimate them (MLE). Loss and predictions are random because they depend on random data. In Bayesian ML: parameters θ ARE treated as random variables with a prior distribution P(θ). This lets us quantify uncertainty about the model itself, not just predictions. The distinction matters: frequentist confidence intervals describe repeated experiments; Bayesian credible intervals describe our uncertainty about the parameter given observed data.<div class="a-bn">বাংলায়: Frequentist: θ fixed, data random। Bayesian: θও random variable — prior distribution দিয়ে শুরু, data দেখে posterior পাই।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: Why do we model data as random variables in machine learning? <span class="qa-arr">▶</span></button>
+  <div class="ap">Real-world data is generated by processes we can't fully observe or control. A patient's diagnosis depends on thousands of biological factors we don't measure. An image's label depends on human judgment, lighting, angle. By treating data as random variables drawn from a distribution P(X,Y), we can: (1) Quantify uncertainty in predictions (not just point estimates). (2) Design models that generalize by capturing the true data distribution. (3) Apply probabilistic tools — maximum likelihood, Bayes' theorem, information theory. (4) Give theoretical guarantees (PAC learning bounds, generalization theory).<div class="a-bn">বাংলায়: বাস্তব data অনিশ্চিত। RV হিসেবে model করলে uncertainty quantify করা যায় এবং generalization-এর theoretical guarantee পাওয়া যায়।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise 1</div><p>Define a random variable for: (a) Predicting if an email is spam (b) Measuring tomorrow's temperature in Dhaka (c) Number of customers arriving at a shop per hour</p><div class="ex-ans">(a) X ∈ {0,1} — discrete (spam=1, not spam=0) (b) T ∈ ℝ — continuous (could be any real number) (c) N ∈ {0,1,2,...} — discrete, non-negative integer</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.khanacademy.org/math/statistics-probability/random-variables-stats-library" target="_blank">📘 Khan Academy: Random Variables</a>
+  <a class="rl" href="https://seeing-theory.brown.edu" target="_blank">🎯 Seeing Theory (Interactive)</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   02  DISCRETE VS CONTINUOUS
+══════════════════════════════════════════════ */
+{title:"Discrete vs <em>Continuous</em>",bn:"বিচ্ছিন্ন বনাম অবিচ্ছিন্ন চলক",tags:[{t:"Discrete",c:"te"},{t:"Continuous",c:"ts"},{t:"Countable vs Uncountable",c:"ta"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Model outputs a probability 0.734. Is this a discrete or continuous value? And is the class label (cat/dog) discrete or continuous?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ Probability 0.734 = <strong>continuous</strong> (can be any value in [0,1]). Class label = <strong>discrete</strong> (finite set {cat, dog}). Neural networks bridge both — they work with continuous probabilities but predict discrete class labels. The CrossEntropy loss treats labels as discrete, probabilities as continuous.</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Applying PMF to continuous variables or PDF to discrete.</strong> Discrete RVs use PMF (probabilities that sum to 1). Continuous RVs use PDF (density, not probability — must integrate to 1). P(X = exact value) = 0 for continuous RVs! You must ask P(a ≤ X ≤ b).</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using the wrong loss function.</strong> MSE assumes a continuous Normal output distribution. Cross-entropy assumes discrete categorical output. Matching the loss function to the output type IS choosing the right probability model — a fundamental design decision.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <table>
+    <tr><th>Property</th><th>Discrete RV</th><th>Continuous RV</th></tr>
+    <tr><td>Values</td><td>Countable: {0,1,2,...} or {cat,dog}</td><td>Uncountable: any value in an interval</td></tr>
+    <tr><td>Probability tool</td><td>PMF — P(X=x) sums to 1</td><td>PDF — f(x) integrates to 1</td></tr>
+    <tr><td>P(X = exact value)</td><td>Can be > 0</td><td>Always = 0 (use intervals!)</td></tr>
+    <tr><td>ML examples</td><td>Class labels, word tokens, counts</td><td>Weights, activations, embeddings</td></tr>
+    <tr><td>Summation/Integration</td><td>Σ (sum over values)</td><td>∫ (integral over range)</td></tr>
+  </table>
+  <div class="call" style="margin-top:14px"><strong>Key insight:</strong> For continuous X, P(X = 3.14159...) = 0 exactly. There are infinitely many real numbers, so any single one has probability zero. Instead: P(3.1 ≤ X ≤ 3.2) > 0. This is why we use density (PDF) for continuous distributions.</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Discrete RV (বিচ্ছিন্ন চলক):</strong> যে random variable শুধু গণনাযোগ্য নির্দিষ্ট মান নিতে পারে। যেমন: পরীক্ষায় পাওয়া নম্বর (০, ১, ২, ..., ১০০), ক্লাসের label (বিড়াল, কুকুর, পাখি)।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি ১টা dice ছুঁড়লে ১, ২, ৩, ৪, ৫, বা ৬ পাবে — এর মাঝে কোনো মান নেই (২.৫ পাওয়া অসম্ভব)। এটা discrete।</div>
+  <p class="bn" style="margin-top:10px"><strong>Continuous RV (অবিচ্ছিন্ন চলক):</strong> যেকোনো real number মান নিতে পারে। যেমন: উচ্চতা (১.৭৩২৪৫... মিটার), neural network weight (-০.০৩৪৮৭...)।</p>
+  <div class="call-bn">💡 উদাহরণ: তোমার সঠিক উচ্চতা ১.৭৩ মিটার বলা ভুল — আসলে হয়তো ১.৭৩২৪৫৬... মিটার। এই infinite precision-ই continuous।</div>
+  <p class="bn" style="margin-top:10px"><strong>গুরুত্বপূর্ণ:</strong> Continuous RV-তে P(X = ঠিক ১.৭৩) = ০! কারণ অসংখ্য real number আছে। তাই P(১.৭ ≤ X ≤ ১.৮) জিজ্ঞেস করতে হয়।</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Discrete: probabilities must sum to 1</div>
+  <div class="fx">Σₓ P(X = x) = 1        (sum over all possible values = 1)
+Example (fair die): P(1)+P(2)+...+P(6) = 6×(1/6) = 1  ✓</div>
+  <div class="fl">Continuous: PDF must integrate to 1</div>
+  <div class="fx">∫₋∞^∞ f(x) dx = 1       (total area under PDF curve = 1)
+P(a ≤ X ≤ b) = ∫ₐᵇ f(x) dx     (area under curve between a and b)
+f(x) ≥ 0 everywhere but f(x) CAN be > 1 (density, not probability!)</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Task</th><th>Input X</th><th>Output Y</th><th>Loss Function</th></tr>
+  <tr><td>Binary classification</td><td>Continuous features</td><td>Discrete {0,1}</td><td>Binary Cross-Entropy</td></tr>
+  <tr><td>Multi-class classification</td><td>Continuous features</td><td>Discrete {0..K}</td><td>Categorical Cross-Entropy</td></tr>
+  <tr><td>Regression</td><td>Continuous features</td><td>Continuous ℝ</td><td>MSE (assumes Normal)</td></tr>
+  <tr><td>Language model</td><td>Discrete tokens</td><td>Discrete token distribution</td><td>Categorical Cross-Entropy</td></tr>
+  <tr><td>VAE latent space</td><td>Any</td><td>Continuous z ~ N(0,I)</td><td>MSE + KL divergence</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: A neural network's final layer uses softmax. Is the output discrete or continuous? How does this relate to the actual predictions? <span class="qa-arr">▶</span></button>
+  <div class="ap">The softmax output is <strong>continuous</strong> — it's a probability vector where each entry ∈ (0,1) and they sum to 1. Each entry represents the continuous probability of a class. The final <em>prediction</em> (argmax of softmax) is <strong>discrete</strong> — a class index. This is the fundamental bridge: the model internally works with continuous probability distributions (amenable to gradient descent), but produces discrete categorical predictions. Cross-entropy loss measures the divergence between the continuous output distribution and the true discrete label distribution.<div class="a-bn">বাংলায়: softmax output continuous (probability)। কিন্তু argmax নিয়ে final prediction হয় discrete (class)। Gradient descent চালানোর জন্য continuous দরকার।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise</div><p>For Normal distribution N(μ=0, σ=1): (a) What is P(X = 0)? (b) What is P(-1 ≤ X ≤ 1)? (c) Why can't we just add up P(X=x) for all x?</p><div class="ex-ans">(a) P(X=0) = 0 exactly (continuous!) (b) P(-1≤X≤1) ≈ 68% (the famous 68-95-99.7 rule) (c) There are uncountably infinite values — summing is undefined; we must integrate the PDF.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://seeing-theory.brown.edu/probability-distributions/index.html" target="_blank">🎯 Seeing Theory: Distributions</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   03  PROBABILITY DISTRIBUTIONS
+══════════════════════════════════════════════ */
+{title:"Probability <em>Distributions</em>",bn:"সম্ভাবনার বিতরণ",tags:[{t:"Shape of Uncertainty",c:"te"},{t:"Data Modeling",c:"ts"},{t:"Prior/Posterior",c:"ta"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>Why do we assume Gaussian (Normal) distribution for regression residuals in linear regression? What breaks if this assumption is violated?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ Gaussian assumption makes MLE = minimizing MSE (they're equivalent under Gaussian noise). If residuals are non-Gaussian — e.g., heavy-tailed (outliers) — MSE is no longer the optimal loss. You should use Huber or MAE instead. In Bayesian regression, the likelihood function IS the Gaussian distribution — violating the assumption invalidates the model.</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Assuming all data is Gaussian.</strong> Most real data is NOT Gaussian — income distributions are log-normal (right-skewed), counts are Poisson, binary events are Bernoulli. Using wrong distribution → wrong inferences and suboptimal models.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing the distribution of data vs. model parameters.</strong> Data may be Bernoulli-distributed (binary labels). Model weights might have Gaussian prior. These are different distributions for different quantities. Keep them straight.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPT — English</div>
+  <p>A <span class="he">probability distribution</span> fully describes the behaviour of a random variable — it tells us the probability of each possible outcome (or range of outcomes).</p>
+  <p style="margin-top:12px"><strong>Parametric distributions</strong> are described by a small set of parameters that determine their shape:</p>
+  <div class="fx">Normal distribution: described by μ (mean) and σ² (variance)
+Bernoulli distribution: described by p (success probability)
+Poisson distribution: described by λ (average rate)
+→ Knowing the parameters = knowing the entire distribution!</div>
+  <p style="margin-top:14px"><strong>Properties every distribution must satisfy:</strong></p>
+  <ol class="steps">
+    <li>All probabilities ≥ 0 (no negative probabilities)</li>
+    <li>Total probability = 1 (Σ or ∫ = 1)</li>
+    <li>Well-defined for all values in its support (domain)</li>
+  </ol>
+  <p style="margin-top:14px"><strong>The Big Picture — Distribution Zoo:</strong></p>
+  <table>
+    <tr><th>Distribution</th><th>Type</th><th>Parameters</th><th>Models</th></tr>
+    <tr><td><span class="he">Bernoulli</span></td><td>Discrete</td><td>p ∈ [0,1]</td><td>Coin flip, binary label</td></tr>
+    <tr><td><span class="hs">Binomial</span></td><td>Discrete</td><td>n, p</td><td>Number of successes in n trials</td></tr>
+    <tr><td><span class="ha">Poisson</span></td><td>Discrete</td><td>λ > 0</td><td>Count events per time unit</td></tr>
+    <tr><td><span class="hv">Uniform (discrete)</span></td><td>Discrete</td><td>a, b (integers)</td><td>Fair die, random index</td></tr>
+    <tr><td><span class="he">Normal (Gaussian)</span></td><td>Continuous</td><td>μ, σ²</td><td>Measurement errors, weights</td></tr>
+    <tr><td><span class="hs">Uniform (continuous)</span></td><td>Continuous</td><td>a, b</td><td>Random initialization range</td></tr>
+    <tr><td><span class="ha">Exponential</span></td><td>Continuous</td><td>λ</td><td>Time between events</td></tr>
+    <tr><td><span class="hv">Beta</span></td><td>Continuous</td><td>α, β</td><td>Prior for probabilities, ∈[0,1]</td></tr>
+    <tr><td><span class="hr">Dirichlet</span></td><td>Continuous</td><td>α₁,...,αₖ</td><td>Prior for categorical distributions</td></tr>
+    <tr><td><span class="hi">Laplace</span></td><td>Continuous</td><td>μ, b</td><td>L1 regularization prior</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Probability Distribution</strong> হলো একটা random variable-এর সম্পূর্ণ আচরণের বিবরণ — কোন মান কতটা সম্ভাব্য।</p>
+  <div class="call-bn">💡 উদাহরণ: তোমার শ্রেণিতে ছাত্রদের উচ্চতার distribution। বেশিরভাগ ছাত্র ১.৬৫–১.৭৫ মিটারের মধ্যে। খুব কম ১.৯ মিটারের বেশি। এই pattern-ই হলো distribution — কোন মান কতটা frequent।</div>
+  <p class="bn" style="margin-top:12px"><strong>Distribution কেন গুরুত্বপূর্ণ?</strong></p>
+  <p class="bn">• ML model মূলত P(Y|X) শেখে — input দেওয়া output-এর distribution</p>
+  <p class="bn">• Generative model data-র distribution শেখে: P(X)</p>
+  <p class="bn">• Loss function-এর পছন্দ distribution-এর assumption-এর উপর নির্ভরশীল</p>
+  <p class="bn">• Bayesian ML-এ parameters-এর distribution (prior, posterior) সংজ্ঞায়িত হয়</p>
+  <p class="bn" style="margin-top:10px"><strong>Connection to Regularization:</strong></p>
+  <p class="bn">• Gaussian prior → L2 regularization (Ridge)</p>
+  <p class="bn">• Laplace prior → L1 regularization (Lasso — sparse weights)</p>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Which Distribution for What</div>
+<table>
+  <tr><th>ML Model/Component</th><th>Distribution Assumed</th><th>Why</th></tr>
+  <tr><td>Linear regression residuals</td><td>Gaussian N(0, σ²)</td><td>MLE → MSE loss</td></tr>
+  <tr><td>Logistic regression output</td><td>Bernoulli(σ(wᵀx))</td><td>MLE → BCE loss</td></tr>
+  <tr><td>Softmax output</td><td>Categorical(softmax(z))</td><td>MLE → CCE loss</td></tr>
+  <tr><td>VAE latent variable</td><td>N(0, I)</td><td>Tractable sampling + KL divergence</td></tr>
+  <tr><td>Weight prior (Bayesian)</td><td>Gaussian N(0, λ⁻¹I)</td><td>Posterior → MAP = L2 regularization</td></tr>
+  <tr><td>Dropout mask</td><td>Bernoulli(1-p)</td><td>Random binary masking</td></tr>
+  <tr><td>Data augmentation</td><td>Various (Uniform, Gaussian)</td><td>Random transforms for robustness</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: What does it mean that a Gaussian prior leads to L2 regularization? <span class="qa-arr">▶</span></button>
+  <div class="ap">MAP estimation with Gaussian prior P(θ) = N(0, σ²I): max P(θ|data) = max P(data|θ)P(θ) = max [log-likelihood + log P(θ)] = max [LL − (1/2σ²)||θ||²]. Minimizing the negative: minimize [-LL + λ||θ||²] where λ=1/2σ². The log of a Gaussian is a quadratic (squared norm) — this IS L2 regularization! Similarly, Laplace prior: log P(θ) ∝ −|θ|/b → L1 regularization. Regularization = choosing a prior distribution over parameters. This deep connection between probability and optimization is fundamental to understanding ML.<div class="a-bn">বাংলায়: Gaussian prior-এর log = quadratic = L2 penalty। Laplace prior-এর log = absolute value = L1 penalty। Regularization = prior distribution choose করা।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://distribution-explorer.github.io" target="_blank">📊 Distribution Explorer (Interactive)</a>
+  <a class="rl" href="https://www.youtube.com/watch?v=mBCiKUzwdMs" target="_blank">🎬 StatQuest: Probability Distributions</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   04  PMF, PDF, CDF
+══════════════════════════════════════════════ */
+{title:"PMF, PDF & <em>CDF</em>",bn:"PMF, PDF এবং CDF",tags:[{t:"PMF",c:"te"},{t:"PDF",c:"ts"},{t:"CDF",c:"ta"},{t:"Distribution Functions",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A Gaussian PDF at x=0 gives f(0) = 0.399. Can this be a probability? And what exactly does 0.399 mean?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ NOT a probability — it's a <strong>probability density</strong>. It can exceed 1.0! The number 0.399 means: the probability of X falling in a tiny interval [0, 0+dx] is approximately 0.399 × dx. Actual probability requires integration: P(-1≤X≤1) = ∫₋₁¹ f(x)dx ≈ 0.683.</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>PDF value > 1 seems wrong — it's not!</strong> A PDF value can be any positive number. N(0, 0.1) has peak PDF ≈ 3.99 (> 1!). The PDF is not bounded by 1 — only the integral is bounded by 1. Think density, not probability.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing CDF with PDF.</strong> CDF is always monotonically increasing from 0 to 1. PDF is the derivative of the CDF. If you want the probability of a range, integrate the PDF (= difference in CDFs). Many learners mix these up in calculations.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Using PMF for continuous distributions.</strong> NLL loss in PyTorch treats the softmax output as probabilities (discrete PMF). Using it with continuous outputs is mathematically wrong — use MSE + Gaussian log-likelihood instead.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CORE CONCEPTS</div>
+  <div class="g3">
+    <div class="gbox" style="border-color:rgba(0,229,160,.3)">
+      <div class="gbox-t he">PMF — Probability Mass Function</div>
+      <p style="font-size:.84em"><strong>For: Discrete RVs</strong><br>P(X=x) = the probability of each exact value<br>Must sum to 1: Σ P(X=x) = 1<br>Each value: 0 ≤ P(X=x) ≤ 1<br><br>Example: P(die=3) = 1/6</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(56,189,248,.3)">
+      <div class="gbox-t hs">PDF — Probability Density Function</div>
+      <p style="font-size:.84em"><strong>For: Continuous RVs</strong><br>f(x) = density at x (NOT probability)<br>Must integrate to 1: ∫f(x)dx = 1<br>f(x) ≥ 0 but f(x) CAN be > 1<br><br>P(a≤X≤b) = ∫ₐᵇ f(x) dx</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(251,191,36,.3)">
+      <div class="gbox-t ha">CDF — Cumulative Distribution Function</div>
+      <p style="font-size:.84em"><strong>For: Both types</strong><br>F(x) = P(X ≤ x) = cumulative prob<br>Always: 0 ≤ F(x) ≤ 1<br>Always monotone increasing<br><br>F(b)−F(a) = P(a≤X≤b)</p>
+    </div>
+  </div>
+</div>
+
+<!-- INTERACTIVE PMF/PDF VISUALIZER -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Distribution Visualizer</div>
+  <div class="ctrl">
+    <label>Distribution</label>
+    <select id="dist-sel">
+      <option value="normal" selected>Normal (Gaussian)</option>
+      <option value="uniform">Uniform</option>
+      <option value="exponential">Exponential</option>
+      <option value="binomial">Binomial (PMF)</option>
+    </select>
+    <label id="p1-lbl">μ (mean)</label>
+    <input type="range" id="p1" min="-30" max="30" value="0">
+    <span class="cval" id="p1-v">0.0</span>
+    <label id="p2-lbl">σ (std dev)</label>
+    <input type="range" id="p2" min="1" max="30" value="10">
+    <span class="cval" id="p2-v">1.0</span>
+  </div>
+  <div class="cw">
+    <canvas id="dist-canvas" width="580" height="220" style="width:100%;display:block"></canvas>
+    <div class="clbl" id="dist-lbl">PDF and CDF visualization</div>
+  </div>
+  <div><span class="cout" id="dist-out">Distribution info...</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Gaussian PDF (most important in ML)</div>
+  <div class="fx"><span class="fe">f(x; μ, σ)</span> = (1/√(2πσ²)) × exp(−(x−μ)²/(2σ²))
+At μ=0, σ=1 (standard normal):
+f(0) = 1/√(2π) ≈ <span class="fa">0.3989</span>   ← density at center, NOT a probability!
+P(−1 ≤ X ≤ 1) = ∫₋₁¹ f(x)dx ≈ 0.683   (68% rule)
+P(−2 ≤ X ≤ 2) ≈ 0.954,   P(−3 ≤ X ≤ 3) ≈ 0.997</div>
+  <div class="fl">Standard Normal CDF (Φ function)</div>
+  <div class="fx"><span class="fe">Φ(x)</span> = P(Z ≤ x) = ∫₋∞ˣ (1/√2π) e^(−t²/2) dt
+Φ(0) = 0.5     (50% of N(0,1) is below 0)
+Φ(1) ≈ 0.841   (84.1% is below μ+σ)
+Φ(−x) = 1 − Φ(x)   (symmetry)
+P(a≤X≤b) = Φ((b−μ)/σ) − Φ((a−μ)/σ)</div>
+  <div class="fl">Relationship: PDF is the derivative of CDF</div>
+  <div class="fx">F(x) = ∫₋∞ˣ f(t) dt      (CDF = integral of PDF)
+f(x) = dF(x)/dx           (PDF = derivative of CDF)
+P(a≤X≤b) = F(b) − F(a)   (use CDF to find interval probabilities)</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>PMF (Probability Mass Function):</strong> Discrete RV-এর জন্য। P(X=x) মানে X ঠিক x হওয়ার সম্ভাবনা। যেমন: P(die=3) = ১/৬।</p>
+  <p class="bn" style="margin-top:8px"><strong>PDF (Probability Density Function):</strong> Continuous RV-এর জন্য। f(x) সম্ভাবনা নয়, ঘনত্ব (density)। f(x) > 1 হওয়া সম্ভব!</p>
+  <div class="call-bn">💡 উদাহরণ: একটা পাতলা পানির পাইপে পানির প্রবাহের হার। এক নির্দিষ্ট মুহূর্তে প্রবাহ মাপা সম্ভব না, কিন্তু এক সেকেন্ডে কতটুকু গেছে সেটা মাপা যায়। PDF = প্রবাহের হার, integral = মোট প্রবাহ (সম্ভাবনা)।</div>
+  <p class="bn" style="margin-top:10px"><strong>CDF (Cumulative Distribution Function):</strong> F(x) = P(X ≤ x)। সবসময় 0 থেকে 1-এর মধ্যে। সবসময় monotone increasing। Practical: দুটো CDF মান বিয়োগ করলে interval probability পাওয়া যায়।</p>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: In training a language model, you compute NLL (negative log-likelihood) loss. What distribution does this implicitly assume? <span class="qa-arr">▶</span></button>
+  <div class="ap">NLL = −log P(y|x; θ) where P is the softmax probability. This implicitly assumes the output follows a <strong>Categorical distribution</strong> (the discrete generalization of Bernoulli to K classes). Minimizing NLL = maximizing likelihood under Categorical assumption = MLE for Categorical distribution. The PMF is: P(Y=k) = softmax(z)ₖ. When K=2 it reduces to Bernoulli → Binary Cross-Entropy. This probabilistic interpretation justifies why cross-entropy IS the right loss for classification — it directly maximizes the probability of the correct class.<div class="a-bn">বাংলায়: NLL loss = Categorical distribution-এর negative log-likelihood। Cross-entropy minimize করা = সঠিক class-এর probability maximize করা।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is the 68-95-99.7 rule and why does an ML engineer need to know it? <span class="qa-arr">▶</span></button>
+  <div class="ap">For a Normal distribution N(μ, σ²): 68% of values fall within ±1σ, 95% within ±2σ, 99.7% within ±3σ. ML applications: (1) Anomaly detection: data point > 3σ from mean = likely outlier (0.3% probability under Normal). (2) Confidence intervals: predictions ± 1.96σ ≈ 95% confidence. (3) Weight initialization: He init N(0, 2/n) — values beyond 3σ from 0 are extremely rare, preventing extreme initial activations. (4) Feature engineering: values beyond 3σ often indicate data errors or genuine outliers worth special treatment.<div class="a-bn">বাংলায়: ±1σ = 68%, ±2σ = 95%, ±3σ = 99.7%। Anomaly detection-এ 3σ-এর বাইরে = outlier। Confidence interval-এ ±1.96σ = 95% interval।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise 1</div><p>For X ~ N(μ=100, σ=15) (IQ scores): (a) What is P(X ≤ 100)? (b) What is P(85 ≤ X ≤ 115)? (c) What is the 95th percentile IQ?</p><div class="ex-ans">(a) 0.50 (mean = median for symmetric Normal) (b) ±1σ range → 68% (c) μ + 1.645σ = 100 + 1.645×15 = 124.7. Use Φ⁻¹(0.95) = 1.645</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data" target="_blank">📘 Khan Academy: Distributions</a>
+  <a class="rl" href="https://scipy.stats/" target="_blank">🐍 SciPy Stats Reference</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   05  EXPECTATION & VARIANCE
+══════════════════════════════════════════════ */
+{title:"Expectation & <em>Variance</em>",bn:"প্রত্যাশা ও বিচরণ",tags:[{t:"E[X]",c:"te"},{t:"Var(X)",c:"ts"},{t:"Bias-Variance",c:"ta"},{t:"Law of Total Expectation",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A model predicts house prices. On training data: predictions are on average 5000 too high (bias). On different random train/test splits, the model's error varies by ±30000 (variance). What does this mean and which is worse?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ Bias = systematic error (model always wrong in the same direction = underfitting). Variance = sensitivity to training data (high variance = overfitting — model memorizes noise). Both are bad, but they require opposite fixes: reduce bias → more complex model; reduce variance → regularization, more data, simpler model. The bias-variance tradeoff directly maps to E[error] and Var[error].</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 EXPECTATION — The Average Over Uncertainty</div>
+  <p>The <span class="he">expected value E[X]</span> is the <strong>probability-weighted average</strong> of all possible values. It's the "long-run average" if you repeat the experiment infinitely.</p>
+  <div class="fx"><span class="fw">Discrete:</span>  E[X] = <span class="fe">Σₓ x · P(X=x)</span>
+<span class="fw">Continuous:</span> E[X] = <span class="fe">∫₋∞^∞ x · f(x) dx</span>
+
+Example (fair die): E[X] = 1×(1/6) + 2×(1/6) + ... + 6×(1/6) = 21/6 = <span class="fa">3.5</span>
+Example (Bernoulli p): E[X] = 0×(1-p) + 1×p = <span class="fa">p</span>
+Example (Normal μ,σ²): E[X] = <span class="fa">μ</span>  (mean IS the expected value)</div>
+  <p style="margin-top:14px"><strong>Key properties of expectation (Linearity!):</strong></p>
+  <div class="fx"><span class="fe">E[aX + bY + c]</span> = aE[X] + bE[Y] + c    ← always true!
+E[X + Y] = E[X] + E[Y]                     ← even if X,Y dependent!
+E[XY] = E[X]·E[Y]  ONLY if X,Y independent  ← beware!
+E[f(X)] ≠ f(E[X])  in general             ← Jensen's inequality!</div>
+
+  <div class="ch-hd" style="margin-top:20px">📖 VARIANCE — Measure of Spread</div>
+  <p>The <span class="hs">variance Var(X)</span> measures how <strong>spread out</strong> the distribution is — average squared deviation from the mean.</p>
+  <div class="fx"><span class="fe">Var(X)</span> = E[(X − E[X])²] = E[X²] − (E[X])²
+<span class="fe">std(X) = σ</span> = √Var(X)   (same units as X — more interpretable!)
+
+Key properties:
+Var(aX) = a²·Var(X)         (scale by a → variance scales by a²)
+Var(X+c) = Var(X)            (shift doesn't affect spread)
+Var(X+Y) = Var(X)+Var(Y)    ONLY if independent!
+Var(X+Y) = Var(X)+Var(Y)+<span class="fr">2·Cov(X,Y)</span>  in general</div>
+
+  <div class="ch-hd" style="margin-top:20px">📖 COVARIANCE & CORRELATION</div>
+  <div class="fx"><span class="fe">Cov(X,Y)</span> = E[(X−E[X])(Y−E[Y])] = E[XY] − E[X]E[Y]
+Cov(X,X) = Var(X)
+<span class="fe">Corr(X,Y)</span> = Cov(X,Y) / (σ_X · σ_Y) ∈ [−1, 1]   ← normalized!
+Corr = 0 → uncorrelated (but may still be dependent!)
+Corr = 1 → perfect positive linear relationship
+Corr = −1 → perfect negative linear relationship</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Expectation E[X] (প্রত্যাশা):</strong> যদি একই experiment অনেকবার করো, average result কত হবে। এটা distribution-এর "center of gravity"।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি lottery খেলছ। ১০% chance ১০০০ টাকা জেতার, ৯০% chance ০ টাকা। Expected value = ০.১×১০০০ + ০.৯×০ = ১০০ টাকা। কিন্তু তুমি কখনো ঠিক ১০০ টাকা পাবে না — হয় ০ নয়তো ১০০০! Expected value হলো long-run average।</div>
+  <p class="bn" style="margin-top:12px"><strong>Variance Var(X) (বিচরণ):</strong> Distribution কতটা ছড়িয়ে আছে। বড় variance = মান গড় থেকে অনেক দূরে যায়। ছোট variance = মান গড়ের কাছাকাছি থাকে।</p>
+  <p class="bn" style="margin-top:8px"><strong>ML-তে Bias-Variance Tradeoff:</strong></p>
+  <p class="bn">• Bias = E[prediction] − true value → systematic error</p>
+  <p class="bn">• Variance = Var(prediction) → sensitivity to training data</p>
+  <p class="bn">• Total Error = Bias² + Variance + Irreducible Noise</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 BIAS-VARIANCE DECOMPOSITION</div>
+  <div class="fl">MSE decomposition — the fundamental ML tradeoff</div>
+  <div class="fx">E[(y − ŷ)²] = <span class="fr">Bias²</span> + <span class="fa">Variance</span> + <span class="fv">σ²_noise</span>
+
+<span class="fr">Bias</span> = E[ŷ] − y        (systematic offset — model too simple?)
+<span class="fa">Variance</span> = E[(ŷ−E[ŷ])²] (spread — model too complex/sensitive?)
+<span class="fv">σ²_noise</span>              (irreducible — inherent randomness in data)
+
+High bias → underfitting → fix: more complex model, more features
+High variance → overfitting → fix: regularization, more data, dropout
+Cannot simultaneously minimize both without more data!</div>
+  <div class="fl">Law of Total Expectation (Tower Property)</div>
+  <div class="fx">E[X] = E[E[X|Y]]     ← "outer expectation over Y, inner over X|Y"
+Example: Average student score = average of (avg score PER CLASS)
+Used in: EM algorithm, Monte Carlo estimation, policy gradient RL</div>
+  <div class="fl">Common distribution statistics</div>
+  <div class="fx">Bernoulli(p):   E[X] = p,     Var(X) = p(1-p)
+Binomial(n,p):  E[X] = np,    Var(X) = np(1-p)
+Poisson(λ):     E[X] = λ,     Var(X) = λ           ← mean = variance!
+Normal(μ,σ²):   E[X] = μ,     Var(X) = σ²
+Uniform[a,b]:   E[X] = (a+b)/2, Var(X) = (b-a)²/12</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — Expectation Everywhere</div>
+<table>
+  <tr><th>ML Component</th><th>Expectation/Variance Role</th></tr>
+  <tr><td>Loss function</td><td>L = E[(y−ŷ)²] — expected loss over data distribution</td></tr>
+  <tr><td>Batch normalization</td><td>Subtract batch mean E[x], divide by √Var(x)</td></tr>
+  <tr><td>Adam optimizer</td><td>Estimates E[g] (first moment) and E[g²] (second moment)</td></tr>
+  <tr><td>Monte Carlo methods</td><td>Approximate E[f(X)] ≈ (1/N)Σf(xᵢ) where xᵢ~p(x)</td></tr>
+  <tr><td>Dropout (test time)</td><td>Expected output = weight × p (scaling for expectation)</td></tr>
+  <tr><td>Policy gradient (RL)</td><td>Maximize E_τ[R(τ)] — expected reward over trajectories</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: Explain the bias-variance tradeoff and give a concrete ML example. <span class="qa-arr">▶</span></button>
+  <div class="ap">MSE = Bias² + Variance + Noise. Bias: average prediction error across many datasets — systematic. Variance: how much predictions change across datasets — sensitivity to training data. Concrete: (1) 1-degree polynomial (linear) fit on wavy data: high bias (can't capture curves), low variance (stable predictions). (2) 20-degree polynomial: low bias (fits training perfectly), high variance (wildly different on test sets). The optimal model balances both. In practice: regularization (L1/L2) reduces variance at cost of slight bias. More training data reduces variance without affecting bias. Ensemble methods (bagging) reduce variance; boosting reduces bias.<div class="a-bn">বাংলায়: Linear model = high bias, low variance। Complex model = low bias, high variance। Regularization variance কমায়। More data variance কমায়।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: What is Monte Carlo estimation and how is it used in ML? <span class="qa-arr">▶</span></button>
+  <div class="ap">Monte Carlo approximates expectations by sampling: E[f(X)] ≈ (1/N)Σᵢf(xᵢ) where xᵢ~p(x). By the Law of Large Numbers, this converges to the true expectation. ML uses: (1) SGD: E[∇L] ≈ gradient on mini-batch (N=32-512 samples). (2) Policy gradient RL: E[reward] ≈ average over sampled trajectories. (3) Dropout: at test time, running multiple forward passes with different masks approximates E[model output]. (4) Bayesian neural nets: approximate posterior expectations via sampling. (5) VAE training: ELBO gradient estimated via reparameterization trick (sampling z = μ + σ·ε, ε~N(0,1)).<div class="a-bn">বাংলায়: Monte Carlo = sampling দিয়ে expectation approximate করা। SGD হলো এর সবচেয়ে সাধারণ ব্যবহার — পুরো dataset-এর gradient-এর expectation mini-batch দিয়ে approximate।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise 1 — Compute E and Var</div><p>X has PMF: P(X=1)=0.2, P(X=2)=0.5, P(X=3)=0.3. Compute E[X], E[X²], and Var(X).</p><div class="ex-ans">E[X] = 1×0.2 + 2×0.5 + 3×0.3 = 0.2+1.0+0.9 = 2.1. E[X²] = 1×0.2 + 4×0.5 + 9×0.3 = 0.2+2.0+2.7 = 4.9. Var(X) = E[X²]−(E[X])² = 4.9−4.41 = 0.49. Std = 0.7.</div></div>
+  <div class="ex"><div class="ex-t">Exercise 2 — Bias-Variance</div><p>Model A: always predicts ŷ=5. True y=5 but varies ±3 (noise). Is this high/low bias/variance?</p><div class="ex-ans">Bias = E[ŷ]−y = 5−5 = 0 (no bias!). Variance of predictions = 0 (always exactly 5, zero spread). MSE = 0 + 0 + 9 (noise²). A constant predictor at the true mean is unbiased and zero-variance — but noise is irreducible.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.youtube.com/watch?v=EuBBz3bI-aA" target="_blank">🎬 StatQuest: Bias and Variance</a>
+  <a class="rl" href="https://www.deeplearning.ai/ai-notes/generalization/" target="_blank">📘 DeepLearning.AI: Bias-Variance</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   06  COMMON DISTRIBUTIONS
+══════════════════════════════════════════════ */
+{title:"Common <em>Distributions</em>",bn:"গুরুত্বপূর্ণ বিতরণসমূহ",tags:[{t:"Bernoulli",c:"te"},{t:"Normal",c:"ts"},{t:"Poisson",c:"ta"},{t:"Binomial / Uniform",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A coin is flipped 100 times. You expect 50 heads but get 63. Should you conclude the coin is biased? Use your knowledge of distributions to reason.</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ 100 flips ~ Binomial(n=100, p=0.5). Mean=50, Std=√(100×0.5×0.5)=5. Getting 63 is (63-50)/5 = 2.6 standard deviations away. P(X≥63) ≈ 0.5%. This IS statistically unusual but not impossible. A proper hypothesis test (binomial test) would give a p-value ≈ 0.007. Likely biased, but distributions tell you HOW likely this outcome is under the null hypothesis.</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THE 5 DISTRIBUTIONS YOU MUST KNOW</div>
+
+  <!-- BERNOULLI -->
+  <div class="dist-card">
+    <div class="dist-name he">① Bernoulli Distribution</div>
+    <div class="dist-symbol">X ~ Bernoulli(p)</div>
+    <p style="font-size:.88em;margin-bottom:8px">Models a single binary experiment (success/failure, yes/no, 1/0). The most fundamental distribution.</p>
+    <div class="fx" style="margin:8px 0;font-size:.8em">PMF: P(X=1) = p,  P(X=0) = 1−p
+P(X=x) = p^x × (1−p)^(1−x)  for x ∈ {0,1}</div>
+    <div class="dist-props">
+      <div class="dp">E[X] = <span>p</span></div>
+      <div class="dp">Var(X) = <span>p(1-p)</span></div>
+      <div class="dp">Max variance at <span>p=0.5</span></div>
+    </div>
+    <div class="mlb" style="margin-top:10px;padding:12px"><div class="mlb-t">ML USE</div><p style="font-size:.83em">Binary classification labels, dropout mask (each neuron: Bernoulli(1-p)), binary cross-entropy assumes Bernoulli output.</p></div>
+  </div>
+
+  <!-- BINOMIAL -->
+  <div class="dist-card">
+    <div class="dist-name hs">② Binomial Distribution</div>
+    <div class="dist-symbol">X ~ Binomial(n, p)</div>
+    <p style="font-size:.88em;margin-bottom:8px">Number of successes in n independent Bernoulli(p) trials. The sum of n Bernoulli RVs.</p>
+    <div class="fx" style="margin:8px 0;font-size:.8em">PMF: P(X=k) = C(n,k) × p^k × (1−p)^(n-k)  for k=0,1,...,n
+C(n,k) = n! / (k!(n-k)!)  ← "n choose k" combinations</div>
+    <div class="dist-props">
+      <div class="dp">E[X] = <span>np</span></div>
+      <div class="dp">Var(X) = <span>np(1-p)</span></div>
+      <div class="dp">Std = <span>√(np(1-p))</span></div>
+    </div>
+    <div class="mlb" style="margin-top:10px;padding:12px"><div class="mlb-t">ML USE</div><p style="font-size:.83em">Number of correct predictions in n samples, accuracy is Binomial-distributed. Hypothesis testing: is model accuracy > random baseline? Beam search in text: number of times a token appears.</p></div>
+  </div>
+
+  <!-- NORMAL -->
+  <div class="dist-card">
+    <div class="dist-name" style="color:var(--amber)">③ Normal (Gaussian) Distribution ⭐ MOST IMPORTANT</div>
+    <div class="dist-symbol">X ~ N(μ, σ²)</div>
+    <p style="font-size:.88em;margin-bottom:8px">The bell curve. Arises naturally as the sum of many independent random variables (Central Limit Theorem). The most important distribution in all of statistics and ML.</p>
+    <div class="fx" style="margin:8px 0;font-size:.8em">PDF: f(x; μ,σ) = (1/σ√2π) × exp(−(x−μ)²/2σ²)
+Standard form: Z ~ N(0,1)  [zero mean, unit variance]
+Any X ~ N(μ,σ²) can be standardized: Z = (X−μ)/σ</div>
+    <div class="dist-props">
+      <div class="dp">E[X] = <span>μ</span></div>
+      <div class="dp">Var(X) = <span>σ²</span></div>
+      <div class="dp">68-95-99.7 rule</div>
+      <div class="dp">Symmetric around <span>μ</span></div>
+    </div>
+    <div class="mlb" style="margin-top:10px;padding:12px"><div class="mlb-t">ML USE — Gaussian is everywhere</div><p style="font-size:.83em">Weight initialization (Xavier, He), batch normalization targets N(0,1), VAE latent prior, linear regression residual assumption, Central Limit Theorem makes it the limit of many ML processes, Gaussian Process regression.</p></div>
+  </div>
+
+  <!-- UNIFORM -->
+  <div class="dist-card">
+    <div class="dist-name hv">④ Uniform Distribution</div>
+    <div class="dist-symbol">X ~ Uniform(a, b)</div>
+    <p style="font-size:.88em;margin-bottom:8px">Equal probability for all values in [a,b]. "Maximum entropy" distribution when only the range is known.</p>
+    <div class="fx" style="margin:8px 0;font-size:.8em">PDF: f(x) = 1/(b−a)   for x ∈ [a,b],  0 elsewhere
+CDF: F(x) = (x−a)/(b−a)</div>
+    <div class="dist-props">
+      <div class="dp">E[X] = <span>(a+b)/2</span></div>
+      <div class="dp">Var(X) = <span>(b-a)²/12</span></div>
+    </div>
+    <div class="mlb" style="margin-top:10px;padding:12px"><div class="mlb-t">ML USE</div><p style="font-size:.83em">Xavier initialization: W~Uniform(−√(6/n_in+n_out), +√(6/n_in+n_out)). Data augmentation (random crop %, random rotation angle). Hyperparameter search (log-uniform for learning rate).</p></div>
+  </div>
+
+  <!-- POISSON -->
+  <div class="dist-card">
+    <div class="dist-name hr">⑤ Poisson Distribution</div>
+    <div class="dist-symbol">X ~ Poisson(λ)</div>
+    <p style="font-size:.88em;margin-bottom:8px">Number of events in a fixed time/space interval, when events occur independently at rate λ. Unique: mean = variance = λ.</p>
+    <div class="fx" style="margin:8px 0;font-size:.8em">PMF: P(X=k) = (λᵏ × e^(−λ)) / k!   for k=0,1,2,...
+Notable: as n→∞, Binomial(n, λ/n) → Poisson(λ)</div>
+    <div class="dist-props">
+      <div class="dp">E[X] = <span>λ</span></div>
+      <div class="dp">Var(X) = <span>λ</span></div>
+      <div class="dp">E[X] = Var(X) = <span>λ</span></div>
+    </div>
+    <div class="mlb" style="margin-top:10px;padding:12px"><div class="mlb-t">ML USE</div><p style="font-size:.83em">Count data modeling (clicks per hour, tokens per sentence, defects per batch), NLP word frequency distributions (rare words), anomaly detection (unusual click rates), survival analysis.</p></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা — সংক্ষিপ্ত পরিচয়</div>
+  <div class="call-bn">⬡ Bernoulli: একটা মুদ্রা ছোঁড়া → Head (১) বা Tail (০)। Binary classification-এর ভিত্তি।</div>
+  <div class="call-bn">⬡ Binomial: ১০০টা মুদ্রা ছুঁড়লে মোট Head কতটা? n বার Bernoulli-র সমষ্টি।</div>
+  <div class="call-bn">⬡ Normal: উচ্চতা, IQ, measurement error — প্রকৃতিতে সবচেয়ে বেশি দেখা যায়। Central Limit Theorem-এর কারণে।</div>
+  <div class="call-bn">⬡ Uniform: সব মান সমান সম্ভাব্য। Weight initialization-এ ব্যবহার।</div>
+  <div class="call-bn">⬡ Poisson: প্রতি ঘণ্টায় ওয়েবসাইটে কতজন visitor? Count data-র জন্য।</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 CENTRAL LIMIT THEOREM — Why Normal is Everywhere</div>
+  <div class="fl">The most important theorem in statistics</div>
+  <div class="fx"><span class="fe">CLT:</span> If X₁, X₂, ..., Xₙ are independent with mean μ and variance σ², then:
+(X̄ − μ) / (σ/√n) → N(0, 1)  as n → ∞
+where X̄ = (X₁+X₂+...+Xₙ)/n  (sample mean)
+
+Practical meaning: The AVERAGE of many independent RVs is approximately Normal,
+regardless of the individual distribution — as long as mean/variance are finite!
+
+ML impact: SGD gradient = average over mini-batch → approximately Gaussian
+→ This is why Gaussian noise assumptions are reasonable for gradient analysis!</div>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: Why is the Central Limit Theorem important for understanding deep learning training? <span class="qa-arr">▶</span></button>
+  <div class="ap">SGD computes gradient as an average over a mini-batch: ĝ = (1/B)Σᵢ∇Lᵢ. By CLT, this average is approximately Gaussian around the true gradient ∇L, with variance σ²/B. Implications: (1) Larger batch B → smaller variance → more stable gradient → can use larger learning rate (linear scaling rule). (2) The Gaussian noise structure of SGD is why momentum and adaptive methods work well — they're implicitly estimating properties of a Gaussian noise process. (3) At convergence, SGD parameter updates follow an Ornstein-Uhlenbeck process (Gaussian SDE), explaining why flat minima are preferred — they have lower noise amplification.<div class="a-bn">বাংলায়: CLT-র কারণে mini-batch gradient approximately Gaussian। বড় batch = কম variance = stable। এটাই learning rate scaling rule-এর ভিত্তি।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: When should you use Poisson regression instead of linear regression? <span class="qa-arr">▶</span></button>
+  <div class="ap">Use Poisson regression when: (1) Target is a count (non-negative integer: clicks, words, events, customers). (2) Variance ≈ mean (Poisson property — check this!). (3) No upper bound on the target. Linear regression problems on count data: (1) Can predict negative counts (nonsense). (2) Assumes Gaussian residuals (wrong for counts). (3) Variance is assumed constant (Poisson variance grows with mean). Poisson regression uses log link: log(E[Y]) = Xβ → E[Y] = exp(Xβ) (always positive!). Loss is Poisson negative log-likelihood instead of MSE.<div class="a-bn">বাংলায়: Count data (clicks, words, events) → Poisson regression। Linear regression negative predict করতে পারে যা count-এ অসম্ভব।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise 1 — Distribution Matching</div><p>Match each scenario to the best distribution: (a) Number of defective chips in a batch of 1000 (each has 0.1% defect rate) (b) Exact voltage reading (should be 5V, with measurement error) (c) Whether a specific email is spam or not (d) Number of Tweets per hour by a user</p><div class="ex-ans">(a) Binomial(1000, 0.001) ≈ Poisson(1) (b) Normal(5, σ²) (c) Bernoulli(p) where p=P(spam) (d) Poisson(λ) where λ=average tweets/hour</div></div>
+  <div class="ex"><div class="ex-t">Exercise 2 — Compute</div><p>X ~ Binomial(n=10, p=0.3). Compute: E[X], Var(X), P(X=0), P(X=3).</p><div class="ex-ans">E[X]=10×0.3=3. Var=10×0.3×0.7=2.1. P(X=0)=0.7¹⁰≈0.028. P(X=3)=C(10,3)×0.3³×0.7⁷=120×0.027×0.0824≈0.267.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.youtube.com/playlist?list=PLblh5JKOoLUK0FLuzwntyYI10UQFUiumbY" target="_blank">🎬 StatQuest: Probability Distributions playlist</a>
+  <a class="rl" href="https://numpy.org/doc/stable/reference/random/generator.html" target="_blank">🐍 NumPy Random Distributions</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   07  INDEPENDENCE & CONDITIONAL PROB
+══════════════════════════════════════════════ */
+{title:"Independence & <em>Conditional Probability</em>",bn:"স্বাধীনতা ও শর্তসাপেক্ষ সম্ভাবনা",tags:[{t:"P(A|B)",c:"te"},{t:"Independence",c:"ts"},{t:"Chain Rule",c:"ta"},{t:"Naive Bayes",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A spam classifier uses words "free" and "money" as features. Naïve Bayes assumes these are conditionally independent given the class. Is this realistic and does it matter?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ NOT realistic — "free" and "money" often appear together. But surprisingly, Naïve Bayes still works well in practice! The independence assumption simplifies computation from O(2^n) to O(n) features. When the assumption is wrong, the probability calibration is off, but the argmax (classification) is often still correct. This is the "naïve" in Naïve Bayes — wrong assumptions, right answer.</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 CONDITIONAL PROBABILITY — Updating Beliefs</div>
+  <p>P(A|B) = "Probability of A given that B has occurred." B is new information that changes our belief about A.</p>
+  <div class="fx"><span class="fe">P(A|B)</span> = P(A ∩ B) / P(B)     [definition, requires P(B) > 0]
+Rearranged: <span class="fe">P(A ∩ B)</span> = P(A|B) × P(B)   [multiplication rule]
+Chain rule:  P(A,B,C) = P(A|B,C) × P(B|C) × P(C)
+P(A,B,C,...) = ∏ P(Xᵢ | X₁,...,Xᵢ₋₁)</div>
+
+  <div class="ch-hd" style="margin-top:20px">📖 INDEPENDENCE — When Learning Nothing from B</div>
+  <div class="fx">A and B are <span class="fe">independent</span> if knowing B gives NO information about A:
+<span class="fe">P(A|B) = P(A)</span>     ← knowing B doesn't change P(A)
+Equivalently: P(A ∩ B) = P(A) × P(B)
+
+<span class="ha">Conditional independence</span>: A ⊥ B | C
+P(A|B,C) = P(A|C)  — given C, B provides no extra info about A
+Note: Independent does NOT imply conditionally independent, and vice versa!</div>
+
+  <p style="margin-top:14px"><strong>Total Probability Law:</strong></p>
+  <div class="fx">P(A) = Σₖ P(A|Bₖ) × P(Bₖ)    where {Bₖ} partition the sample space
+Example: P(rain) = P(rain|cloudy)×P(cloudy) + P(rain|clear)×P(clear)
+Used in: Bayes' theorem derivation, latent variable models, EM algorithm</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Conditional Probability P(A|B):</strong> B ঘটেছে জানার পর A ঘটার সম্ভাবনা কত? এটা আমাদের belief update করার পদ্ধতি।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি জানো না আজ বৃষ্টি হবে কিনা। P(বৃষ্টি) = ৩০%। কিন্তু তুমি যদি দেখো আকাশ মেঘলা, তাহলে P(বৃষ্টি | মেঘলা) = ৭০%। মেঘলা আকাশ দেখা = নতুন তথ্য → belief update!</div>
+  <p class="bn" style="margin-top:12px"><strong>Independence (স্বাধীনতা):</strong> A এবং B independent মানে B সম্পর্কে জানা A সম্পর্কে কোনো নতুন তথ্য দেয় না।</p>
+  <div class="call-bn">💡 উদাহরণ: আজ বৃষ্টি হওয়া এবং পাশের বাড়িতে বিড়াল জন্ম নেওয়া — এরা independent। একটা জানলে অপরটার সম্পর্কে কিছু জানা যায় না।</div>
+  <p class="bn" style="margin-top:10px"><strong>Conditional Independence:</strong> A এবং B সরাসরি related না হলেও তৃতীয় কারণ C-এর মাধ্যমে সংযুক্ত হতে পারে। C জানা থাকলে A এবং B independent।</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 FORMULAS</div>
+  <div class="fl">Multiplication Rule — joint from conditional</div>
+  <div class="fx">P(A,B) = P(A|B)·P(B) = P(B|A)·P(A)
+P(A,B,C) = P(A|B,C)·P(B|C)·P(C)   [chain rule of probability]
+For independent: P(A,B) = P(A)·P(B)  [factorizes cleanly!]</div>
+  <div class="fl">Naïve Bayes — conditional independence in action</div>
+  <div class="fx">P(Y=c | X₁,...,Xₙ) ∝ P(Y=c) × ∏ᵢ P(Xᵢ | Y=c)
+Naïve assumption: P(X₁,...,Xₙ|Y=c) = ∏ᵢ P(Xᵢ|Y=c)  [feature independence!]
+Without this: need P(X₁,...,Xₙ|Y=c) — exponential in n!
+With this: need only n×K parameters  [tractable!]</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application</div>
+<table>
+  <tr><th>ML Concept</th><th>Independence Assumption</th></tr>
+  <tr><td>Naïve Bayes classifier</td><td>Features conditionally independent given class</td></tr>
+  <tr><td>i.i.d. training data assumption</td><td>Samples independent, identically distributed</td></tr>
+  <tr><td>Factored variational inference</td><td>Posterior q(z) = ∏ᵢ qᵢ(zᵢ) (mean-field)</td></tr>
+  <tr><td>Causal inference (do-calculus)</td><td>Conditional independence = no direct causal path</td></tr>
+  <tr><td>Batch normalization</td><td>Assumes feature independence within a layer</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: What does i.i.d. mean and what breaks when it's violated in ML? <span class="qa-arr">▶</span></button>
+  <div class="ap">i.i.d. = independently and identically distributed. Independent: samples don't influence each other. Identical: all drawn from the same distribution P(X,Y). Violations: (1) Time series: stock prices today depend on yesterday (not independent). (2) Distribution shift: training distribution ≠ test distribution (not identical). (3) Clustering: patients from the same hospital are correlated. Consequences: (1) Standard generalization bounds (VC theory) don't apply. (2) Estimated variance of test loss is wrong (too optimistic). (3) Model may overfit to spurious correlations. Solutions: robust training, domain adaptation, time-series-specific models, cluster-aware splitting.<div class="a-bn">বাংলায়: i.i.d. = প্রতিটা sample স্বাধীন এবং একই distribution থেকে। Time series, distribution shift-এ এই assumption ভাঙে।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise</div><p>P(A)=0.4, P(B)=0.3, P(A∩B)=0.12. (a) Are A and B independent? (b) Compute P(A|B). (c) Compute P(A∪B).</p><div class="ex-ans">(a) P(A)×P(B)=0.4×0.3=0.12=P(A∩B) → YES, independent! (b) P(A|B)=P(A∩B)/P(B)=0.12/0.3=0.4=P(A) (confirms independence) (c) P(A∪B)=P(A)+P(B)−P(A∩B)=0.4+0.3−0.12=0.58</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.khanacademy.org/math/statistics-probability/probability-library" target="_blank">📘 Khan: Conditional Probability</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   08  BAYES' THEOREM
+══════════════════════════════════════════════ */
+{title:"Bayes' <em>Theorem</em>",bn:"বেইজের উপপাদ্য",tags:[{t:"Prior & Posterior",c:"te"},{t:"Medical Diagnosis",c:"ts"},{t:"Bayesian ML",c:"ta"},{t:"MAP Estimation",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>A disease affects 1% of people. A test has 99% sensitivity and 99% specificity. You test positive. What is the probability you actually have the disease?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ Use Bayes: P(disease|+) = P(+|disease)×P(disease) / P(+). P(+) = 0.99×0.01 + 0.01×0.99 = 0.0198. P(disease|+) = (0.99×0.01)/0.0198 ≈ <strong>50%</strong>! Shocking — despite 99% accuracy test, only 50% chance. Why? The prior P(disease)=1% is very low. This is the base rate fallacy — critical for understanding ML precision/recall on imbalanced datasets.</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Ignoring the prior (base rate fallacy).</strong> A model with 99% accuracy on a 99%-negative dataset is useless — it just predicts negative always. Bayes' theorem explains why: P(positive|test+) depends critically on P(positive). Always consider base rates!</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Confusing P(A|B) with P(B|A).</strong> P(spam|"free money") ≠ P("free money"|spam). The first is what you want (is this email spam?). The second is easier to estimate from training data. Bayes' theorem connects them. This confusion is called the "inverse fallacy."</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Treating MAP as Bayesian.</strong> MAP (Maximum A Posteriori) is not fully Bayesian — it's a point estimate. True Bayesian inference maintains the full posterior distribution, enabling uncertainty quantification. MAP = mode of posterior; Bayes = the full posterior.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 BAYES' THEOREM — THE FORMULA</div>
+  <div class="call" style="text-align:center;padding:18px">
+    <div style="font-size:1.3em;font-weight:700;color:var(--white);font-family:'JetBrains Mono',monospace;margin-bottom:8px">P(A|B) = P(B|A) × P(A) / P(B)</div>
+    <div style="font-size:.85em;color:var(--muted)">posterior ∝ likelihood × prior</div>
+  </div>
+  <div class="bayes-box">
+    <div class="bb" style="background:rgba(0,229,160,.12)"><div style="color:var(--emerald);font-size:1.1em">P(A|B)</div><div class="bb-label">POSTERIOR<br>Updated belief about A after seeing B</div></div>
+    <div class="bb" style="background:rgba(56,189,248,.12)"><div style="color:var(--sky);font-size:1.1em">P(B|A)</div><div class="bb-label">LIKELIHOOD<br>How probable is B if A is true?</div></div>
+    <div class="bb" style="background:rgba(251,191,36,.12)"><div style="color:var(--amber);font-size:1.1em">P(A)</div><div class="bb-label">PRIOR<br>Belief about A before seeing B</div></div>
+  </div>
+  <div class="fx" style="margin-top:12px">ML formulation:  <span class="fe">P(θ|data)</span> = P(data|θ) × P(θ) / P(data)
+<span class="fa">posterior</span>       = <span class="fv">likelihood</span> × <span class="fi">prior</span> / <span class="fg">evidence</span>
+P(data) = ∫ P(data|θ)P(θ)dθ  ← intractable integral! (why we need approximations)
+
+<span class="fe">MLE:</span> θ_MLE = argmax P(data|θ)                    [ignores prior]
+<span class="fe">MAP:</span> θ_MAP = argmax P(data|θ)×P(θ) = argmax [LL + log P(θ)]  [uses prior]
+<span class="fe">Bayes:</span> full P(θ|data)                            [full posterior]</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা — বেইজের উপপাদ্য</div>
+  <p class="bn"><strong>বেইজের উপপাদ্য</strong> হলো নতুন তথ্য পাওয়ার পর আমাদের বিশ্বাস (belief) update করার গাণিতিক পদ্ধতি।</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি জানো তোমার শহরে ১% মানুষ একটা বিরল রোগে আক্ষান্ত (prior = ১%)। তুমি test দিলে এবং positive এলো (নতুন তথ্য = likelihood)। এখন তোমার কি নিশ্চিতভাবে রোগ আছে? বেইজের উপপাদ্য বলে: পুরনো বিশ্বাস (prior) + নতুন তথ্য (likelihood) = নতুন বিশ্বাস (posterior)।</div>
+  <p class="bn" style="margin-top:12px"><strong>ML-এ বেইজ:</strong></p>
+  <p class="bn">• <span style="color:var(--amber)">Prior P(θ)</span>: model parameter সম্পর্কে training-এর আগে আমাদের ধারণা। Gaussian prior → L2 regularization।</p>
+  <p class="bn">• <span style="color:var(--violet)">Likelihood P(data|θ)</span>: এই parameter দিয়ে data পাওয়ার সম্ভাবনা। Cross-entropy maximize করা = likelihood maximize করা।</p>
+  <p class="bn">• <span style="color:var(--emerald)">Posterior P(θ|data)</span>: data দেখার পর parameter সম্পর্কে নতুন ধারণা।</p>
+  <p class="bn">• Evidence P(data): সব possible parameter-এর সাথে data দেখার মোট সম্ভাবনা — সাধারণত অগণনযোগ্য (intractable)।</p>
+</div>
+
+<!-- INTERACTIVE BAYES CALCULATOR -->
+<div class="card">
+  <div class="ch-hd">🎮 INTERACTIVE — Bayes Calculator</div>
+  <p style="font-size:.85em;color:var(--muted);margin-bottom:12px">Medical test scenario: adjust disease prevalence and test accuracy</p>
+  <div class="ctrl">
+    <label>Disease prevalence (%)</label>
+    <input type="range" id="prev-s" min="1" max="50" value="1">
+    <span class="cval" id="prev-v">1%</span>
+    <label>Test sensitivity (%)</label>
+    <input type="range" id="sens-s" min="50" max="100" value="99">
+    <span class="cval" id="sens-v">99%</span>
+    <label>Test specificity (%)</label>
+    <input type="range" id="spec-s" min="50" max="100" value="99">
+    <span class="cval" id="spec-v">99%</span>
+  </div>
+  <div class="cw">
+    <canvas id="bayes-canvas" width="580" height="180" style="width:100%;display:block"></canvas>
+  </div>
+  <div><span class="cout" id="bayes-out">P(disease|positive) = computing...</span></div>
+  <div style="margin-top:8px;font-size:.82em;color:var(--muted)">⚡ Notice: even with a 99% accurate test, P(disease|positive) can be very low when prevalence is low — the base rate fallacy!</div>
+</div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: What is the difference between MLE, MAP, and full Bayesian inference? When do you use each? <span class="qa-arr">▶</span></button>
+  <div class="ap"><strong>MLE</strong>: θ_MLE = argmax P(data|θ). No prior. Fast, simple, works with lots of data. Problem: overfits with little data (no regularization). <strong>MAP</strong>: θ_MAP = argmax P(θ|data) = argmax [P(data|θ)P(θ)]. Uses prior (= regularization). Gaussian prior → L2 reg; Laplace → L1 reg. Still a point estimate — no uncertainty. <strong>Full Bayesian</strong>: compute full posterior P(θ|data). Enables uncertainty quantification, Bayesian credible intervals, model averaging. Expensive: requires MCMC, variational inference, or Laplace approximation. Use MLE/MAP for large-scale DL; full Bayes for scientific applications, small data, safety-critical systems where uncertainty matters.<div class="a-bn">বাংলায়: MLE = শুধু data দেখে শেখা। MAP = prior knowledge + data। Full Bayes = uncertainty সহ full distribution। Big DL → MLE/MAP। Safety-critical, small data → full Bayes।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: How does Bayes' theorem explain why precision is low for rare class detection? <span class="qa-arr">▶</span></button>
+  <div class="ap">Precision = P(truly positive | predicted positive) = P(pred+|truly+) × P(truly+) / P(pred+). When the class is rare (P(truly+) tiny), even a high-precision classifier will have many false positives flooding the denominator. Example: fraud detection, 0.1% fraud rate, 99% recall model. P(pred+) ≈ 99%×0.1% + 1%×99.9% ≈ 1.1%. Precision = (99%×0.1%)/1.1% ≈ 9%! 91% of flagged transactions are false alarms despite 99% recall. This is Bayes at work: low base rate → low precision regardless of model quality. Solutions: resampling, threshold adjustment, cost-sensitive learning, Bayesian decision theory with asymmetric costs.<div class="a-bn">বাংলায়: rare class → low base rate → precision automatically কম (Bayes-এর base rate effect)। Fraud detection, medical diagnosis-এ এটা সবচেয়ে বড় চ্যালেঞ্জ।</div></div></div>
+</div>
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise — Apply Bayes</div><p>Email classifier: P(spam)=0.2, P("win"|spam)=0.7, P("win"|not spam)=0.05. A new email contains "win". Compute P(spam|"win").</p><div class="ex-ans">P("win") = P("win"|spam)P(spam) + P("win"|not spam)P(not spam) = 0.7×0.2 + 0.05×0.8 = 0.14+0.04 = 0.18. P(spam|"win") = (0.7×0.2)/0.18 = 0.14/0.18 ≈ 0.778 (78%). High — "win" is a strong spam indicator.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.youtube.com/watch?v=HZGCoVF3YvM" target="_blank">🎬 3Blue1Brown: Bayes Theorem</a>
+  <a class="rl" href="https://betterexplained.com/articles/an-intuitive-and-short-explanation-of-bayes-theorem/" target="_blank">💡 Better Explained: Bayes</a>
+</div>`},
+
+/* ══════════════════════════════════════════════
+   09  LIKELIHOOD VS PROBABILITY
+══════════════════════════════════════════════ */
+{title:"Likelihood vs <em>Probability</em>",bn:"সম্ভাবনা বনাম লাইকলিহুড",tags:[{t:"MLE",c:"te"},{t:"Log-Likelihood",c:"ts"},{t:"Loss Function Connection",c:"ta"},{t:"Bayesian",c:"tv"}],body:`
+<div class="card law1">
+  <div class="ch-hd">⚡ LAW 1 — PREDICTION FIRST</div>
+  <p>You observe data D = {1, 3, 2, 4, 3}. You want to fit a Normal distribution. Should you maximize P(D|μ, σ) or P(μ, σ|D)? What is the difference?</p>
+  <p style="margin-top:9px;color:var(--emerald)">✅ P(D|μ,σ) is the <strong>likelihood</strong> — "given these parameters, how probable is our data?" Maximizing this is MLE. P(μ,σ|D) is the <strong>posterior</strong> — "given our data, what parameter values are most probable?" Maximizing this is MAP. MLE gives μ̂ = sample mean = 2.6, σ̂² = sample variance. MAP adds a prior to regularize the estimate. In frequentist ML, we do MLE (maximize likelihood = minimize NLL loss).</p>
+</div>
+<div class="card law2">
+  <div class="ch-hd">🔴 LAW 2 — FAILURE MODES</div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Treating likelihood as a probability distribution over parameters.</strong> L(θ; data) is NOT a probability distribution over θ. It doesn't integrate to 1 over θ. It's a function of θ for fixed data. Only P(θ|data) (the posterior) is a distribution over θ.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Maximizing likelihood instead of log-likelihood.</strong> For n data points: L = ∏ᵢ P(xᵢ|θ). This product of many small numbers → numerical underflow (→ 0). Always maximize log L = Σᵢ log P(xᵢ|θ). Same optimal θ, but numerically stable and converts products to sums.</span></div>
+  <div class="fi"><span class="fi-i">✗</span><span><strong>Not connecting NLL loss to likelihood.</strong> Every standard loss function IS a negative log-likelihood under some distribution assumption. MSE = NLL under Gaussian. BCE = NLL under Bernoulli. CCE = NLL under Categorical. Understanding this connection reveals what distribution your model implicitly assumes.</span></div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📖 THE KEY DISTINCTION</div>
+  <div class="g2">
+    <div class="gbox" style="border-color:rgba(0,229,160,.3)">
+      <div class="gbox-t he">Probability P(data|θ)</div>
+      <p style="font-size:.85em"><strong>Fixed θ, varying data</strong><br>A function of DATA<br>"Given model θ, how likely is this data?"<br>Sums/integrates to 1 over all data<br>Example: P(X=3 | θ=(μ=3, σ=1)) = 0.399</p>
+    </div>
+    <div class="gbox" style="border-color:rgba(56,189,248,.3)">
+      <div class="gbox-t hs">Likelihood L(θ; data)</div>
+      <p style="font-size:.85em"><strong>Fixed data, varying θ</strong><br>A function of PARAMETERS<br>"Given this data, how well does θ explain it?"<br>Does NOT sum to 1 over θ<br>Same formula, different perspective!</p>
+    </div>
+  </div>
+  <div class="call" style="margin-top:14px"><strong>Same formula, different question:</strong> P(data|θ) used as a function of data = probability. P(data|θ) used as a function of θ = likelihood. The numbers are the same — but what we're maximizing over changes everything.</div>
+
+  <div class="ch-hd" style="margin-top:20px">📖 MLE — Maximum Likelihood Estimation</div>
+  <div class="fx"><span class="fe">θ_MLE</span> = argmax_θ P(data | θ)
+         = argmax_θ ∏ᵢ P(xᵢ | θ)     [i.i.d. assumption]
+         = argmax_θ Σᵢ log P(xᵢ | θ)  [log-likelihood, more stable]
+         = argmin_θ −Σᵢ log P(xᵢ | θ) [minimize NLL]
+
+<span class="fa">Connection to loss functions:</span>
+MSE loss    ← MLE under Gaussian likelihood: P(y|x,θ) = N(f(x;θ), σ²)
+BCE loss    ← MLE under Bernoulli likelihood: P(y|x,θ) = Bernoulli(σ(f(x;θ)))
+CCE loss    ← MLE under Categorical likelihood: P(y|x,θ) = Cat(softmax(f(x;θ)))</div>
+</div>
+
+<div class="card">
+  <div class="ch-hd">🇧🇩 বাংলা ব্যাখ্যা</div>
+  <p class="bn"><strong>Probability vs Likelihood-এর মূল পার্থক্য:</strong></p>
+  <p class="bn">একই সূত্র, কিন্তু ভিন্ন দৃষ্টিকোণ:</p>
+  <div class="call-bn">💡 উদাহরণ: তুমি একটা মুদ্রা ছুঁড়েছ এবং ৭টা Head পেয়েছ ১০টায়।
+• Probability: P(৭ Head | p=0.7) — "p=0.7 হলে ৭ Head পাওয়ার সম্ভাবনা কত?"
+• Likelihood: L(p | ৭ Head) — "৭ Head দেখে, p-এর কোন মান এটাকে সবচেয়ে ভালো explain করে?"
+একই সূত্র C(10,7)×p⁷×(1-p)³, কিন্তু প্রথমে p নির্দিষ্ট এবং data পরিবর্তন হয়। দ্বিতীয়তে data নির্দিষ্ট এবং p পরিবর্তন হয়।</div>
+  <p class="bn" style="margin-top:12px"><strong>MLE (Maximum Likelihood Estimation):</strong></p>
+  <p class="bn">সেই θ খুঁজে বের করো যেটা দেখা data-কে সবচেয়ে বেশি সম্ভাব্য করে।</p>
+  <p class="bn"><strong>গুরুত্বপূর্ণ connection:</strong> Loss function minimize করা = Negative Log-Likelihood minimize করা = Likelihood maximize করা। তাই MSE minimize করা = Gaussian likelihood maximize করা। Cross-entropy minimize করা = Categorical likelihood maximize করা।</p>
+</div>
+
+<div class="card">
+  <div class="ch-hd">📐 MLE EXAMPLES — DERIVING LOSS FUNCTIONS</div>
+  <div class="fl">MLE for Normal → derives MSE loss</div>
+  <div class="fx">Assume: P(yᵢ|xᵢ,θ) = N(f(xᵢ;θ), σ²)   [Gaussian noise model]
+Log-likelihood: LL = Σᵢ log N(yᵢ; f(xᵢ;θ), σ²)
+              = Σᵢ [−log(σ√2π) − (yᵢ−f(xᵢ;θ))²/(2σ²)]
+Maximize LL = Minimize Σᵢ(yᵢ−f(xᵢ;θ))²  ← <span class="fe">this IS MSE!</span></div>
+  <div class="fl">MLE for Bernoulli → derives Binary Cross-Entropy</div>
+  <div class="fx">Assume: P(yᵢ|xᵢ,θ) = Bernoulli(σ(f(xᵢ;θ)))
+Log-likelihood: LL = Σᵢ [yᵢlog(ŷᵢ) + (1−yᵢ)log(1−ŷᵢ)]
+Maximize LL = Minimize −LL = <span class="fe">Binary Cross-Entropy!</span></div>
+  <div class="fl">Log-likelihood vs Likelihood — numerical stability</div>
+  <div class="fx">Problem: P(x₁)×P(x₂)×...×P(xₙ) with n=10,000
+If each P ≈ 0.1: product ≈ 0.1^10000 ≈ 10^(-10000) → <span class="fr">UNDERFLOW!</span>
+Solution: log P(x₁) + log P(x₂) + ... = −10000×log(10) = −10000  ✓
+Maximizing LL is equivalent to minimizing NLL (by multiplying by −1)</div>
+</div>
+
+<div class="mlb"><div class="mlb-t">🤖 ML Application — The Unified View</div>
+<table>
+  <tr><th>Loss Function</th><th>Equivalent NLL</th><th>Implicit Distribution</th></tr>
+  <tr><td>MSE: Σ(y−ŷ)²</td><td>NLL of Normal(ŷ, σ²)</td><td>Gaussian noise</td></tr>
+  <tr><td>MAE: Σ|y−ŷ|</td><td>NLL of Laplace(ŷ, b)</td><td>Laplace (heavy-tailed)</td></tr>
+  <tr><td>BCE: −Σ[y log ŷ +(1−y)log(1−ŷ)]</td><td>NLL of Bernoulli(ŷ)</td><td>Binary outcomes</td></tr>
+  <tr><td>CCE: −Σ y·log(ŷ)</td><td>NLL of Categorical(ŷ)</td><td>Multi-class outcomes</td></tr>
+  <tr><td>L2 reg: λ||θ||²</td><td>Negative log Gaussian prior</td><td>Prior = N(0, 1/2λ)</td></tr>
+</table></div>
+
+<div class="card"><div class="ch-hd">💼 INTERVIEW Q&A</div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q1: You're training a neural network with MSE loss. What probability model does this implicitly assume? What are the implications? <span class="qa-arr">▶</span></button>
+  <div class="ap">MSE = NLL under Gaussian noise model: P(y|x,θ) = N(f(x;θ), σ²). Implications: (1) Assumes noise is symmetric and Gaussian. (2) Assumes equal variance for all predictions (homoscedasticity). (3) Sensitive to outliers — a single y=100 prediction error contributes 10,000 to MSE, dominating training. If these assumptions are violated: (a) Skewed residuals → use asymmetric loss. (b) Heteroscedasticity → predict σ² too (uncertainty-aware regression). (c) Heavy-tailed errors → use MAE (= Laplace assumption) or Huber. Understanding the probabilistic interpretation lets you design better losses.<div class="a-bn">বাংলায়: MSE = Gaussian noise assumption। Outlier আছে → Huber বা MAE ব্যবহার করো। Variable noise → uncertainty-aware model দরকার।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q2: Explain how MLE connects to the information-theoretic view of cross-entropy loss. <span class="qa-arr">▶</span></button>
+  <div class="ap">MLE maximizes Σ log P(yᵢ|xᵢ;θ) = −NLL. For categorical: NLL = −Σᵢ log ŷ_{y_i} = Cross-Entropy(y, ŷ) = H(y, ŷ). Information theory: H(P, Q) = −Σ P(x) log Q(x) = expected code length when using Q to encode P-distributed data. Minimizing H(y, ŷ) = making model distribution ŷ as close as possible to true distribution y. Note: H(P,Q) = H(P) + KL(P||Q). Since H(P) is fixed (true label entropy), minimizing cross-entropy = minimizing KL divergence between true and predicted distributions. MLE = minimize KL = minimize cross-entropy. All three views are equivalent!<div class="a-bn">বাংলায়: Cross-entropy minimize করা = KL divergence minimize করা = MLE = model distribution কে সত্যিকারের distribution-এর কাছে নিয়ে যাওয়া। তিনটা একই কথা।</div></div></div>
+  <div class="qa"><button class="qb" onclick="tQ(this)">Q3: What is the difference between frequentist and Bayesian approaches to ML? <span class="qa-arr">▶</span></button>
+  <div class="ap"><strong>Frequentist</strong>: Parameters θ are fixed unknowns. Uncertainty comes only from randomness in data. Inference: find θ that maximizes likelihood (MLE) or regularized likelihood (MAP). No prior. Confidence intervals describe long-run frequency properties. Most standard DL (Adam optimizer, SGD, dropout) is frequentist. <strong>Bayesian</strong>: Parameters θ are random variables with prior distribution P(θ). Inference: compute posterior P(θ|data) ∝ P(data|θ)P(θ). Prediction: P(y|x,data) = ∫P(y|x,θ)P(θ|data)dθ (model averaging). Credible intervals describe direct probability about θ. Applications: Gaussian Processes, Bayesian optimization (hyperparameter tuning), uncertainty quantification in safety-critical systems, few-shot learning with informed priors.<div class="a-bn">বাংলায়: Frequentist = θ fixed, data random। Bayesian = θও random variable, prior থেকে শুরু করে posterior নিয়ে যাই।</div></div></div>
+</div>
+
+<div class="card"><div class="ch-hd">🏋️ EXERCISES</div>
+  <div class="ex"><div class="ex-t">Exercise 1 — Compute MLE</div><p>Observe data: {H, H, T, H, T} (3 heads, 2 tails). Assuming Bernoulli(p), find p_MLE. Show your derivation using log-likelihood.</p><div class="ex-ans">L(p) = p³(1-p)². Log-L = 3log(p)+2log(1-p). dL/dp = 3/p − 2/(1-p) = 0. 3(1-p) = 2p. 3 = 5p. p_MLE = 3/5 = 0.6. This is the sample proportion of heads — MLE for Bernoulli is always the sample mean!</div></div>
+  <div class="ex"><div class="ex-t">Exercise 2 — Connect to Loss</div><p>Show that minimizing MSE = maximizing likelihood under Gaussian assumption. Start from the Gaussian PDF and derive the MSE loss.</p><div class="ex-ans">P(yᵢ|xᵢ) = (1/√2πσ²) exp(−(yᵢ−ŷᵢ)²/2σ²). Log-L = Σᵢ [−log(σ√2π) − (yᵢ−ŷᵢ)²/2σ²]. Maximizing log-L ≡ minimizing Σ(yᵢ−ŷᵢ)² (the constant terms don't affect the argmax). QED.</div></div>
+</div>
+<div class="card"><div class="ch-hd">🔗 RESOURCES</div>
+  <a class="rl" href="https://www.youtube.com/watch?v=pYxNSUDSFH4" target="_blank">🎬 StatQuest: MLE</a>
+  <a class="rl" href="https://www.youtube.com/watch?v=XepXtl9YKwc" target="_blank">🎬 StatQuest: Probability vs Likelihood</a>
+  <a class="rl" href="https://betterexplained.com/articles/probability-the-basics/" target="_blank">💡 Better Explained: Probability Basics</a>
+</div>`}
+
+];
+
+/* ═══════════════ BUILD ═══════════════ */
+function buildAll(){
+  const nl=document.getElementById('nl');
+  const mc=document.getElementById('mc');
+  TOPICS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='nb'+(i===0?' active':'');
+    b.innerHTML=`<span class="nb-num">${String(i+1).padStart(2,'0')}</span><span>${NAV[i]}</span>`;
+    b.onclick=()=>show(i);
+    nl.appendChild(b);
+    const s=document.createElement('section');
+    s.className='sec'+(i===0?' active':'');
+    s.id='s'+i;
+    s.innerHTML=`<div class="ch"><div class="ch-num">CHAPTER ${String(i+1).padStart(2,'0')} / ${TOPICS.length} · PROBABILITY THEORY</div><div class="ch-title">${t.title}</div><div class="ch-bn">${t.bn}</div><div class="ch-tags">${t.tags.map(g=>`<span class="tag ${g.c}">${g.t}</span>`).join('')}</div></div>${t.body}`;
+    mc.appendChild(s);
+  });
+}
+
+function show(i){
+  i=parseInt(i);
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s'+i).classList.add('active');
+  document.querySelectorAll('.nb')[i]?.classList.add('active');
+  const pct=Math.round((i+1)/TOPICS.length*100);
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pp').textContent=pct+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{
+    if(i===3) initDist();
+    if(i===7) initBayes();
+  },150);
+}
+
+function tQ(btn){
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+/* ═══════════════ DISTRIBUTION CANVAS ═══════════════ */
+function initDist(){
+  const c=document.getElementById('dist-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const sel=document.getElementById('dist-sel');
+  const p1s=document.getElementById('p1'),p2s=document.getElementById('p2');
+  const p1v=document.getElementById('p1-v'),p2v=document.getElementById('p2-v');
+  const p1l=document.getElementById('p1-lbl'),p2l=document.getElementById('p2-lbl');
+  const lbl=document.getElementById('dist-lbl'),out=document.getElementById('dist-out');
+
+  function normal(x,mu,sig){return Math.exp(-0.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));}
+  function exp_(x,la){return x<0?0:la*Math.exp(-la*x);}
+
+  function draw(){
+    const dist=sel.value;
+    const p1=parseInt(p1s.value)/10, p2=parseInt(p2s.value)/10;
+
+    let labels=['μ','σ'],vals=[p1.toFixed(1),p2.toFixed(1)];
+    if(dist==='uniform'){labels=['a','b'];vals=[(p1).toFixed(1),(p2).toFixed(1)];}
+    else if(dist==='exponential'){labels=['λ','']; vals=[p2.toFixed(1),''];}
+    else if(dist==='binomial'){labels=['n','p']; vals=['10',(p2/3+0.1).toFixed(2)];}
+    p1l.textContent=labels[0]; p2l.textContent=labels[1];
+    p1v.textContent=vals[0]; p2v.textContent=vals[1];
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#1e2d42';ctx.lineWidth=0.5;
+    for(let i=0;i<5;i++){const y=H/5*i;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-10,y);ctx.stroke();}
+
+    const pts=[], cpts=[];
+    let xMin=-4,xMax=4,maxY=0;
+
+    if(dist==='normal'){
+      const mu=p1, sig=Math.max(p2/3,0.1)+0.3;
+      xMin=mu-4*sig; xMax=mu+4*sig;
+      for(let x=xMin;x<=xMax;x+=(xMax-xMin)/200){
+        const y=normal(x,mu,sig); pts.push({x,y}); if(y>maxY)maxY=y;
+      }
+      labels=['μ (mean)','σ (std)']; p1l.textContent='μ'; p2l.textContent='σ';
+      p1v.textContent=mu.toFixed(1); p2v.textContent=sig.toFixed(2);
+      out.textContent=`N(μ=${mu.toFixed(1)}, σ=${sig.toFixed(2)}) | E[X]=${mu.toFixed(1)} | Var=${(sig**2).toFixed(2)} | 68% in [${(mu-sig).toFixed(1)}, ${(mu+sig).toFixed(1)}]`;
+      lbl.textContent='Gaussian (Normal) PDF — bell curve';
+    } else if(dist==='uniform'){
+      const a=p1-1, b=p1+p2/3+1.5;
+      xMin=a-1; xMax=b+1;
+      const h=1/(b-a);
+      maxY=h*1.2;
+      for(let x=xMin;x<=xMax;x+=(xMax-xMin)/200){
+        const y=(x>=a&&x<=b)?h:0; pts.push({x,y});
+      }
+      out.textContent=`Uniform[${a.toFixed(1)}, ${b.toFixed(1)}] | E[X]=${((a+b)/2).toFixed(2)} | PDF=${h.toFixed(3)}`;
+      lbl.textContent='Uniform PDF — flat/equal probability everywhere';
+    } else if(dist==='exponential'){
+      const la=Math.max(p2/3+0.2,0.1);
+      xMin=0; xMax=6/la; maxY=la;
+      for(let x=0;x<=xMax;x+=xMax/200){
+        const y=exp_(x,la); pts.push({x,y}); if(y>maxY)maxY=y;
+      }
+      p1l.textContent='(unused)'; p2l.textContent='λ (rate)'; p2v.textContent=la.toFixed(2);
+      out.textContent=`Exponential(λ=${la.toFixed(2)}) | E[X]=1/λ=${(1/la).toFixed(2)} | Var=${(1/la**2).toFixed(2)}`;
+      lbl.textContent='Exponential PDF — time between events';
+    } else if(dist==='binomial'){
+      const n=10, prob=Math.min(Math.max(p2/10+0.05,0.05),0.95);
+      xMin=-0.5; xMax=n+0.5; maxY=0;
+      const fact=n=>n<=1?1:n*fact(n-1);
+      const C=(n,k)=>fact(n)/(fact(k)*fact(n-k));
+      for(let k=0;k<=n;k++){
+        const y=C(n,k)*Math.pow(prob,k)*Math.pow(1-prob,n-k);
+        pts.push({x:k,y,disc:true}); if(y>maxY)maxY=y;
+      }
+      p1l.textContent='n=10 (fixed)'; p2l.textContent='p'; p2v.textContent=prob.toFixed(2);
+      out.textContent=`Binomial(10, ${prob.toFixed(2)}) | E[X]=${(10*prob).toFixed(1)} | Var=${(10*prob*(1-prob)).toFixed(2)}`;
+      lbl.textContent='Binomial PMF — number of successes in 10 trials';
+    }
+
+    if(pts.length===0)return;
+    maxY*=1.15;
+    const cx=x=>(x-xMin)/(xMax-xMin)*(W-50)+40;
+    const cy=y=>H-20-(y/maxY)*(H-40);
+
+    // CDF overlay
+    ctx.beginPath();ctx.strokeStyle='rgba(251,191,36,.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    let cdf=0;
+    const step=(xMax-xMin)/200;
+    pts.forEach((p,i)=>{
+      if(p.disc){cdf+=p.y;}else{cdf+=p.y*step;}
+      const fc=Math.min(cdf,1);
+      i===0?ctx.moveTo(cx(p.x),cy(fc*maxY)):ctx.lineTo(cx(p.x),cy(fc*maxY));
+    });
+    ctx.stroke();ctx.setLineDash([]);
+
+    // PDF/PMF
+    if(pts[0].disc){
+      pts.forEach(p=>{
+        ctx.fillStyle='rgba(0,229,160,.6)';
+        const bw=Math.min(30,(W-50)/pts.length*0.7);
+        ctx.fillRect(cx(p.x)-bw/2,cy(p.y),bw,cy(0)-cy(p.y));
+        ctx.fillStyle='var(--emerald)';
+        ctx.fillRect(cx(p.x)-bw/2,cy(p.y),bw,3);
+      });
+    } else {
+      ctx.beginPath();ctx.strokeStyle='#00e5a0';ctx.lineWidth=2.5;
+      pts.forEach((p,i)=>{i===0?ctx.moveTo(cx(p.x),cy(p.y)):ctx.lineTo(cx(p.x),cy(p.y));});
+      ctx.stroke();
+      ctx.beginPath();ctx.fillStyle='rgba(0,229,160,.08)';
+      pts.forEach((p,i)=>{i===0?ctx.moveTo(cx(p.x),cy(0)):null; ctx.lineTo(cx(p.x),cy(p.y));});
+      ctx.lineTo(cx(pts[pts.length-1].x),cy(0));ctx.closePath();ctx.fill();
+    }
+
+    // legend
+    ctx.font='11px JetBrains Mono';
+    ctx.fillStyle='#00e5a0'; ctx.fillText('PDF/PMF',W-90,18);
+    ctx.fillStyle='rgba(251,191,36,.8)'; ctx.fillText('CDF',W-90,32);
+  }
+
+  sel.addEventListener('change',draw);
+  p1s.addEventListener('input',draw);
+  p2s.addEventListener('input',draw);
+  draw();
+}
+
+/* ═══════════════ BAYES CANVAS ═══════════════ */
+function initBayes(){
+  const c=document.getElementById('bayes-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const prevS=document.getElementById('prev-s');
+  const sensS=document.getElementById('sens-s');
+  const specS=document.getElementById('spec-s');
+  const prevV=document.getElementById('prev-v');
+  const sensV=document.getElementById('sens-v');
+  const specV=document.getElementById('spec-v');
+  const out=document.getElementById('bayes-out');
+
+  function draw(){
+    const prev=parseInt(prevS.value)/100;
+    const sens=parseInt(sensS.value)/100;
+    const spec=parseInt(specS.value)/100;
+    prevV.textContent=Math.round(prev*100)+'%';
+    sensV.textContent=Math.round(sens*100)+'%';
+    specV.textContent=Math.round(spec*100)+'%';
+
+    const pPos = sens*prev + (1-spec)*(1-prev);
+    const pDisPos = (sens*prev)/pPos;
+    const pDisNeg = ((1-sens)*prev)/(1-pPos);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+
+    // Population bar
+    const bw=W-80,bh=40,bx=40,by=20;
+    ctx.fillStyle='#1e2d42';ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle='rgba(251,113,133,.5)';ctx.fillRect(bx,by,bw*prev,bh);
+    ctx.font='11px JetBrains Mono';
+    ctx.fillStyle='#f0f6ff';ctx.fillText(`Population: ${(prev*100).toFixed(0)}% disease (red) | ${((1-prev)*100).toFixed(0)}% healthy (dark)`,bx,by+bh+14);
+
+    // Test positive bar
+    const tpy=90,tp=pPos;
+    ctx.fillStyle='#1e2d42';ctx.fillRect(bx,tpy,bw,bh);
+    const tp_dis=sens*prev;
+    const tp_nodis=(1-spec)*(1-prev);
+    ctx.fillStyle='rgba(251,113,133,.7)';ctx.fillRect(bx,tpy,bw*tp_dis,bh);
+    ctx.fillStyle='rgba(56,189,248,.3)';ctx.fillRect(bx+bw*tp_dis,tpy,bw*tp_nodis,bh);
+    ctx.fillStyle='#f0f6ff';ctx.fillText(`Test+ (${(pPos*100).toFixed(1)}%): true+ (red) vs false+ (blue)`,bx,tpy+bh+14);
+
+    // PPV bar
+    const pvy=150;
+    ctx.fillStyle='#1e2d42';ctx.fillRect(bx,pvy,bw,30);
+    ctx.fillStyle=pDisPos>0.5?'rgba(0,229,160,.7)':'rgba(251,191,36,.7)';
+    ctx.fillRect(bx,pvy,bw*pDisPos,30);
+    ctx.fillStyle='#f0f6ff';ctx.fillText(`P(disease | test+) = ${(pDisPos*100).toFixed(1)}%  ← Posterior Probability`,bx,pvy+30+14);
+
+    out.textContent=`P(disease|+) = ${(pDisPos*100).toFixed(1)}% | P(disease|−) = ${(pDisNeg*100).toFixed(1)}% | False positive rate = ${((1-spec)*100).toFixed(0)}%`;
+  }
+
+  prevS.addEventListener('input',draw);
+  sensS.addEventListener('input',draw);
+  specS.addEventListener('input',draw);
+  draw();
+}
+
+buildAll();
+setTimeout(initDist,200);
+</script>
+<script src="clean-language.js"></script>
+</body>
+</html>
