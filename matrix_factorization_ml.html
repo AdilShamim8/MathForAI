@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Matrix Factorization & Decomposition</title>
-
-
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -815,19 +814,21 @@ function initSVD(){
     for(let c=0;c<Math.min(k,n);c++){
       let u=Array.from({length:n},(_,i)=>Math.sin((i+c*2.7)*1.3));
       const un=Math.sqrt(u.reduce((s,x)=>s+x*x,0));u=u.map(x=>x/un);
+      let v=new Array(n).fill(0);
+      let sig=0;
       for(let iter=0;iter<8;iter++){
-        let v=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u[i],0));
-        const sig=Math.sqrt(v.reduce((s,x)=>s+x*x,0));if(sig<1e-10)break;
+        v=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u[i],0));
+        sig=Math.sqrt(v.reduce((s,x)=>s+x*x,0));if(sig<1e-10)break;
         v=v.map(x=>x/sig);
         u=R.map(row=>row.reduce((s,x,j)=>s+x*v[j],0));
-        const un2=Math.sqrt(u.reduce((s,x)=>s+x*x,0));if(un2<1e-10)break;
-        u=u.map(x=>x/un2);
-        components.push({u:[...u],v:[...v],sig:un2});
+        sig=Math.sqrt(u.reduce((s,x)=>s+x*x,0));if(sig<1e-10)break;
+        u=u.map(x=>x/sig);
       }
-      // Deflate
-      const sig2=components[components.length-1]?.sig||1;
-      const u2=u,v2=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u2[i],0));
-      R=R.map((row,i)=>row.map((x,j)=>x-sig2*u2[i]*v2[j]/sig2));
+      if(sig<1e-10)break;
+      components.push({u:[...u],v:[...v],sig});
+      // Deflate using the current component
+      const v2=Array.from({length:n},(_,j)=>R.reduce((s,row,i)=>s+row[j]*u[i],0));
+      R=R.map((row,i)=>row.map((x,j)=>x-u[i]*v2[j]));
     }
     // Reconstruct using first k components
     components.slice(0,k).forEach(({u,v,sig})=>{

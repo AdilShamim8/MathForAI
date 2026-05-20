@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Probability + Linear Algebra in ML</title>
-
-
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -788,7 +787,7 @@ function initCov(){
     const det=v1*v2-cov*cov;
     const ox=W/2,oy=H/2,sc=22;
     if(det<=0){
-      ctx.fillStyle='var(--rose)';ctx.font='14px Inter';ctx.textAlign='center';
+      ctx.fillStyle='#ff5e8a';ctx.font='14px Inter';ctx.textAlign='center';
       ctx.fillText('Invalid: Σ must be positive definite',W/2,H/2);
       document.getElementById('cov-mat').textContent=`Σ not PD — reduce |cov|`;
       return;
@@ -866,7 +865,7 @@ function initMah(){
     clearCanvas('mah-canvas');
     const ctx=document.getElementById('mah-canvas').getContext('2d');
     const ox=W/2,oy=H/2,sc=22;
-    if(det<=0){ctx.fillStyle='var(--rose)';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Invalid Σ',W/2,H/2);return;}
+    if(det<=0){ctx.fillStyle='#ff5e8a';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Invalid Σ',W/2,H/2);return;}
     // Draw sigma shells
     [[3,'rgba(255,85,119,.2)',0.3],[2,'rgba(176,108,255,.3)',0.45],[1,'rgba(245,200,66,.65)',0.8]].forEach(([n,col,a])=>{
       const S=[[Sigma[0][0]*n*n,Sigma[0][1]*n*n],[Sigma[0][1]*n*n,Sigma[1][1]*n*n]];

@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Information Theory for ML</title>
-
-
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -820,7 +819,7 @@ function initEntropy(){
     ctx.strokeStyle='#2a4060';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
     // Labels
-    ctx.fillStyle='var(--muted,#527aaa)';ctx.font='10px Fira Code';
+    ctx.fillStyle='#527aaa';ctx.font='10px Fira Code';
     ctx.fillText('0',pad-8,H-pad+3);ctx.fillText('1',W-pad-4,H-pad+3);
     ctx.fillText('1 bit',pad+2,pad+3);ctx.fillText('p →',W-80,H-pad+12);
     // Curve
